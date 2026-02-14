@@ -37,9 +37,9 @@ jobs:
           git add -A
 
           if ! git diff --cached --quiet; then
-            git commit -m "format(ruff): [ci skip]"
+            git commit -m "format(ruff) [ci skip]"
             git show HEAD
-            git push origin HEAD:${{ github.head_ref }}
+            git push
           else
             echo "No changes required"
           fi
