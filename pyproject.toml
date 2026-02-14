@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["version"]
+name = "rewavelink"
+dependencies = [
+    "discord.py>=2.6,<3",
+    "curl-cffi>=0.14.0,<1",
+    "msgspec>=0.20.0,<1",
+]
+requires-python = ">=3.12"
+authors = [
+    { name = "PythonistaGuild, EvieePy", email="evieepy@gmail.com" },  # the original author of wavelink
+    { name = "vmphase" },
+    { name = "Soheab" },
+    { name = "DA-344 (aka Developer Anonymous)" },
+]
+maintainers = [
+    { name = "vmphase" },
+    { name = "DA-344 (aka Developer Anonymous)" },
+    { name = "Soheab" },
+]
+description = "A maintained fork of WaveLink, a robust and powerful, fully asynchronous Lavalink wrapper built for discord.py in Python."
+readme = "README.md"
+license = "MIT"
+keywords = ["lavalink", "wavelink", "discord.py", "discord"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: AsyncIO",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Repository = "https://github.com/rewavelink/relink.git"
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
