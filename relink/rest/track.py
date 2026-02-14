@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -41,13 +42,13 @@ class TrackInfoType(msgspec.Struct, kw_only=True):
     """Represents a Track's info available under :attr:`TrackType.info`."""
 
     identifier: str
-    is_seekable: bool = msgspec.field(name="isSeekable")
+    title: str
     author: str
     length: int
-    is_stream: bool = msgspec.field(name="isStream")
     position: int
-    title: str
+    is_seekable: bool = msgspec.field(name="isSeekable")
+    is_stream: bool = msgspec.field(name="isStream")
+    source_name: str = msgspec.field(name="sourceName")
     uri: str | None = None
     artwork_url: str | None = msgspec.field(name="artworkUrl", default=None)
     isrc: str | None = msgspec.field(name="isrc", default=None)
-    source_name: str = msgspec.field(name="sourceName")
