@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -42,17 +43,10 @@ class ErrorResponseType(msgspec.Struct, kw_only=True):
     trace: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "timestamp": self.timestamp,
-            "status": self.status,
-            "error": self.error,
-            "message": self.message,
-            "path": self.path,
-            "trace": self.trace,
-        }
+        return dict(self.__dict__)
 
 
-class ReLinkException(BaseException):
+class ReLinkException(Exception):
     """Base exception class for all errors on this library."""
 
 
@@ -67,19 +61,14 @@ class HTTPException(ReLinkException):
     _underlying: ErrorResponseType
 
     def __init__(self, data: dict[str, Any]) -> None:
-        self._underlying = ErrorResponseType(
-            timestamp=data["timestamp"],
-            status=data["status"],
-            error=data["error"],
-            message=data["message"],
-            trace=data.get("trace"),
-            path=data["path"],
-        )
+        self._underlying = ErrorResponseType(**data)
 
     @cached_property("_cs_timestamp")
     def timestamp(self) -> datetime.datetime:
         """The timestamp on which this exception was created."""
-        return datetime.datetime.fromtimestamp(self._underlying.timestamp, tz=datetime.timezone.utc)
+        return datetime.datetime.fromtimestamp(
+            self._underlying.timestamp, tz=datetime.timezone.utc
+        )
 
     @property
     def status(self) -> int:
