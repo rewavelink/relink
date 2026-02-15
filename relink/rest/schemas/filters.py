@@ -28,34 +28,34 @@ from typing import Any
 import msgspec
 
 
-class PlayerFilterType(msgspec.Struct, kw_only=True):
+class PlayerFilters(msgspec.Struct, kw_only=True):
     """Represents a Filter structure payload."""
 
     volume: float | None = None
-    equalizer: list[EqualizerFilterType] | None = None
-    karaoke: KaraokeFilterType | None = None
-    timescale: TimescaleFilterType | None = None
-    tremolo: TremoloFilterType | None = None
-    vibrato: VibratoFilterType | None = None
-    rotation: RotationFilterType | None = None
-    distortion: DistortionFilterType | None = None
-    channel_mix: ChannelMixFilterType | None = msgspec.field(
+    equalizer: list[EqualizerFilter] | None = None
+    karaoke: KaraokeFilter | None = None
+    timescale: TimescaleFilter | None = None
+    tremolo: TremoloFilter | None = None
+    vibrato: VibratoFilter | None = None
+    rotation: RotationFilter | None = None
+    distortion: DistortionFilter | None = None
+    channel_mix: ChannelMixFilter | None = msgspec.field(
         name="channelMix", default=None
     )
-    low_pass: LowPassFilterType | None = msgspec.field(name="lowPass", default=None)
+    low_pass: LowPassFilter | None = msgspec.field(name="lowPass", default=None)
     plugin_filters: dict[str, Any] = msgspec.field(
         name="pluginFilters", default_factory=dict[str, Any]
     )
 
 
-class EqualizerFilterType(msgspec.Struct, kw_only=True):
+class EqualizerFilter(msgspec.Struct, kw_only=True):
     """Represents an EqualizerFilter structure payload."""
 
     band: int  # 0-14
     gain: float  # -0.25 to 1.0
 
 
-class KaraokeFilterType(msgspec.Struct, kw_only=True):
+class KaraokeFilter(msgspec.Struct, kw_only=True):
     """Represents a KaraokeFilter structure payload."""
 
     level: float | None = None  # 0-1.0, 0.0 is no effect
@@ -64,7 +64,7 @@ class KaraokeFilterType(msgspec.Struct, kw_only=True):
     filter_width: float | None = None
 
 
-class TimescaleFilterType(msgspec.Struct, kw_only=True):
+class TimescaleFilter(msgspec.Struct, kw_only=True):
     """Represents a TimescaleFilter structure payload."""
 
     speed: float | None = None
@@ -72,27 +72,27 @@ class TimescaleFilterType(msgspec.Struct, kw_only=True):
     rate: float | None = None
 
 
-class TremoloFilterType(msgspec.Struct, kw_only=True):
+class TremoloFilter(msgspec.Struct, kw_only=True):
     """Represents a TremoloFilter structure payload."""
 
     frequency: float | None = None  # <= 14.0
     depth: float | None = None  # <= 1.0
 
 
-class VibratoFilterType(msgspec.Struct, kw_only=True):
+class VibratoFilter(msgspec.Struct, kw_only=True):
     """Represents a VibratoFilter structure payload."""
 
     frequency: float | None = None  # <= 14.0
     depth: float | None = None  # <= 1.0
 
 
-class RotationFilterType(msgspec.Struct, kw_only=True):
+class RotationFilter(msgspec.Struct, kw_only=True):
     """Represents a RotationFilter structure payload."""
 
     rotation_hz: float | None = msgspec.field(name="rotationHz", default=None)
 
 
-class DistortionFilterType(msgspec.Struct, kw_only=True):
+class DistortionFilter(msgspec.Struct, kw_only=True):
     """Represents a DistortionFilter structure payload."""
 
     sin_offset: float | None = msgspec.field(name="sinOffset", default=None)
@@ -105,7 +105,7 @@ class DistortionFilterType(msgspec.Struct, kw_only=True):
     scale: float | None = None
 
 
-class ChannelMixFilterType(msgspec.Struct, kw_only=True):
+class ChannelMixFilter(msgspec.Struct, kw_only=True):
     """Represents a ChannelMixFilter structure payload."""
 
     left_to_left: float | None = msgspec.field(
@@ -122,7 +122,7 @@ class ChannelMixFilterType(msgspec.Struct, kw_only=True):
     )  # <= 1.0
 
 
-class LowPassFilterType(msgspec.Struct, kw_only=True):
+class LowPassFilter(msgspec.Struct, kw_only=True):
     """Represents a LowPassFilter structure payload."""
 
     smoothing: float | None = None  # > 1.0
