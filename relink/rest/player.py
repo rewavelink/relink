@@ -58,3 +58,26 @@ class PlayerVoiceStateType(msgspec.Struct, kw_only=True):
     token: str
     endpoint: str
     session_id: str = msgspec.field(name="sessionId")
+
+
+# PATCH /v4/sessions/{sessionId}/players/{guildId}?noReplace=true
+
+
+class UpdatePlayerRequestType(msgspec.Struct, kw_only=True):
+    """Represents an UpdatePlayerRequest structure payload."""
+
+    track: UpdatePlayerTrackRequestType | None = None
+    position: int | None = None
+    endtime: int | None = msgspec.field(name="endTime", default=None)
+    volume: int | None = None
+    paused: bool | None = None
+    filters: PlayerFilterType | None = None
+    voice: PlayerVoiceStateType | None = None
+
+
+class UpdatePlayerTrackRequestType(msgspec.Struct, kw_only=True):
+    """Represents an UpdatePlayerTrackRequest structure payload."""
+
+    encoded: str | None = None
+    identifier: str | None = None
+    user_data: dict[str, Any] | None = msgspec.field(name="userData", default=None)
