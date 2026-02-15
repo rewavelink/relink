@@ -29,7 +29,7 @@ from typing import Any
 import msgspec
 
 from .playlist import PlaylistInfoType
-from .enums import TrackLoadResultType
+from ..enums import TrackLoadResultType
 
 
 class TrackType(msgspec.Struct, kw_only=True):
