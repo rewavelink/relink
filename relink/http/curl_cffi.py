@@ -24,14 +24,16 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
-from typing import Any, cast, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional, cast
 
-from curl_cffi.requests import AsyncSession, Response
+from curl_cffi.requests import AsyncSession, AsyncWebSocket, Response, WebSocketClosed
 
-from .base import BaseHTTPManager
+from .base import BaseHTTPManager, BaseWebsocketManager
 
 if TYPE_CHECKING:
+    from curl_cffi.requests import HeaderTypes
     from curl_cffi.requests.session import HttpMethod
 
 
@@ -63,7 +65,7 @@ class CurlHTTPManager(BaseHTTPManager):
         response = await self._session.request(  # type: ignore
             method=cast("HttpMethod", method.upper()),
             url=url,
-            headers=headers,
+            headers=cast("HeaderTypes", headers),
             params=dict(params) if params else None,
             json=json,
             data=data,
@@ -87,3 +89,53 @@ class CurlHTTPManager(BaseHTTPManager):
     @property
     def is_closed(self) -> bool:
         return self._session is None
+
+
+class CurlWebsocketManager(BaseWebsocketManager):
+    """Curl-cffi implementation of the Websocket Manager."""
+
+    def __init__(self, session: AsyncSession[Response]) -> None:
+        self._session = session
+        self._ws: AsyncWebSocket | None = None
+
+    async def connect(
+        self,
+        url: str,
+        # heartbeat: float,
+        headers: Mapping[str, str],
+    ) -> None:
+        self._ws = await self._session.ws_connect(  # type: ignore
+            url=url,
+            headers=cast("HeaderTypes", headers),
+        )
+
+    async def receive(self) -> Any:
+        if self._ws is None:
+            raise RuntimeError("Websocket is not connected.")
+
+        ws: AsyncWebSocket = self._ws
+
+        try:
+            payload, _ = await ws.recv()
+        except WebSocketClosed:
+            self._ws = None
+            raise ConnectionResetError("Websocket connection was closed.")
+
+        if payload is None:
+            self._ws = None
+            raise ConnectionResetError(
+                "Websocket received an empty payload/close frame."
+            )
+
+        return json.loads(payload.decode("utf-8"))
+
+    async def close(self) -> None:
+        if self._ws is None:
+            return None
+
+        await self._ws.close()
+        self._ws = None
+
+    @property
+    def is_connected(self) -> bool:
+        return self._ws is not None

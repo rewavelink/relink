@@ -29,7 +29,7 @@ from typing import Any, Optional
 
 import aiohttp
 
-from .base import BaseHTTPManager
+from .base import BaseHTTPManager, BaseWebsocketManager
 
 
 class AioHTTPManager(BaseHTTPManager):
@@ -80,3 +80,48 @@ class AioHTTPManager(BaseHTTPManager):
     @property
     def is_closed(self) -> bool:
         return self._session is None or self._session.closed
+
+
+class AioWebsocketManager(BaseWebsocketManager):
+    """Aiohttp implementation of the Websocket Manager."""
+
+    def __init__(self, session: aiohttp.ClientSession) -> None:
+        self._session = session
+        self._ws: aiohttp.ClientWebSocketResponse | None = None
+
+    async def connect(
+        self,
+        url: str,
+        # heartbeat: float,
+        headers: Mapping[str, str],
+    ) -> None:
+        self._ws = await self._session.ws_connect(url=url, headers=headers)
+
+    async def receive(self) -> Any:
+        if self._ws is None:
+            raise RuntimeError("Websocket is not connected.")
+
+        ws: aiohttp.ClientWebSocketResponse = self._ws
+
+        if ws.closed:
+            self._ws = None
+            raise RuntimeError("Websocket is closed.")
+
+        msg = await ws.receive()
+
+        if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
+            self._ws = None
+            raise ConnectionError("Websocket connection was closed.")
+
+        if msg.type == aiohttp.WSMsgType.ERROR:
+            raise RuntimeError(f"Websocket received error: {ws.exception()}")
+
+        return msg.json()
+
+    async def close(self) -> None:
+        if self._ws and not self._ws.closed:
+            await self._ws.close()
+
+    @property
+    def is_connected(self) -> bool:
+        return self._ws is not None and not self._ws.closed

@@ -61,3 +61,33 @@ class BaseHTTPManager(ABC):
     def is_closed(self) -> bool:
         """Check if the underlying session is closed."""
         pass
+
+
+class BaseWebsocketManager(ABC):
+    """Abstract Base Class for ReWaveLink Websocket backends."""
+
+    @abstractmethod
+    async def connect(
+        self,
+        url: str,
+        # ! heartbeat: float, => since curl_cffi doesn't have one
+        headers: Mapping[str, str],
+    ) -> None:
+        """Establish a connection to the Lavalink Websocket server."""
+        pass
+
+    @abstractmethod
+    async def receive(self) -> Any:
+        """Wait for a message from the websocket and return the parsed JSON data."""
+        pass
+
+    @abstractmethod
+    async def close(self) -> None:
+        """Close the websocket connection and perform cleanup."""
+        pass
+
+    @property
+    @abstractmethod
+    def is_connected(self) -> bool:
+        """Check if the websocket is currently connected and active."""
+        pass
