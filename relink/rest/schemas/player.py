@@ -28,7 +28,7 @@ from typing import Any
 import msgspec
 
 from .track import TrackType
-from .filters import PlayerFilterType
+from .filters import PlayerFilters
 
 
 class PlayerType(msgspec.Struct, kw_only=True):
@@ -40,7 +40,7 @@ class PlayerType(msgspec.Struct, kw_only=True):
     paused: bool
     state: PlayerStateType
     voice: PlayerVoiceStateType
-    filters: PlayerFilterType
+    filters: PlayerFilters
 
 
 class PlayerStateType(msgspec.Struct, kw_only=True):
@@ -71,7 +71,7 @@ class UpdatePlayerRequestType(msgspec.Struct, kw_only=True):
     endtime: int | None = msgspec.field(name="endTime", default=None)
     volume: int | None = None
     paused: bool | None = None
-    filters: PlayerFilterType | None = None
+    filters: PlayerFilters | None = None
     voice: PlayerVoiceStateType | None = None
 
 

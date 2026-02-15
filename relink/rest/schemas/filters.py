@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 from __future__ import annotations
-from typing import Any
+from typing import Any, Annotated
 
 import msgspec
 
@@ -51,17 +51,17 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
 class EqualizerFilter(msgspec.Struct, kw_only=True):
     """Represents an EqualizerFilter structure payload."""
 
-    band: int  # 0-14
-    gain: float  # -0.25 to 1.0
+    band: Annotated[int, "0–14"]
+    gain: Annotated[float, "-0.25–1.0"]
 
 
 class KaraokeFilter(msgspec.Struct, kw_only=True):
     """Represents a KaraokeFilter structure payload."""
 
-    level: float | None = None  # 0-1.0, 0.0 is no effect
-    mono_level: float | None = None  # 0-1.0, 0.0 is no effect
-    filter_band: float | None = None  # hz
-    filter_width: float | None = None
+    level: Annotated[float | None, "0.0–1.0, 0.0 is no effect"] = None
+    mono_level: Annotated[float | None, "0.0–1.0, 0.0 is no effect"] = None
+    filter_band: Annotated[float | None, "frequency in Hz"] = None
+    filter_width: Annotated[float | None, "bandwidth in Hz"] | None = None
 
 
 class TimescaleFilter(msgspec.Struct, kw_only=True):
@@ -75,15 +75,15 @@ class TimescaleFilter(msgspec.Struct, kw_only=True):
 class TremoloFilter(msgspec.Struct, kw_only=True):
     """Represents a TremoloFilter structure payload."""
 
-    frequency: float | None = None  # <= 14.0
-    depth: float | None = None  # <= 1.0
+    frequency: Annotated[float | None, "0.0–14.0 Hz"] = None
+    depth: Annotated[float | None, "0.0–1.0"] = None
 
 
 class VibratoFilter(msgspec.Struct, kw_only=True):
     """Represents a VibratoFilter structure payload."""
 
-    frequency: float | None = None  # <= 14.0
-    depth: float | None = None  # <= 1.0
+    frequency: Annotated[float | None, "0.0–14.0 Hz"] = None
+    depth: Annotated[float | None, "0.0–1.0"] = None
 
 
 class RotationFilter(msgspec.Struct, kw_only=True):
@@ -108,21 +108,21 @@ class DistortionFilter(msgspec.Struct, kw_only=True):
 class ChannelMixFilter(msgspec.Struct, kw_only=True):
     """Represents a ChannelMixFilter structure payload."""
 
-    left_to_left: float | None = msgspec.field(
+    left_to_left: Annotated[float | None, "0.0–1.0"] = msgspec.field(
         name="leftToLeft", default=None
-    )  # <= 1.0
-    left_to_right: float | None = msgspec.field(
+    )
+    left_to_right: Annotated[float | None, "0.0–1.0"] = msgspec.field(
         name="leftToRight", default=None
-    )  # <= 1.0
-    right_to_left: float | None = msgspec.field(
+    )
+    right_to_left: Annotated[float | None, "0.0–1.0"] = msgspec.field(
         name="rightToLeft", default=None
-    )  # <= 1.0
-    right_to_right: float | None = msgspec.field(
+    )
+    right_to_right: Annotated[float | None, "0.0–1.0"] = msgspec.field(
         name="rightToRight", default=None
-    )  # <= 1.0
+    )
 
 
 class LowPassFilter(msgspec.Struct, kw_only=True):
     """Represents a LowPassFilter structure payload."""
 
-    smoothing: float | None = None  # > 1.0
+    smoothing: Annotated[float | None, "> 1.0"] = None
