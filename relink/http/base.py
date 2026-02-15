@@ -1,3 +1,4 @@
+"""
 MIT License
 
 Copyright (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
@@ -19,3 +20,44 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from collections.abc import Mapping
+from typing import Any, Optional
+
+
+class BaseHTTPManager(ABC):
+    """Abstract Base Class for ReWaveLink HTTP backends."""
+
+    @abstractmethod
+    async def setup(self) -> None:
+        """Initialize the underlying session (ClientSession or AsyncSession)"""
+        pass
+
+    @abstractmethod
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        headers: Optional[Mapping[str, str]] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        json: Optional[Any] = None,
+        data: Optional[Any] = None,
+    ) -> Any:
+        """Perform an async HTTP request and return the response body/JSON"""
+        pass
+
+    @abstractmethod
+    async def close(self) -> None:
+        """Close the session and cleanup connectors."""
+        pass
+
+    @property
+    @abstractmethod
+    def is_closed(self) -> bool:
+        """Check if the underlying session is closed."""
+        pass
