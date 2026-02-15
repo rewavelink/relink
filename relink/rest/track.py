@@ -29,7 +29,7 @@ from typing import Any
 import msgspec
 
 from .playlist import PlaylistInfoType
-from .enums import LoadResultType
+from .enums import TrackLoadResultType
 
 
 class TrackType(msgspec.Struct, kw_only=True):
@@ -61,7 +61,7 @@ class TrackInfoType(msgspec.Struct, kw_only=True):
 class TrackLoadingResultType(msgspec.Struct, kw_only=True):
     """Represents a TrackLoadingResult structure payload."""
 
-    load_type: LoadResultType = msgspec.field(name="loadType")
+    load_type: TrackLoadResultType = msgspec.field(name="loadType")
     data: TrackLoadResultDataType
 
 

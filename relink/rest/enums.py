@@ -3,10 +3,10 @@ from __future__ import annotations
 from enum import StrEnum
 
 
-__all__ = ("LoadResultType",)
+__all__ = ("TrackLoadResultType",)
 
 
-class LoadResultType(StrEnum):
+class TrackLoadResultType(StrEnum):
     """Represents the type of a TrackLoadingResult's :attr:`TrackLoadingResultType.load_type`."""
 
     TRACK = "TRACK"
