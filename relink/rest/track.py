@@ -28,6 +28,9 @@ from typing import Any
 
 import msgspec
 
+from .playlist import PlaylistInfoType
+from .enums import LoadResultType
+
 
 class TrackType(msgspec.Struct, kw_only=True):
     """Represents a Track structure payload."""
@@ -52,3 +55,22 @@ class TrackInfoType(msgspec.Struct, kw_only=True):
     uri: str | None = None
     artwork_url: str | None = msgspec.field(name="artworkUrl", default=None)
     isrc: str | None = msgspec.field(name="isrc", default=None)
+
+
+# /v4/loadtracks?identifier=ID
+class TrackLoadingResultType(msgspec.Struct, kw_only=True):
+    """Represents a TrackLoadingResult structure payload."""
+
+    load_type: LoadResultType = msgspec.field(name="loadType")
+    data: TrackLoadResultDataType
+
+
+class TrackLoadResultDataType(msgspec.Struct, kw_only=True):
+    """Represents a TrackLoadingResult structure payload."""
+
+    info: PlaylistInfoType
+    plugin_info: dict[str, Any] = msgspec.field(name="pluginInfo")
+    tracks: list[TrackType]
+
+
+TrackDecodeResultType = TrackType
