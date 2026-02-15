@@ -28,21 +28,21 @@ from typing import Any
 
 import msgspec
 
-from .playlist import PlaylistInfoType
-from .enums import TrackLoadResultType
+from .playlist import PlaylistInfo
+from .enums import TrackLoadResult
 
 
-class TrackType(msgspec.Struct, kw_only=True):
+class Track(msgspec.Struct, kw_only=True):
     """Represents a Track structure payload."""
 
     encoded: str
-    info: TrackInfoType
+    info: TrackInfo
     plugin_info: Any = msgspec.field(name="pluginInfo")
     user_data: Any = msgspec.field(name="userData")
 
 
-class TrackInfoType(msgspec.Struct, kw_only=True):
-    """Represents a Track's info available under :attr:`TrackType.info`."""
+class TrackInfo(msgspec.Struct, kw_only=True):
+    """Represents a Track's info available under :attr:`Track.info`."""
 
     identifier: str
     title: str
@@ -58,19 +58,19 @@ class TrackInfoType(msgspec.Struct, kw_only=True):
 
 
 # /v4/loadtracks?identifier=ID
-class TrackLoadingResultType(msgspec.Struct, kw_only=True):
+class TrackLoadingResult(msgspec.Struct, kw_only=True):
     """Represents a TrackLoadingResult structure payload."""
 
-    load_type: TrackLoadResultType = msgspec.field(name="loadType")
-    data: TrackLoadResultDataType
+    load_type: TrackLoadResult = msgspec.field(name="loadType")
+    data: TrackLoadingData
 
 
-class TrackLoadResultDataType(msgspec.Struct, kw_only=True):
+class TrackLoadingData(msgspec.Struct, kw_only=True):
     """Represents a TrackLoadingResult structure payload."""
 
-    info: PlaylistInfoType
+    info: PlaylistInfo
     plugin_info: dict[str, Any] = msgspec.field(name="pluginInfo")
-    tracks: list[TrackType]
+    tracks: list[Track]
 
 
-TrackDecodeResultType = TrackType
+TrackDecodeResult = Track

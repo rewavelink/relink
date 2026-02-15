@@ -23,36 +23,37 @@ SOFTWARE.
 """
 
 from __future__ import annotations
-from typing import Any
+
+from typing import Annotated, Any
 
 import msgspec
 
-from .track import TrackType
 from .filters import PlayerFilters
+from .track import Track
 
 
-class PlayerType(msgspec.Struct, kw_only=True):
+class Player(msgspec.Struct, kw_only=True):
     """Represents a Player structure payload."""
 
     guild_id: int = msgspec.field(name="guildId")
-    track: TrackType | None = None
+    track: Track | None = None
     volumne: int
     paused: bool
-    state: PlayerStateType
-    voice: PlayerVoiceStateType
+    state: PlayerState
+    voice: PlayerVoiceState
     filters: PlayerFilters
 
 
-class PlayerStateType(msgspec.Struct, kw_only=True):
+class PlayerState(msgspec.Struct, kw_only=True):
     """Represents a PlayerState structure payload."""
 
     time: int
     position: int
     connected: bool
-    ping: int  # -1 if not connected
+    ping: Annotated[int, "-1 if not connected"]
 
 
-class PlayerVoiceStateType(msgspec.Struct, kw_only=True):
+class PlayerVoiceState(msgspec.Struct, kw_only=True):
     """Represents a PlayerVoiceState structure payload."""
 
     token: str
@@ -63,19 +64,19 @@ class PlayerVoiceStateType(msgspec.Struct, kw_only=True):
 # PATCH /v4/sessions/{sessionId}/players/{guildId}?noReplace=true
 
 
-class UpdatePlayerRequestType(msgspec.Struct, kw_only=True):
+class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     """Represents an UpdatePlayerRequest structure payload."""
 
-    track: UpdatePlayerTrackRequestType | None = None
+    track: UpdatePlayerTrackRequest | None = None
     position: int | None = None
     endtime: int | None = msgspec.field(name="endTime", default=None)
     volume: int | None = None
     paused: bool | None = None
     filters: PlayerFilters | None = None
-    voice: PlayerVoiceStateType | None = None
+    voice: PlayerVoiceState | None = None
 
 
-class UpdatePlayerTrackRequestType(msgspec.Struct, kw_only=True):
+class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     """Represents an UpdatePlayerTrackRequest structure payload."""
 
     encoded: str | None = None

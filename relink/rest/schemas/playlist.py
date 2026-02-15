@@ -27,8 +27,8 @@ from __future__ import annotations
 import msgspec
 
 
-class PlaylistInfoType(msgspec.Struct, kw_only=True):
-    """Represents a Playlist's info available under :attr:`PlaylistType.info`."""
+class PlaylistInfo(msgspec.Struct, kw_only=True):
+    """Represents a Playlist's info available under :attr:`Playlist.info`."""
 
     name: str
     selected_track: int = msgspec.field(name="selectedTrack")
