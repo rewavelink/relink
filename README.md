@@ -11,7 +11,7 @@
 </div>
 
 
-**ReLink** is the best Lavalink wrapper for [discord.py](https://github.com/Rapptz/discord.py) (originally designes as a maintained fork of [WaveLink](https://github.com/PythonistaGuild/Wavelink)).
+**ReLink** is the best Lavalink wrapper for [discord.py](https://github.com/Rapptz/discord.py) (originally designed as a maintained fork of [WaveLink](https://github.com/PythonistaGuild/Wavelink)).
 
 
 ### Features
@@ -22,7 +22,6 @@
 - Native compatibility with discord.py v2+.
 - Type-annotated & compliant with **Pyright strict typing**.
 - Async-first architecture designed for scalability.
-- Minimal API surface focused on UX.
 
 ### Installation
 ```
