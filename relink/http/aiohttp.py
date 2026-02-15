@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 
@@ -49,8 +49,8 @@ class AioHTTPManager(BaseHTTPManager):
         *,
         headers: Mapping[str, str] | None = None,
         params: Mapping[str, Any] | None = None,
-        json: Optional[Any] = None,
-        data: Optional[Any] = None,
+        json: Any | None = None,
+        data: Any | None = None,
     ) -> Any:
         if self._session is None:
             await self.setup()

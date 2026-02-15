@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import Any, Optional
+from typing import Any
 
 
 class BaseHTTPManager(ABC):
@@ -43,10 +43,10 @@ class BaseHTTPManager(ABC):
         method: str,
         url: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
-        params: Optional[Mapping[str, Any]] = None,
-        json: Optional[Any] = None,
-        data: Optional[Any] = None,
+        headers: Mapping[str, str] | None = None,
+        params: Mapping[str, Any] | None = None,
+        json: Any | None = None,
+        data: Any | None = None,
     ) -> Any:
         """Perform an async HTTP request and return the response body/JSON"""
         pass

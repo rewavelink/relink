@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from curl_cffi.requests import AsyncSession, AsyncWebSocket, Response, WebSocketClosed
 
@@ -54,8 +54,8 @@ class CurlHTTPManager(BaseHTTPManager):
         *,
         headers: Mapping[str, str] | None = None,
         params: Mapping[str, Any] | None = None,
-        json: Optional[Any] = None,
-        data: Optional[Any] = None,
+        json: Any | None = None,
+        data: Any | None = None,
     ) -> Any:
         if self._session is None:
             await self.setup()
