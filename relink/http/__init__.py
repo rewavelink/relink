@@ -6,38 +6,43 @@ HTTP manager(s) for the library.
 """
 
 import importlib.util
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from .base import BaseHTTPManager, BaseWebsocketManager
 
-HAS_CURL: bool = bool(importlib.util.find_spec("curl_cffi"))
 
+class HTTPFactory:
+    """HTTP/Websocket selector and factory."""
 
-def get_http_manager() -> type["BaseHTTPManager"]:
-    """Selects and returns the best available HTTP Manager class."""
-    if HAS_CURL:
-        from .curl_cffi import CurlHTTPManager
-        return CurlHTTPManager
+    HAS_CURL: bool = importlib.util.find_spec("curl_cffi") is not None
 
-    from .aiohttp import AioHTTPManager
-    return AioHTTPManager
+    @staticmethod
+    def _select(curl_name: str, aiohttp_name: str) -> object:
+        if HTTPFactory.HAS_CURL:
+            module = __import__("relink.http.curl_cffi", fromlist=[curl_name])
+            return getattr(module, curl_name)
 
+        module = __import__("relink.http.aiohttp", fromlist=[aiohttp_name])
+        return getattr(module, aiohttp_name)
 
-def get_websocket_manager() -> type["BaseWebsocketManager"]:
-    """Selects and returns the best available Websocket Manager class."""
-    if HAS_CURL:
-        from .curl_cffi import CurlWebsocketManager
-        return CurlWebsocketManager
+    @classmethod
+    def http_manager(cls) -> type["BaseHTTPManager"]:
+        return cast(
+            type["BaseHTTPManager"],
+            cls._select("CurlHTTPManager", "AioHTTPManager"),
+        )
 
-    from .aiohttp import AioWebsocketManager
-    return AioWebsocketManager
+    @classmethod
+    def websocket_manager(cls) -> type["BaseWebsocketManager"]:
+        return cast(
+            type["BaseWebsocketManager"],
+            cls._select("CurlWebsocketManager", "AioWebsocketManager"),
+        )
 
 
 __all__ = (
     "BaseHTTPManager",
     "BaseWebsocketManager",
-    "HAS_CURL",
-    "get_http_manager",
-    "get_websocket_manager",
+    "HTTPFactory",
 )
