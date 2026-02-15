@@ -168,3 +168,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Lock files
+uv.lock*
+pylock*.toml
