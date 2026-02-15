@@ -9,13 +9,13 @@ __all__ = ("TrackLoadResultType",)
 class TrackLoadResultType(StrEnum):
     """Represents the type of a TrackLoadingResult's :attr:`TrackLoadingResultType.load_type`."""
 
-    TRACK = "TRACK"
+    TRACK = "track"
     """A track has been loaded."""
-    PLAYLIST = "PLAYLIST"
+    PLAYLIST = "playlist"
     """A playlist has been loaded."""
-    SEARCH = "SEARCH"
+    SEARCH = "search"
     """A search query has been loaded."""
-    EMPTY = "EMPTY"
+    EMPTY = "empty"
     """There has beeen no matches for your identifier."""
-    ERROR = "ERROR"
+    ERROR = "error"
     """Loading has failed with an error."""
