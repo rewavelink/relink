@@ -7,7 +7,7 @@ dynamic = ["version"]
 name = "rewavelink"
 dependencies = [
     "discord.py>=2.6,<3",
-    "curl-cffi>=0.14.0,<1",
+    "aiohttp>=3.11.0,<4",
     "msgspec>=0.20.0,<1",
 ]
 requires-python = ">=3.12"
@@ -40,6 +40,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
     "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+speed = [
+    "curl-cffi>=0.14.0,<1",
 ]
 
 [project.urls]
