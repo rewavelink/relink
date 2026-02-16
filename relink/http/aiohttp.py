@@ -35,8 +35,8 @@ from .base import BaseHTTPManager, BaseWebsocketManager
 class AioHTTPManager(BaseHTTPManager):
     """Aiohttp implementation of the HTTP Manager."""
 
-    def __init__(self) -> None:
-        self._session: aiohttp.ClientSession | None = None
+    def __init__(self, *, session: aiohttp.ClientSession | None = None) -> None:
+        self._session: aiohttp.ClientSession | None = session
 
     async def setup(self) -> None:
         if self._session is None or self._session.closed:

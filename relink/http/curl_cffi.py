@@ -24,7 +24,11 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import json
+try:
+    import orjson as json
+except ImportError:
+    import json
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, cast
 
@@ -40,8 +44,8 @@ if TYPE_CHECKING:
 class CurlHTTPManager(BaseHTTPManager):
     """Curl-CCFI implementation of the HTTP Manager."""
 
-    def __init__(self) -> None:
-        self._session: AsyncSession[Response] | None = None
+    def __init__(self, *, session: AsyncSession[Response] | None = None) -> None:
+        self._session: AsyncSession[Response] | None = session
 
     async def setup(self) -> None:
         if self._session is None:
