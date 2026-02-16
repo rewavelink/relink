@@ -45,6 +45,7 @@ classifiers = [
 [project.optional-dependencies]
 speed = [
     "curl-cffi>=0.14.0,<1",
+    "orjson>=3.11.7,<4",
 ]
 
 [project.urls]
@@ -53,3 +54,4 @@ Repository = "https://github.com/rewavelink/relink.git"
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
+reportPrivateUsage = false
