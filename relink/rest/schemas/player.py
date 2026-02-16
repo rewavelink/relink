@@ -37,7 +37,7 @@ class Player(msgspec.Struct, kw_only=True):
 
     guild_id: int = msgspec.field(name="guildId")
     track: Track | None = None
-    volumne: int
+    volume: Annotated[int, "0..1000 (percentage)"]
     paused: bool
     state: PlayerState
     voice: PlayerVoiceState
@@ -70,7 +70,7 @@ class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     track: UpdatePlayerTrackRequest | None = None
     position: int | None = None
     endtime: int | None = msgspec.field(name="endTime", default=None)
-    volume: int | None = None
+    volume: Annotated[int | None, "0..1000 (percentage)"] = None
     paused: bool | None = None
     filters: PlayerFilters | None = None
     voice: PlayerVoiceState | None = None

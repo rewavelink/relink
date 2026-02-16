@@ -45,19 +45,24 @@ class TrackInfo(msgspec.Struct, kw_only=True):
     """Represents a Track's info available under :attr:`Track.info`."""
 
     identifier: str
+    uri: str | None = None
+
     title: str
     author: str
     length: int
     position: int
+
     is_seekable: bool = msgspec.field(name="isSeekable")
     is_stream: bool = msgspec.field(name="isStream")
+
     source_name: str = msgspec.field(name="sourceName")
-    uri: str | None = None
     artwork_url: str | None = msgspec.field(name="artworkUrl", default=None)
     isrc: str | None = msgspec.field(name="isrc", default=None)
 
 
 # /v4/loadtracks?identifier=ID
+
+
 class TrackLoadingResult(msgspec.Struct, kw_only=True):
     """Represents a TrackLoadingResult structure payload."""
 
