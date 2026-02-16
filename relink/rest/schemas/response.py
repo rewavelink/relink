@@ -31,11 +31,11 @@ class InfoResponse(msgspec.Struct, kw_only=True):
     """Represents the Info Response structure payload."""
 
     version: VersionObject
-    build_time: int
+    build_time: int = msgspec.field(name="buildTime")
     git: GitObject
     jvm: str
     lavaplayer: str
-    source_managers: list[str]
+    source_managers: list[str] = msgspec.field(name="sourceManagers")
     filters: list[str]
     plugins: list[PluginObject]
 
@@ -47,7 +47,7 @@ class VersionObject(msgspec.Struct, kw_only=True):
     major: int
     minor: int
     patch: int
-    pre_release: str | None = None
+    pre_release: str | None = msgspec.field(name="preRelease", default=None)
     build: str | None = None
 
 
@@ -56,7 +56,7 @@ class GitObject(msgspec.Struct, kw_only=True):
 
     branch: str
     commit: str
-    commit_time: int
+    commit_time: int = msgspec.field(name="commitTime")
 
 
 class PluginObject(msgspec.Struct, kw_only=True):
