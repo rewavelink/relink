@@ -33,7 +33,14 @@ from ..enums import TrackLoadResult
 
 
 class Track(msgspec.Struct, kw_only=True):
-    """Represents a Track structure payload."""
+    """
+     Represents a Track payload.
+
+    :attr encoded: Base64-encoded track string.
+    :attr info: Track metadata object (:class:`TrackInfo`).
+    :attr plugin_info: Additional track info provided by plugins.
+    :attr user_data: Additional track data previously provided (:class:`UpdatePlayerRequest`).
+    """
 
     encoded: str
     info: TrackInfo
@@ -42,7 +49,21 @@ class Track(msgspec.Struct, kw_only=True):
 
 
 class TrackInfo(msgspec.Struct, kw_only=True):
-    """Represents a Track's info available under :attr:`Track.info`."""
+    """
+    Represents metadata for Track, available under :attr:`Track.info`.
+
+    :attr identifier: Unique track identifier.
+    :attr title: Track title.
+    :attr author: Track author or artist name.
+    :attr length: Total length of the track in milliseconds.
+    :attr position: Current playback position in milliseconds.
+    :attr is_seekable: Whether the track is seekable.
+    :attr is_stream: Whether the track is a live stream.
+    :attr uri: The track's URI, if available (nullable).
+    :attr artwork_url: Artwork URL, if available (nullable).
+    :attr isrc: International Standard Recording Code (nullable).
+    :attr source_name: Name of the source manager that provided the track.
+    """
 
     identifier: str
     uri: str | None = None
@@ -61,14 +82,28 @@ class TrackInfo(msgspec.Struct, kw_only=True):
 
 
 class TrackLoadingResponse(msgspec.Struct, kw_only=True):
-    """Represents a TrackLoadingResponse structure payload."""
+    """
+    Represents a TrackLoadingResponse structure payload.
+
+    :attr load_type: Type of load result (:class:`TrackLoadResult`).
+    :attr data: Associated load result data (:class:`TrackLoadingData`).
+    """
 
     load_type: TrackLoadResult = msgspec.field(name="loadType")
     data: TrackLoadingData
 
 
 class TrackLoadingData(msgspec.Struct, kw_only=True):
-    """Represents a TrackLoadingData structure payload."""
+    """
+    Contains the detailed results of a track load request.
+
+    For playlists, this contains playlist metadata and a list of tracks.
+    For single-track results or search results, the track is wrapped in a playlist-like structure.
+
+    :attr info: Playlist metadata (:class:`PlaylistInfo`).
+    :attr plugin_info: Additional data returned by the source plugin.
+    :attr tracks: List of loaded tracks (:class:`Track`).
+    """
 
     info: PlaylistInfo
     plugin_info: dict[str, Any] = msgspec.field(name="pluginInfo")
