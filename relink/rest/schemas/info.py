@@ -41,7 +41,7 @@ class InfoResponse(msgspec.Struct, kw_only=True):
     plugins: list[PluginObject]
 
 
-class VersionObject(msgspec.Struct, kw_only=True):
+class VersionObject(msgspec.Struct, kw_only=True, frozen=True):
     """Represents the Version Object structure payload"""
 
     semver: str
@@ -52,7 +52,7 @@ class VersionObject(msgspec.Struct, kw_only=True):
     build: str | None = None
 
 
-class GitObject(msgspec.Struct, kw_only=True):
+class GitObject(msgspec.Struct, kw_only=True, frozen=True):
     """Represents the Git Object structure payload"""
 
     branch: str
@@ -60,7 +60,7 @@ class GitObject(msgspec.Struct, kw_only=True):
     commit_time: int = msgspec.field(name="commitTime")
 
 
-class PluginObject(msgspec.Struct, kw_only=True):
+class PluginObject(msgspec.Struct, kw_only=True, frozen=True):
     """Represents the Plugin Object structure payload"""
 
     name: str
@@ -75,10 +75,9 @@ class StatsResponse(msgspec.Struct, kw_only=True):
     uptime: int
     memory: MemoryObject
     cpu: CPUObject
-    frame_stats: Annotated[
-        FrameStatsObject,
-        "frameStats is always missing for /stats endpoint. Stats object.",
-    ] = msgspec.field(name="frameStats")
+    frame_stats: FrameStatsObject | None = msgspec.field(
+        name="frameStats", default=None
+    )  # Optional; may be missing for some endpoints
 
 
 class MemoryObject(msgspec.Struct, kw_only=True):
@@ -103,10 +102,7 @@ class FrameStatsObject(msgspec.Struct, kw_only=True):
 
     sent: int
     nulled: int
-    deficit: Annotated[
-        int,
-        "The expected amount of frames is 3000 (1 every 20 ms) per player. If the deficit is negative, too many frames were sent, and if it's positive, not enough frames got sent.",
-    ]
+    deficit: int  # Frames deficit relative to expected 3000/player (1 every 20 ms); negative = too many, positive = too few
 
 
 VersionResponse = Annotated[str, "x.y.z format"]

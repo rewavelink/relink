@@ -81,14 +81,14 @@ class TimescaleFilter(msgspec.Struct, kw_only=True):
 class TremoloFilter(msgspec.Struct, kw_only=True):
     """Represents a TremoloFilter structure payload."""
 
-    frequency: Annotated[float | None, "0.0..14.0 Hz"] = None
+    frequency: Annotated[float | None, "0.0..14.0"] = None
     depth: Annotated[float | None, "0.0..1.0"] = None
 
 
 class VibratoFilter(msgspec.Struct, kw_only=True):
     """Represents a VibratoFilter structure payload."""
 
-    frequency: Annotated[float | None, "0.0..14.0 Hz"] = None
+    frequency: Annotated[float | None, "0.0..14.0"] = None
     depth: Annotated[float | None, "0.0..1.0"] = None
 
 

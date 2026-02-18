@@ -61,9 +61,6 @@ class PlayerVoiceState(msgspec.Struct, kw_only=True):
     session_id: str = msgspec.field(name="sessionId")
 
 
-# PATCH /v4/sessions/{sessionId}/players/{guildId}?noReplace=true
-
-
 class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     """Represents an UpdatePlayerRequest structure payload."""
 

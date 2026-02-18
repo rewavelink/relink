@@ -29,7 +29,7 @@ from typing import Any
 import msgspec
 
 from .playlist import PlaylistInfo
-from .enums import TrackLoadResult
+from ..enums import TrackLoadResult
 
 
 class Track(msgspec.Struct, kw_only=True):
@@ -58,9 +58,6 @@ class TrackInfo(msgspec.Struct, kw_only=True):
     source_name: str = msgspec.field(name="sourceName")
     artwork_url: str | None = msgspec.field(name="artworkUrl", default=None)
     isrc: str | None = msgspec.field(name="isrc", default=None)
-
-
-# /v4/loadtracks?identifier=ID
 
 
 class TrackLoadingResponse(msgspec.Struct, kw_only=True):

@@ -32,7 +32,7 @@ class UpdateSessionRequest(msgspec.Struct, kw_only=True):
     """Represents an UpdateSessionRequest structure payload."""
 
     resuming: bool | None = None
-    timeout: Annotated[int | None, "Defaults to 60s"] = None
+    timeout: Annotated[int | None, "default: 60s"] = None
 
 
 UpdateSessionResponse = UpdateSessionRequest

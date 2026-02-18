@@ -23,39 +23,32 @@ SOFTWARE.
 """
 
 from __future__ import annotations
-from typing import Annotated
 
 import msgspec
 
-from .enums import IPBlockType, RoutePlannerType
+from ..enums import IPBlockType, RoutePlannerType
 
 
 class DetailsObject(msgspec.Struct, kw_only=True):
     """Represents a DetailsObject structure payload."""
 
     ip_block: IPBlockObject = msgspec.field(name="ipBlock")
-    rotate_index: Annotated[str | None, "Only for RotatingIpRoutePlanner type"] = (
-        msgspec.field(name="rotateIndex", default=None)
+    rotate_index: str | None = msgspec.field(name="rotateIndex", default=None)
+
+    ip_index: int | None = msgspec.field(name="ipIndex", default=None)
+    block_index: int | None = msgspec.field(name="blockIndex", default=None)
+
+    current_address: str | None = msgspec.field(name="currentAddress", default=None)
+    current_address_index: int | None = msgspec.field(
+        name="currentAddressIndex",
+        default=None,
     )
-    ip_index: Annotated[
-        int | None, "Only for RotatingIpRoutePlannerRotatingIpRoutePlanner type"
-    ] = msgspec.field(name="ipIndex", default=None)
-    current_address: Annotated[str | None, "Only for RotatingIpRoutePlanner type"] = (
-        msgspec.field(name="currentAddress", default=None)
-    )
-    current_address_index: Annotated[
-        int | None, "Valid for types: NanoIpRoutePlanner, RotatingNanoIpRoutePlanner"
-    ] = msgspec.field(name="currentAddressIndex", default=None)
-    block_index: Annotated[
-        int | None,
-        "Only for RotatingNanoIpRoutePlanner type",
-    ] = msgspec.field(name="blockIndex", default=None)
 
 
 class IPBlockObject(msgspec.Struct, kw_only=True):
     """Represents an IPBlockObject structure payload."""
 
-    type: IPBlockType
+    type_: IPBlockType = msgspec.field(name="type")
     size: int
 
 
