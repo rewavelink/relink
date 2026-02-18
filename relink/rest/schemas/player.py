@@ -82,3 +82,9 @@ class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     encoded: str | None = None
     identifier: str | None = None
     user_data: dict[str, Any] | None = msgspec.field(name="userData", default=None)
+
+
+GetPlayersResponse = list[Player]
+GetPlayerResponse = Player
+UpdatePlayerResponse = Player
+DestroyPlayerResponse = None

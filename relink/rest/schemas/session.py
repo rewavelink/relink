@@ -23,44 +23,16 @@ SOFTWARE.
 """
 
 from __future__ import annotations
+from typing import Annotated
 
 import msgspec
 
 
-class InfoResponse(msgspec.Struct, kw_only=True):
-    """Represents the Info Response structure payload."""
+class UpdateSessionRequest(msgspec.Struct, kw_only=True):
+    """Represents an UpdateSessionRequest structure payload."""
 
-    version: VersionObject
-    build_time: int = msgspec.field(name="buildTime")
-    git: GitObject
-    jvm: str
-    lavaplayer: str
-    source_managers: list[str] = msgspec.field(name="sourceManagers")
-    filters: list[str]
-    plugins: list[PluginObject]
+    resuming: bool | None = None
+    timeout: Annotated[int | None, "Defaults to 60s"] = None
 
 
-class VersionObject(msgspec.Struct, kw_only=True):
-    """Represents the Version Object structure payload"""
-
-    semver: str
-    major: int
-    minor: int
-    patch: int
-    pre_release: str | None = msgspec.field(name="preRelease", default=None)
-    build: str | None = None
-
-
-class GitObject(msgspec.Struct, kw_only=True):
-    """Represents the Git Object structure payload"""
-
-    branch: str
-    commit: str
-    commit_time: int = msgspec.field(name="commitTime")
-
-
-class PluginObject(msgspec.Struct, kw_only=True):
-    """Represents the Plugin Object structure payload"""
-
-    name: str
-    version: str
+UpdateSessionResponse = UpdateSessionRequest

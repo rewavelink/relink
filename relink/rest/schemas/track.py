@@ -63,19 +63,20 @@ class TrackInfo(msgspec.Struct, kw_only=True):
 # /v4/loadtracks?identifier=ID
 
 
-class TrackLoadingResult(msgspec.Struct, kw_only=True):
-    """Represents a TrackLoadingResult structure payload."""
+class TrackLoadingResponse(msgspec.Struct, kw_only=True):
+    """Represents a TrackLoadingResponse structure payload."""
 
     load_type: TrackLoadResult = msgspec.field(name="loadType")
     data: TrackLoadingData
 
 
 class TrackLoadingData(msgspec.Struct, kw_only=True):
-    """Represents a TrackLoadingResult structure payload."""
+    """Represents a TrackLoadingData structure payload."""
 
     info: PlaylistInfo
     plugin_info: dict[str, Any] = msgspec.field(name="pluginInfo")
     tracks: list[Track]
 
 
-TrackDecodeResult = Track
+TrackDecodeResponse = Track
+TracksDecodeResponse = list[Track]
