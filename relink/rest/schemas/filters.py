@@ -65,9 +65,15 @@ class KaraokeFilter(msgspec.Struct, kw_only=True):
     """Represents a KaraokeFilter structure payload."""
 
     level: Annotated[float | None, "0.0..1.0, 0.0 is no effect"] = None
-    mono_level: Annotated[float | None, "0.0..1.0, 0.0 is no effect"] = None
-    filter_band: Annotated[float | None, "frequency in Hz"] = None
-    filter_width: Annotated[float | None, "bandwidth in Hz"] = None
+    mono_level: Annotated[float | None, "0.0..1.0, 0.0 is no effect"] = msgspec.field(
+        name="monoLevel", default=None
+    )
+    filter_band: Annotated[float | None, "frequency in Hz"] = msgspec.field(
+        name="filterBand", default=None
+    )
+    filter_width: Annotated[float | None, "bandwidth in Hz"] = msgspec.field(
+        name="filterWidth", default=None
+    )
 
 
 class TimescaleFilter(msgspec.Struct, kw_only=True):
