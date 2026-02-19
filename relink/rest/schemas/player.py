@@ -35,55 +35,57 @@ from .track import Track
 class Player(msgspec.Struct, kw_only=True):
     """
     Represents a Lavalink Player.
-
-    This object is returned by the REST API under `/players` endpoints.
-
-    :attr guild_id: The Discord guild ID the player belongs to.
-    :attr track: Currently playing track (:class:`Track`) or ``None`` if no track is loaded.
-    :attr volume: Player volume (0-1000 percent scale).
-    :attr paused: Whether the player is currently paused.
-    :attr state: Current state of the player (:class:`PlayerState`).
-    :attr voice: Voice connection state (:class:`PlayerVoiceState`).
-    :attr filters: Active audio filters (:class:`PlayerFilters`).
     """
 
     guild_id: int = msgspec.field(name="guildId")
+    """The Discord guild ID the player belongs to."""
+
     track: Track | None = None
+    """Currently playing track (:class:`Track`) or ``None`` if no track is loaded."""
+
     volume: int
+    """Player volume (0-1000 percent scale)."""
+
     paused: bool
+    """Whether the player is currently paused."""
+
     state: PlayerState
+    """Current state of the player (:class:`PlayerState`)."""
+
     voice: PlayerVoiceState
+    """Voice connection state (:class:`PlayerVoiceState`)."""
+
     filters: PlayerFilters
+    """Active audio filters (:class:`PlayerFilters`)."""
 
 
 class PlayerState(msgspec.Struct, kw_only=True):
-    """
-    Represents the state of a Lavalink Player.
-
-    :attr time: Timestamp of the state in milliseconds.
-    :attr position: Current track position in milliseconds.
-    :attr connected: Whether the player is connected to a voice channel.
-    :attr ping: Connection ping in milliseconds, ``-1`` if not connected.
-    """
+    """Represents the state of a Lavalink Player."""
 
     time: int
+    """Timestamp of the state in milliseconds."""
+
     position: int
+    """Current track position in milliseconds."""
+
     connected: bool
+    """Whether the player is connected to a voice channel."""
+
     ping: int
+    """Connection ping in milliseconds, ``-1`` if not connected."""
 
 
 class PlayerVoiceState(msgspec.Struct, kw_only=True):
-    """
-    Represents the voice connection state of a Lavalink Player.
-
-    :attr token: Voice connection token.
-    :attr endpoint: Voice server endpoint.
-    :attr session_id: Session ID of the voice connection.
-    """
+    """Represents the voice connection state of a Lavalink Player."""
 
     token: str
+    """Voice connection token."""
+
     endpoint: str
+    """Voice server endpoint."""
+
     session_id: str = msgspec.field(name="sessionId")
+    """Session ID of the voice connection."""
 
 
 class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
@@ -91,23 +93,28 @@ class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     Payload to update a Lavalink Player.
 
     This object is sent to `/players/{guildId}` to modify player state.
-
-    :attr track: Track to play or update (:class:`UpdatePlayerTrackRequest`), optional.
-    :attr position: Seek position in milliseconds, optional.
-    :attr endtime: Track end time in milliseconds, optional.
-    :attr volume: Volume to set (0-1000 percent scale), optional.
-    :attr paused: Whether to pause the player, optional.
-    :attr filters: Audio filters to apply (:class:`PlayerFilters`), optional.
-    :attr voice: Voice state updates (:class:`PlayerVoiceState`), optional.
     """
 
     track: UpdatePlayerTrackRequest | None = None
+    """Track to play or update (:class:`UpdatePlayerTrackRequest`), optional."""
+
     position: int | None = None
+    """Seek position in milliseconds, optional."""
+
     endtime: int | None = msgspec.field(name="endTime", default=None)
+    """Track end time in milliseconds, optional."""
+
     volume: int | None = None
+    """Volume to set (0-1000 percent scale), optional."""
+
     paused: bool | None = None
+    """Whether to pause the player, optional."""
+
     filters: PlayerFilters | None = None
+    """Audio filters to apply (:class:`PlayerFilters`), optional."""
+
     voice: PlayerVoiceState | None = None
+    """Voice state updates (:class:`PlayerVoiceState`), optional."""
 
 
 class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
@@ -115,15 +122,16 @@ class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     Represents a track update request for a Lavalink Player.
 
     Used within :class:`UpdatePlayerRequest` to play or modify a track.
-
-    :attr encoded: Base64-encoded track string, optional.
-    :attr identifier: Unique track identifier, optional.
-    :attr user_data: Optional user data previously provided when updating the player.
     """
 
     encoded: str | None = None
+    """Base64-encoded track string, optional."""
+
     identifier: str | None = None
+    """Unique track identifier, optional."""
+
     user_data: dict[str, Any] | None = msgspec.field(name="userData", default=None)
+    """Optional user data previously provided when updating the player."""
 
 
 GetPlayersResponse = list[Player]

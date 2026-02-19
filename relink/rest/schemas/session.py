@@ -33,13 +33,14 @@ class UpdateSessionRequest(msgspec.Struct, kw_only=True):
 
     Sent via PATCH `/v4/sessions/{sessionId}` to modify the resuming state
     or the session timeout.
-
-    :attr resuming: Optional. Whether resuming is enabled for this session.
-    :attr timeout: Optional. Timeout in seconds for resuming. Defaults to 60s.
     """
 
     resuming: bool | None = None
+    """Optional. Whether resuming is enabled for this session."""
+
     timeout: int | None = None
+    """Optional. Timeout in seconds for resuming. Defaults to 60s."""
 
 
 UpdateSessionResponse = UpdateSessionRequest
+"""Represents the response from updating a session, mirroring the request payload."""

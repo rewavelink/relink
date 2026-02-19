@@ -36,41 +36,49 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
     This object is sent in :class:`UpdatePlayerRequest` under ``filters``.
     Only provided attributes are updated; attributes set to ``None`` are ignored,
     allowing partial filter updates without resetting other filters.
-
-    :attr volume: Linear volume multiplier from ``0.0`` to ``5.0``. ``1.0`` is
-        100% volume. Values above ``1.0`` may clip.
-    :attr equalizer: List of :class:`EqualizerFilter` entries for bands ``0..14``.
-    :attr karaoke: Karaoke configuration (:class:`KaraokeFilter`).
-    :attr timescale: Time-domain transform configuration (:class:`TimescaleFilter`).
-    :attr tremolo: Volume oscillation configuration (:class:`TremoloFilter`).
-    :attr vibrato: Pitch oscillation configuration (:class:`VibratoFilter`).
-    :attr rotation: Stereo rotation configuration (:class:`RotationFilter`).
-    :attr distortion: Wave-shaping configuration (:class:`DistortionFilter`).
-    :attr channel_mix: Cross-channel matrix configuration (:class:`ChannelMixFilter`).
-    :attr low_pass: Low-pass configuration (:class:`LowPassFilter`).
-    :attr plugin_filters: Plugin-defined filter payloads keyed by plugin name.
-        Values are plugin-specific and passed through as-is.
     """
 
     volume: float | None = None
+    """Linear volume multiplier from ``0.0`` to ``5.0``. ``1.0`` is 100% volume. Values above ``1.0`` may clip."""
+
     equalizer: list[EqualizerFilter] | None = None
+    """List of :class:`EqualizerFilter` entries for bands ``0..14``."""
+
     karaoke: KaraokeFilter | None = None
+    """Karaoke configuration (:class:`KaraokeFilter`)."""
+
     timescale: TimescaleFilter | None = None
+    """Time-domain transform configuration (:class:`TimescaleFilter`)."""
+
     tremolo: TremoloFilter | None = None
+    """Volume oscillation configuration (:class:`TremoloFilter`)."""
+
     vibrato: VibratoFilter | None = None
+    """Pitch oscillation configuration (:class:`VibratoFilter`)."""
+
     rotation: RotationFilter | None = None
+    """Stereo rotation configuration (:class:`RotationFilter`)."""
 
     distortion: DistortionFilter | None = None
+    """Wave-shaping configuration (:class:`DistortionFilter`)."""
+
     channel_mix: ChannelMixFilter | None = msgspec.field(
         name="channelMix",
         default=None,
     )
+    """Cross-channel matrix configuration (:class:`ChannelMixFilter`)."""
+
     low_pass: LowPassFilter | None = msgspec.field(name="lowPass", default=None)
+    """Low-pass configuration (:class:`LowPassFilter`)."""
 
     plugin_filters: dict[str, Any] = msgspec.field(
         name="pluginFilters",
         default_factory=dict[str, Any],
     )
+    """
+    Plugin-defined filter payloads keyed by plugin name.
+    Values are plugin-specific and passed through as-is.
+    """
 
 
 class EqualizerFilter(msgspec.Struct, kw_only=True):
@@ -79,14 +87,13 @@ class EqualizerFilter(msgspec.Struct, kw_only=True):
 
     Lavalink exposes 15 bands indexed ``0..14``. The frequencies are approximately:
     ``25, 40, 63, 100, 160, 250, 400, 630, 1000, 1600, 2500, 4000, 6300, 10000, 16000`` Hz.
-
-    :attr band: Target band index from ``0`` to ``14``.
-    :attr gain: Band gain multiplier from ``-0.25`` to ``1.0``.
-        ``-0.25`` mutes the band and ``0.25`` roughly doubles it.
     """
 
     band: int
+    """Target band index from ``0`` to ``14``."""
+
     gain: float
+    """Band gain multiplier from ``-0.25`` to ``1.0``. ``-0.25`` mutes the band and ``0.25`` roughly doubles it."""
 
 
 class KaraokeFilter(msgspec.Struct, kw_only=True):
@@ -95,17 +102,19 @@ class KaraokeFilter(msgspec.Struct, kw_only=True):
 
     This filter reduces content in a target frequency region, commonly used for
     vocal reduction.
-
-    :attr level: Overall effect intensity from ``0.0`` to ``1.0``.
-    :attr mono_level: Mono signal amount from ``0.0`` to ``1.0``.
-    :attr filter_band: Center frequency in Hz for the target region.
-    :attr filter_width: Bandwidth around ``filter_band`` in Hz.
     """
 
     level: float | None = None
+    """Overall effect intensity from ``0.0`` to ``1.0``."""
+
     mono_level: float | None = msgspec.field(name="monoLevel", default=None)
+    """Mono signal amount from ``0.0`` to ``1.0``."""
+
     filter_band: float | None = msgspec.field(name="filterBand", default=None)
+    """Center frequency in Hz for the target region."""
+
     filter_width: float | None = msgspec.field(name="filterWidth", default=None)
+    """Bandwidth around ``filter_band`` in Hz."""
 
 
 class TimescaleFilter(msgspec.Struct, kw_only=True):
@@ -114,15 +123,16 @@ class TimescaleFilter(msgspec.Struct, kw_only=True):
 
     This filter changes perceived playback speed, pitch, and rate. In Lavalink,
     omitted values are treated as ``1.0``.
-
-    :attr speed: Playback speed multiplier (``0.0 <= x``). ``1.0`` is normal.
-    :attr pitch: Pitch multiplier (``0.0 <= x``). ``1.0`` is unchanged.
-    :attr rate: Internal rate multiplier (``0.0 <= x``).
     """
 
     speed: float | None = None
+    """Playback speed multiplier (``0.0 <= x``). ``1.0`` is normal."""
+
     pitch: float | None = None
+    """Pitch multiplier (``0.0 <= x``). ``1.0`` is unchanged."""
+
     rate: float | None = None
+    """Internal rate multiplier (``0.0 <= x``)."""
 
 
 class TremoloFilter(msgspec.Struct, kw_only=True):
@@ -130,13 +140,13 @@ class TremoloFilter(msgspec.Struct, kw_only=True):
     Represents tremolo filter configuration.
 
     Tremolo rapidly oscillates output volume.
-
-    :attr frequency: Oscillation frequency in Hz (``0.0 < x``).
-    :attr depth: Effect depth (``0.0 < x <= 1.0``).
     """
 
     frequency: float | None = None
+    """Oscillation frequency in Hz (``0.0 < x``)."""
+
     depth: float | None = None
+    """Effect depth (``0.0 < x <= 1.0``)."""
 
 
 class VibratoFilter(msgspec.Struct, kw_only=True):
@@ -144,25 +154,20 @@ class VibratoFilter(msgspec.Struct, kw_only=True):
     Represents vibrato filter configuration.
 
     Vibrato rapidly oscillates output pitch.
-
-    :attr frequency: Oscillation frequency in Hz (``0.0 < x <= 14.0``).
-    :attr depth: Effect depth (``0.0 < x <= 1.0``).
     """
 
     frequency: float | None = None
+    """Oscillation frequency in Hz (``0.0 < x <= 14.0``)."""
+
     depth: float | None = None
+    """Effect depth (``0.0 < x <= 1.0``)."""
 
 
 class RotationFilter(msgspec.Struct, kw_only=True):
-    """
-    Represents stereo rotation filter configuration.
-
-    This effect rotates audio around left and right channels (panning).
-
-    :attr rotation_hz: Rotation frequency in Hz. ``0.2`` is a common slow rotation.
-    """
+    """Represents stereo rotation filter configuration."""
 
     rotation_hz: float | None = msgspec.field(name="rotationHz", default=None)
+    """Rotation frequency in Hz. ``0.2`` is a common slow rotation."""
 
 
 class DistortionFilter(msgspec.Struct, kw_only=True):
@@ -171,28 +176,31 @@ class DistortionFilter(msgspec.Struct, kw_only=True):
 
     Distortion combines sinusoidal and linear transforms. Small changes can
     produce large audible differences, so tune incrementally.
-
-    :attr sin_offset: Sine input offset component.
-    :attr sin_scale: Sine scaling component.
-    :attr cos_offset: Cosine input offset component.
-    :attr cos_scale: Cosine scaling component.
-    :attr tan_offset: Tangent input offset component.
-    :attr tan_scale: Tangent scaling component.
-    :attr offset: Linear output offset applied after shaping.
-    :attr scale: Linear output scaling applied after shaping.
     """
 
     sin_offset: float | None = msgspec.field(name="sinOffset", default=None)
+    """Sine input offset component."""
+
     sin_scale: float | None = msgspec.field(name="sinScale", default=None)
+    """Sine scaling component."""
 
     cos_offset: float | None = msgspec.field(name="cosOffset", default=None)
+    """Cosine input offset component."""
+
     cos_scale: float | None = msgspec.field(name="cosScale", default=None)
+    """Cosine scaling component."""
 
     tan_offset: float | None = msgspec.field(name="tanOffset", default=None)
+    """Tangent input offset component."""
+
     tan_scale: float | None = msgspec.field(name="tanScale", default=None)
+    """Tangent scaling component."""
 
     offset: float | None = None
+    """Linear output offset applied after shaping."""
+
     scale: float | None = None
+    """Linear output scaling applied after shaping."""
 
 
 class ChannelMixFilter(msgspec.Struct, kw_only=True):
@@ -202,17 +210,19 @@ class ChannelMixFilter(msgspec.Struct, kw_only=True):
     All coefficients satisfy ``0.0 <= x <= 1.0``.
     The default matrix keeps channels independent. Setting all coefficients to
     ``0.5`` yields dual-mono output.
-
-    :attr left_to_left: Contribution of left input to left output.
-    :attr left_to_right: Contribution of left input to right output.
-    :attr right_to_left: Contribution of right input to left output.
-    :attr right_to_right: Contribution of right input to right output.
     """
 
     left_to_left: float | None = msgspec.field(name="leftToLeft", default=None)
+    """Contribution of left input to left output."""
+
     left_to_right: float | None = msgspec.field(name="leftToRight", default=None)
+    """Contribution of left input to right output."""
+
     right_to_left: float | None = msgspec.field(name="rightToLeft", default=None)
+    """Contribution of right input to left output."""
+
     right_to_right: float | None = msgspec.field(name="rightToRight", default=None)
+    """Contribution of right input to right output."""
 
 
 class LowPassFilter(msgspec.Struct, kw_only=True):
@@ -220,9 +230,7 @@ class LowPassFilter(msgspec.Struct, kw_only=True):
     Represents low-pass filter configuration.
 
     Low-pass filtering suppresses higher frequencies while preserving lower ones.
-
-    :attr smoothing: Smoothing factor (``x > 1.0``). Values ``<= 1.0`` disable
-        this filter.
     """
 
     smoothing: float | None = None
+    """Smoothing factor (``x > 1.0``). Values ``<= 1.0`` disable this filter."""

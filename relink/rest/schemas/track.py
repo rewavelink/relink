@@ -33,64 +33,66 @@ from ..enums import TrackLoadResult
 
 
 class Track(msgspec.Struct, kw_only=True):
-    """
-     Represents a Track payload.
-
-    :attr encoded: Base64-encoded track string.
-    :attr info: Track metadata object (:class:`TrackInfo`).
-    :attr plugin_info: Additional track info provided by plugins.
-    :attr user_data: Additional track data previously provided (:class:`UpdatePlayerRequest`).
-    """
+    """Represents a Track payload."""
 
     encoded: str
+    """Base64-encoded track string."""
+
     info: TrackInfo
+    """Track metadata object (:class:`TrackInfo`)."""
+
     plugin_info: Any = msgspec.field(name="pluginInfo")
+    """Additional track info provided by plugins."""
+
     user_data: Any = msgspec.field(name="userData")
+    """Additional track data previously provided (:class:`UpdatePlayerRequest`)."""
 
 
 class TrackInfo(msgspec.Struct, kw_only=True):
-    """
-    Represents metadata for Track, available under :attr:`Track.info`.
-
-    :attr identifier: Unique track identifier.
-    :attr title: Track title.
-    :attr author: Track author or artist name.
-    :attr length: Total length of the track in milliseconds.
-    :attr position: Current playback position in milliseconds.
-    :attr is_seekable: Whether the track is seekable.
-    :attr is_stream: Whether the track is a live stream.
-    :attr uri: The track's URI, if available (nullable).
-    :attr artwork_url: Artwork URL, if available (nullable).
-    :attr isrc: International Standard Recording Code (nullable).
-    :attr source_name: Name of the source manager that provided the track.
-    """
+    """Represents metadata for Track, available under :attr:`Track.info`."""
 
     identifier: str
+    """Unique track identifier."""
+
     uri: str | None = None
+    """The track's URI, if available (nullable)."""
 
     title: str
+    """Track title."""
+
     author: str
+    """Track author or artist name."""
+
     length: int
+    """Total length of the track in milliseconds."""
+
     position: int
+    """Current playback position in milliseconds."""
 
     is_seekable: bool = msgspec.field(name="isSeekable")
+    """Whether the track is seekable."""
+
     is_stream: bool = msgspec.field(name="isStream")
+    """Whether the track is a live stream."""
 
     source_name: str = msgspec.field(name="sourceName")
+    """Name of the source manager that provided the track."""
+
     artwork_url: str | None = msgspec.field(name="artworkUrl", default=None)
+    """Artwork URL, if available (nullable)."""
+
     isrc: str | None = msgspec.field(name="isrc", default=None)
+    """International Standard Recording Code (nullable)."""
 
 
 class TrackLoadingResponse(msgspec.Struct, kw_only=True):
-    """
-    Represents a TrackLoadingResponse structure payload.
-
-    :attr load_type: Type of load result (:class:`TrackLoadResult`).
-    :attr data: Associated load result data (:class:`TrackLoadingData`).
-    """
+    """Represents a TrackLoadingResponse structure payload."""
 
     load_type: TrackLoadResult = msgspec.field(name="loadType")
+    """Type of load result (:class:`TrackLoadResult`)."""
+
     data: TrackLoadingData
+    """Associated load result data (:class:`TrackLoadingData`)."""
 
 
 class TrackLoadingData(msgspec.Struct, kw_only=True):
@@ -99,16 +101,20 @@ class TrackLoadingData(msgspec.Struct, kw_only=True):
 
     For playlists, this contains playlist metadata and a list of tracks.
     For single-track results or search results, the track is wrapped in a playlist-like structure.
-
-    :attr info: Playlist metadata (:class:`PlaylistInfo`).
-    :attr plugin_info: Additional data returned by the source plugin.
-    :attr tracks: List of loaded tracks (:class:`Track`).
     """
 
     info: PlaylistInfo
+    """Playlist metadata (:class:`PlaylistInfo`)."""
+
     plugin_info: dict[str, Any] = msgspec.field(name="pluginInfo")
+    """Additional data returned by the source plugin."""
+
     tracks: list[Track]
+    """List of loaded tracks (:class:`Track`)."""
 
 
 TrackDecodeResponse = Track
+"""Response type for decoding a single track."""
+
 TracksDecodeResponse = list[Track]
+"""Response type for decoding multiple tracks."""

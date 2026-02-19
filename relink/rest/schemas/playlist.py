@@ -32,11 +32,10 @@ class PlaylistInfo(msgspec.Struct, kw_only=True):
     Represents metadata for a loaded playlist.
 
     This object is returned under :attr:`Playlist.info` when tracks are loaded.
-
-    :attr name: Name of the playlist.
-    :attr selected_track: Index of the selected track within the playlist, or
-        ``-1`` if no track is selected.
     """
 
     name: str
+    """Name of the playlist."""
+
     selected_track: int = msgspec.field(name="selectedTrack")
+    """Index of the selected track within the playlist, or ``-1`` if no track is selected."""

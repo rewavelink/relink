@@ -35,48 +35,44 @@ class DetailsObject(msgspec.Struct, kw_only=True):
 
     Provides runtime information about the active IP rotation strategy.
     Some attributes are only present for specific route planner types.
-
-    :attr ip_block: IP block configuration currently used
-        (:class:`IPBlockObject`).
-    :attr failing_addresses: List of addresses currently marked as failing
-        (:class:`FailingAddressObject`).
-    :attr rotate_index: Number of performed rotations.
-        Available for ``RotatingIpRoutePlanner``.
-    :attr ip_index: Current offset within the IP block.
-        Available for ``RotatingIpRoutePlanner``.
-    :attr current_address: Currently selected outbound IP address.
-        Available for ``RotatingIpRoutePlanner``.
-    :attr current_address_index: Offset of the active address inside the
-        IP block. Available for ``NanoIpRoutePlanner`` and
-        ``RotatingNanoIpRoutePlanner``.
-    :attr block_index: Index of the active ``/64`` block. This value increases
-        whenever an address block is rotated due to bans.
-        Available for ``RotatingNanoIpRoutePlanner``.
     """
 
     ip_block: IPBlockObject = msgspec.field(name="ipBlock")
+    """IP block configuration currently used (:class:`IPBlockObject`)."""
+
     rotate_index: str | None = msgspec.field(name="rotateIndex", default=None)
+    """Number of performed rotations. Available for ``RotatingIpRoutePlanner``."""
 
     ip_index: int | None = msgspec.field(name="ipIndex", default=None)
+    """Current offset within the IP block. Available for ``RotatingIpRoutePlanner``."""
+
     block_index: int | None = msgspec.field(name="blockIndex", default=None)
+    """
+    Index of the active ``/64`` block. This value increases whenever an address 
+    block is rotated due to bans. Available for ``RotatingNanoIpRoutePlanner``.
+    """
 
     current_address: str | None = msgspec.field(name="currentAddress", default=None)
+    """Currently selected outbound IP address. Available for ``RotatingIpRoutePlanner``."""
+
     current_address_index: int | None = msgspec.field(
         name="currentAddressIndex",
         default=None,
     )
+    """
+    Offset of the active address inside the IP block. 
+    Available for ``NanoIpRoutePlanner`` and ``RotatingNanoIpRoutePlanner``.
+    """
 
 
 class IPBlockObject(msgspec.Struct, kw_only=True):
-    """
-    Represents an IP block used by the route planner.
-
-    :attr type_: Type of IP block (:class:`IPBlockType`).
-    :attr size: The size of the IP block.
-    """
+    """Represents an IP block used by the route planner."""
 
     type_: IPBlockType = msgspec.field(name="type")
+    """Type of IP block (:class:`IPBlockType`)."""
+
     size: str
+    """The size of the IP block."""
 
 
 class FailingAddressObject(msgspec.Struct, kw_only=True):
@@ -84,43 +80,43 @@ class FailingAddressObject(msgspec.Struct, kw_only=True):
     Represents an address marked as failing by the route planner.
 
     Addresses are temporarily excluded after connection failures.
-
-    :attr address: The failing IP address.
-    :attr timestamp: Failure timestamp in Unix milliseconds.
-    :attr time: Human-readable failure time string.
     """
 
     address: str = msgspec.field(name="failingAddress")
+    """The failing IP address."""
+
     timestamp: int = msgspec.field(name="failingTimestamp")
+    """Failure timestamp in Unix milliseconds."""
+
     time: str = msgspec.field(name="failingTime")
+    """Human-readable failure time string."""
 
 
 class RoutePlannerStatusResponse(msgspec.Struct, kw_only=True):
-    """
-    Represents the response from GET `/v4/routeplanner/status`.
-
-    :attr class_: The type of route planner in use (:class:`RoutePlannerType`).
-    :attr details: Status details (:class:`DetailsObject`), or ``None`` if not enabled.
-    """
+    """Represents the response from GET `/v4/routeplanner/status`."""
 
     class_: RoutePlannerType | None = msgspec.field(name="class", default=None)
+    """The type of route planner in use (:class:`RoutePlannerType`)."""
+
     details: DetailsObject | None = None
+    """Status details (:class:`DetailsObject`), or ``None`` if not enabled."""
 
 
 class UnmarkFailedAddressRequest(msgspec.Struct, kw_only=True):
-    """
-    Represents a request to unmark a previously failing address.
-
-    :attr address: The address to unmark as failed. Must belong to the same IP block.
-    """
+    """Represents a request to unmark a previously failing address."""
 
     address: str
+    """The address to unmark as failed. Must belong to the same IP block."""
 
 
 UnmarkFailedAddressResponse = None
-"""Represents a successful response from unmarking a failed address.
-No content is returned by the server (HTTP 204)."""
+"""
+Represents a successful response from unmarking a failed address.
+No content is returned by the server (HTTP 204).
+"""
 
 UnmarkAllFailedAddressesResponse = None
-"""Represents a successful response from unmarking all failed addresses.
-No content is returned by the server (HTTP 204)."""
+"""
+Represents a successful response from unmarking all failed addresses.
+No content is returned by the server (HTTP 204).
+"""

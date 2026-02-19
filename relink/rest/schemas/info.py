@@ -30,73 +30,76 @@ import msgspec
 class InfoResponse(msgspec.Struct, kw_only=True):
     """
     Represents the Lavalink Info response payload.
-
-    Returned by the ``/v4/info`` REST endpoint and describes the running node.
-
-    :attr version: Version metadata of the Lavalink server.
-    :attr build_time: Build timestamp in Unix milliseconds.
-    :attr git: Git repository information for this build.
-    :attr jvm: JVM version used to run Lavalink.
-    :attr lavaplayer: Embedded Lavaplayer version.
-    :attr source_managers: Enabled source managers.
-    :attr filters: Names of supported audio filters.
-    :attr plugins: Installed Lavalink plugins.
     """
 
     version: VersionObject
+    """Version metadata of the Lavalink server."""
+
     build_time: int = msgspec.field(name="buildTime")
+    """Build timestamp in Unix milliseconds."""
+
     git: GitObject
+    """Git repository information for this build."""
+
     jvm: str
+    """JVM version used to run Lavalink."""
+
     lavaplayer: str
+    """Embedded Lavaplayer version."""
+
     source_managers: list[str] = msgspec.field(name="sourceManagers")
+    """Enabled source managers."""
+
     filters: list[str]
+    """Names of supported audio filters."""
+
     plugins: list[PluginObject]
+    """Installed Lavalink plugins."""
 
 
 class VersionObject(msgspec.Struct, kw_only=True, frozen=True):
-    """
-    Represents Lavalink version metadata.
-
-    :attr semver: Full semantic version string.
-    :attr major: Major version number.
-    :attr minor: Minor version number.
-    :attr patch: Patch version number.
-    :attr pre_release: Pre-release identifier if present.
-    :attr build: Optional build metadata string.
-    """
+    """Represents Lavalink version metadata."""
 
     semver: str
+    """Full semantic version string."""
+
     major: int
+    """Major version number."""
+
     minor: int
+    """Minor version number."""
+
     patch: int
+    """Patch version number."""
+
     pre_release: str | None = msgspec.field(name="preRelease", default=None)
+    """Pre-release identifier if present."""
+
     build: str | None = None
+    """Optional build metadata string."""
 
 
 class GitObject(msgspec.Struct, kw_only=True, frozen=True):
-    """
-    Represents Git metadata for the Lavalink build.
-
-    :attr branch: Git branch name.
-    :attr commit: Commit hash.
-    :attr commit_time: Commit timestamp in Unix milliseconds.
-    """
+    """Represents Git metadata for the Lavalink build."""
 
     branch: str
+    """Git branch name."""
+
     commit: str
+    """Commit hash."""
+
     commit_time: int = msgspec.field(name="commitTime")
+    """Commit timestamp in Unix milliseconds."""
 
 
 class PluginObject(msgspec.Struct, kw_only=True, frozen=True):
-    """
-    Represents an installed Lavalink plugin.
-
-    :attr name: Plugin name.
-    :attr version: Plugin version string.
-    """
+    """Represents an installed Lavalink plugin."""
 
     name: str
+    """Plugin name."""
+
     version: str
+    """Plugin version string."""
 
 
 class StatsResponse(msgspec.Struct, kw_only=True):
@@ -104,69 +107,72 @@ class StatsResponse(msgspec.Struct, kw_only=True):
     Represents the Lavalink Stats response payload.
 
     Returned periodically over WebSocket and via ``/v4/stats``.
-
-    :attr players: Total number of players.
-    :attr playing_players: Number of actively playing players.
-    :attr uptime: Node uptime in milliseconds.
-    :attr memory: JVM memory usage statistics.
-    :attr cpu: CPU usage statistics.
-    :attr frame_stats: Optional audio frame statistics.
     """
 
     players: int
+    """Total number of players."""
+
     playing_players: int = msgspec.field(name="playingPlayers")
+    """Number of actively playing players."""
+
     uptime: int
+    """Node uptime in milliseconds."""
+
     memory: MemoryObject
+    """JVM memory usage statistics."""
+
     cpu: CPUObject
+    """CPU usage statistics."""
+
     frame_stats: FrameStatsObject | None = msgspec.field(
         name="frameStats", default=None
     )
+    """Optional audio frame statistics."""
 
 
 class MemoryObject(msgspec.Struct, kw_only=True):
-    """
-    Represents JVM memory usage statistics.
-
-    :attr free: Free memory in bytes.
-    :attr used: Used memory in bytes.
-    :attr allocated: Allocated memory in bytes.
-    :attr reservable: Maximum reservable memory in bytes.
-    """
+    """Represents JVM memory usage statistics."""
 
     free: int
+    """Free memory in bytes."""
+
     used: int
+    """Used memory in bytes."""
+
     allocated: int
+    """Allocated memory in bytes."""
+
     reservable: int
+    """Maximum reservable memory in bytes."""
 
 
 class CPUObject(msgspec.Struct, kw_only=True):
-    """
-    Represents CPU usage statistics.
-
-    :attr cores: Number of available CPU cores.
-    :attr system_load: System CPU load as a fraction.
-    :attr lavalink_load: CPU load caused by Lavalink.
-    """
+    """Represents CPU usage statistics."""
 
     cores: int
+    """Number of available CPU cores."""
+
     system_load: float = msgspec.field(name="systemLoad")
+    """System CPU load as a fraction."""
+
     lavalink_load: float = msgspec.field(name="lavalinkLoad")
+    """CPU load caused by Lavalink."""
 
 
 class FrameStatsObject(msgspec.Struct, kw_only=True):
-    """
-    Represents audio frame delivery statistics.
-
-    :attr sent: Number of frames successfully sent.
-    :attr nulled: Number of frames that were missing audio data.
-    :attr deficit: Frame deficit relative to the expected rate
-        (3000 frames/player). Negative means excess frames,
-        positive means insufficient frames.
-    """
+    """Represents audio frame delivery statistics."""
 
     sent: int
+    """Number of frames successfully sent."""
+
     nulled: int
+    """Number of frames that were missing audio data."""
+
     deficit: int
+    """
+    Frame deficit relative to the expected rate (3000 frames/player). 
+    Negative means excess frames, positive means insufficient frames.
+    """
 
 
 VersionResponse = str
