@@ -33,8 +33,9 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
     """
     Represents the full filter payload for a Lavalink player.
 
-    This object is sent under ``filters`` when updating a player. Attributes set
-    to ``None`` are intentionally left unset, which is useful for partial updates.
+    This object is sent in :class:`UpdatePlayerRequest` under ``filters``.
+    Only provided attributes are updated; attributes set to ``None`` are ignored,
+    allowing partial filter updates without resetting other filters.
 
     :attr volume: Linear volume multiplier from ``0.0`` to ``5.0``. ``1.0`` is
         100% volume. Values above ``1.0`` may clip.
@@ -68,7 +69,7 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
 
     plugin_filters: dict[str, Any] = msgspec.field(
         name="pluginFilters",
-        default_factory=dict[str, Any],
+        default_factory=lambda: {},
     )
 
 
