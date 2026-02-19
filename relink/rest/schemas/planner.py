@@ -118,4 +118,9 @@ class UnmarkFailedAddressRequest(msgspec.Struct, kw_only=True):
 
 
 UnmarkFailedAddressResponse = None
+"""Represents a successful response from unmarking a failed address.
+No content is returned by the server (HTTP 204)."""
+
 UnmarkAllFailedAddressesResponse = None
+"""Represents a successful response from unmarking all failed addresses.
+No content is returned by the server (HTTP 204)."""

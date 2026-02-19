@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Any
 
 import msgspec
 
@@ -69,7 +69,7 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
 
     plugin_filters: dict[str, Any] = msgspec.field(
         name="pluginFilters",
-        default_factory=lambda: {},
+        default_factory=dict[str, Any],
     )
 
 
@@ -85,8 +85,8 @@ class EqualizerFilter(msgspec.Struct, kw_only=True):
         ``-0.25`` mutes the band and ``0.25`` roughly doubles it.
     """
 
-    band: Annotated[int, "0..14"]
-    gain: Annotated[float, "-0.25..1.0"]
+    band: int
+    gain: float
 
 
 class KaraokeFilter(msgspec.Struct, kw_only=True):
@@ -102,16 +102,10 @@ class KaraokeFilter(msgspec.Struct, kw_only=True):
     :attr filter_width: Bandwidth around ``filter_band`` in Hz.
     """
 
-    level: Annotated[float | None, "0.0..1.0, 0.0 is no effect"] = None
-    mono_level: Annotated[float | None, "0.0..1.0, 0.0 is no effect"] = msgspec.field(
-        name="monoLevel", default=None
-    )
-    filter_band: Annotated[float | None, "frequency in Hz"] = msgspec.field(
-        name="filterBand", default=None
-    )
-    filter_width: Annotated[float | None, "bandwidth in Hz"] = msgspec.field(
-        name="filterWidth", default=None
-    )
+    level: float | None = None
+    mono_level: float | None = msgspec.field(name="monoLevel", default=None)
+    filter_band: float | None = msgspec.field(name="filterBand", default=None)
+    filter_width: float | None = msgspec.field(name="filterWidth", default=None)
 
 
 class TimescaleFilter(msgspec.Struct, kw_only=True):
@@ -126,9 +120,9 @@ class TimescaleFilter(msgspec.Struct, kw_only=True):
     :attr rate: Internal rate multiplier (``0.0 <= x``).
     """
 
-    speed: Annotated[float | None, "0.0 <= x"] = None
-    pitch: Annotated[float | None, "0.0 <= x"] = None
-    rate: Annotated[float | None, "0.0 <= x"] = None
+    speed: float | None = None
+    pitch: float | None = None
+    rate: float | None = None
 
 
 class TremoloFilter(msgspec.Struct, kw_only=True):
@@ -141,8 +135,8 @@ class TremoloFilter(msgspec.Struct, kw_only=True):
     :attr depth: Effect depth (``0.0 < x <= 1.0``).
     """
 
-    frequency: Annotated[float | None, "0.0 < x"] = None
-    depth: Annotated[float | None, "0.0 < x <= 1.0"] = None
+    frequency: float | None = None
+    depth: float | None = None
 
 
 class VibratoFilter(msgspec.Struct, kw_only=True):
@@ -155,8 +149,8 @@ class VibratoFilter(msgspec.Struct, kw_only=True):
     :attr depth: Effect depth (``0.0 < x <= 1.0``).
     """
 
-    frequency: Annotated[float | None, "0.0 < x <= 14.0"] = None
-    depth: Annotated[float | None, "0.0 < x <= 1.0"] = None
+    frequency: float | None = None
+    depth: float | None = None
 
 
 class RotationFilter(msgspec.Struct, kw_only=True):
@@ -231,4 +225,4 @@ class LowPassFilter(msgspec.Struct, kw_only=True):
         this filter.
     """
 
-    smoothing: Annotated[float | None, "> 1.0"] = None
+    smoothing: float | None = None

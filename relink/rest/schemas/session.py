@@ -23,16 +23,23 @@ SOFTWARE.
 """
 
 from __future__ import annotations
-from typing import Annotated
 
 import msgspec
 
 
 class UpdateSessionRequest(msgspec.Struct, kw_only=True):
-    """Represents an UpdateSessionRequest structure payload."""
+    """
+    Represents a request to update a Lavalink session.
+
+    Sent via PATCH `/v4/sessions/{sessionId}` to modify the resuming state
+    or the session timeout.
+
+    :attr resuming: Optional. Whether resuming is enabled for this session.
+    :attr timeout: Optional. Timeout in seconds for resuming. Defaults to 60s.
+    """
 
     resuming: bool | None = None
-    timeout: Annotated[int | None, "default: 60s"] = None
+    timeout: int | None = None
 
 
 UpdateSessionResponse = UpdateSessionRequest

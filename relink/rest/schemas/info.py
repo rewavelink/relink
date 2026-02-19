@@ -23,7 +23,6 @@ SOFTWARE.
 """
 
 from __future__ import annotations
-from typing import Annotated
 
 import msgspec
 
@@ -170,4 +169,5 @@ class FrameStatsObject(msgspec.Struct, kw_only=True):
     deficit: int
 
 
-VersionResponse = Annotated[str, "x.y.z format"]
+VersionResponse = str
+"""Represents a Lavalink version string in `x.y.z` format."""
