@@ -30,7 +30,29 @@ from ..enums import IPBlockType, RoutePlannerType
 
 
 class DetailsObject(msgspec.Struct, kw_only=True):
-    """Represents a DetailsObject structure payload."""
+    """
+    Represents route planner details.
+
+    Provides runtime information about the active IP rotation strategy.
+    Some attributes are only present for specific route planner types.
+
+    :attr ip_block: IP block configuration currently used
+        (:class:`IPBlockObject`).
+    :attr failing_addresses: List of addresses currently marked as failing
+        (:class:`FailingAddressObject`).
+    :attr rotate_index: Number of performed rotations.
+        Available for ``RotatingIpRoutePlanner``.
+    :attr ip_index: Current offset within the IP block.
+        Available for ``RotatingIpRoutePlanner``.
+    :attr current_address: Currently selected outbound IP address.
+        Available for ``RotatingIpRoutePlanner``.
+    :attr current_address_index: Offset of the active address inside the
+        IP block. Available for ``NanoIpRoutePlanner`` and
+        ``RotatingNanoIpRoutePlanner``.
+    :attr block_index: Index of the active ``/64`` block. This value increases
+        whenever an address block is rotated due to bans.
+        Available for ``RotatingNanoIpRoutePlanner``.
+    """
 
     ip_block: IPBlockObject = msgspec.field(name="ipBlock")
     rotate_index: str | None = msgspec.field(name="rotateIndex", default=None)
@@ -46,14 +68,27 @@ class DetailsObject(msgspec.Struct, kw_only=True):
 
 
 class IPBlockObject(msgspec.Struct, kw_only=True):
-    """Represents an IPBlockObject structure payload."""
+    """
+    Represents an IP block used by the route planner.
+
+    :attr type_: Type of IP block (:class:`IPBlockType`).
+    :attr size: The size of the IP block.
+    """
 
     type_: IPBlockType = msgspec.field(name="type")
-    size: int
+    size: str
 
 
 class FailingAddressObject(msgspec.Struct, kw_only=True):
-    """Represents a FailingAddressObject structure payload."""
+    """
+    Represents an address marked as failing by the route planner.
+
+    Addresses are temporarily excluded after connection failures.
+
+    :attr address: The failing IP address.
+    :attr timestamp: Failure timestamp in Unix milliseconds.
+    :attr time: Human-readable failure time string.
+    """
 
     address: str = msgspec.field(name="failingAddress")
     timestamp: int = msgspec.field(name="failingTimestamp")
@@ -61,14 +96,23 @@ class FailingAddressObject(msgspec.Struct, kw_only=True):
 
 
 class RoutePlannerStatusResponse(msgspec.Struct, kw_only=True):
-    """Represents a RoutePlannerStatusResponse structure payload."""
+    """
+    Represents the response from GET `/v4/routeplanner/status`.
 
-    class_: RoutePlannerType = msgspec.field(name="class")
+    :attr class_: The type of route planner in use (:class:`RoutePlannerType`).
+    :attr details: Status details (:class:`DetailsObject`), or ``None`` if not enabled.
+    """
+
+    class_: RoutePlannerType | None = msgspec.field(name="class", default=None)
     details: DetailsObject | None = None
 
 
 class UnmarkFailedAddressRequest(msgspec.Struct, kw_only=True):
-    """Represents an UnmarkFailedAddressRequest structure payload."""
+    """
+    Represents a request to unmark a previously failing address.
+
+    :attr address: The address to unmark as failed. Must belong to the same IP block.
+    """
 
     address: str
 

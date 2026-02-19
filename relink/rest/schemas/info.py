@@ -29,7 +29,20 @@ import msgspec
 
 
 class InfoResponse(msgspec.Struct, kw_only=True):
-    """Represents the Info Response structure payload."""
+    """
+    Represents the Lavalink Info response payload.
+
+    Returned by the ``/v4/info`` REST endpoint and describes the running node.
+
+    :attr version: Version metadata of the Lavalink server.
+    :attr build_time: Build timestamp in Unix milliseconds.
+    :attr git: Git repository information for this build.
+    :attr jvm: JVM version used to run Lavalink.
+    :attr lavaplayer: Embedded Lavaplayer version.
+    :attr source_managers: Enabled source managers.
+    :attr filters: Names of supported audio filters.
+    :attr plugins: Installed Lavalink plugins.
+    """
 
     version: VersionObject
     build_time: int = msgspec.field(name="buildTime")
@@ -42,7 +55,16 @@ class InfoResponse(msgspec.Struct, kw_only=True):
 
 
 class VersionObject(msgspec.Struct, kw_only=True, frozen=True):
-    """Represents the Version Object structure payload"""
+    """
+    Represents Lavalink version metadata.
+
+    :attr semver: Full semantic version string.
+    :attr major: Major version number.
+    :attr minor: Minor version number.
+    :attr patch: Patch version number.
+    :attr pre_release: Pre-release identifier if present.
+    :attr build: Optional build metadata string.
+    """
 
     semver: str
     major: int
@@ -53,7 +75,13 @@ class VersionObject(msgspec.Struct, kw_only=True, frozen=True):
 
 
 class GitObject(msgspec.Struct, kw_only=True, frozen=True):
-    """Represents the Git Object structure payload"""
+    """
+    Represents Git metadata for the Lavalink build.
+
+    :attr branch: Git branch name.
+    :attr commit: Commit hash.
+    :attr commit_time: Commit timestamp in Unix milliseconds.
+    """
 
     branch: str
     commit: str
@@ -61,14 +89,30 @@ class GitObject(msgspec.Struct, kw_only=True, frozen=True):
 
 
 class PluginObject(msgspec.Struct, kw_only=True, frozen=True):
-    """Represents the Plugin Object structure payload"""
+    """
+    Represents an installed Lavalink plugin.
+
+    :attr name: Plugin name.
+    :attr version: Plugin version string.
+    """
 
     name: str
     version: str
 
 
 class StatsResponse(msgspec.Struct, kw_only=True):
-    """Represents the Stats Response structure payload."""
+    """
+    Represents the Lavalink Stats response payload.
+
+    Returned periodically over WebSocket and via ``/v4/stats``.
+
+    :attr players: Total number of players.
+    :attr playing_players: Number of actively playing players.
+    :attr uptime: Node uptime in milliseconds.
+    :attr memory: JVM memory usage statistics.
+    :attr cpu: CPU usage statistics.
+    :attr frame_stats: Optional audio frame statistics.
+    """
 
     players: int
     playing_players: int = msgspec.field(name="playingPlayers")
@@ -77,11 +121,18 @@ class StatsResponse(msgspec.Struct, kw_only=True):
     cpu: CPUObject
     frame_stats: FrameStatsObject | None = msgspec.field(
         name="frameStats", default=None
-    )  # Optional; may be missing for some endpoints
+    )
 
 
 class MemoryObject(msgspec.Struct, kw_only=True):
-    """Represents a MemoryObject structure payload."""
+    """
+    Represents JVM memory usage statistics.
+
+    :attr free: Free memory in bytes.
+    :attr used: Used memory in bytes.
+    :attr allocated: Allocated memory in bytes.
+    :attr reservable: Maximum reservable memory in bytes.
+    """
 
     free: int
     used: int
@@ -90,7 +141,13 @@ class MemoryObject(msgspec.Struct, kw_only=True):
 
 
 class CPUObject(msgspec.Struct, kw_only=True):
-    """Represents a CPUObject structure payload."""
+    """
+    Represents CPU usage statistics.
+
+    :attr cores: Number of available CPU cores.
+    :attr system_load: System CPU load as a fraction.
+    :attr lavalink_load: CPU load caused by Lavalink.
+    """
 
     cores: int
     system_load: float = msgspec.field(name="systemLoad")
@@ -98,11 +155,19 @@ class CPUObject(msgspec.Struct, kw_only=True):
 
 
 class FrameStatsObject(msgspec.Struct, kw_only=True):
-    """Represents a FrameStatsObject structure payload."""
+    """
+    Represents audio frame delivery statistics.
+
+    :attr sent: Number of frames successfully sent.
+    :attr nulled: Number of frames that were missing audio data.
+    :attr deficit: Frame deficit relative to the expected rate
+        (3000 frames/player). Negative means excess frames,
+        positive means insufficient frames.
+    """
 
     sent: int
     nulled: int
-    deficit: int  # Frames deficit relative to expected 3000/player (1 every 20 ms); negative = too many, positive = too few
+    deficit: int
 
 
 VersionResponse = Annotated[str, "x.y.z format"]
