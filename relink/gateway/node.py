@@ -142,12 +142,4 @@ class Node:
         if self._pool is None:
             raise RuntimeError("Can not connect a node with no pool attached to it.")
 
-        if self._pool._session:
-            ws = HTTPFactory.create_websocket(self._pool._session)
-        else:
-            manager_cls = HTTPFactory.http_manager()
-            manager = manager_cls()
-            await manager.setup()
-            assert manager._session is not None
-            self._pool._session = manager._session
-            ws = HTTPFactory.websocket_manager()
+        # TODO: implement connect logic
