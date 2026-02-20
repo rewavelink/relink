@@ -122,3 +122,5 @@ class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
     """The reason why the connection was closed."""
     by_remote: bool
     """Whether the closure was made by Discord."""
+
+# TODO: implement schemas/events.py models when rest models are made

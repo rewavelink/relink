@@ -90,8 +90,8 @@ class Player(discord.VoiceProtocol):
             self._ready = False
 
     def get_connection_state(self) -> PlayerConnectionState:
-        """Gets the connection for this player. This can be overriden in subclasses to override the behaviour
-        of the connection state.
+        """Gets the connection for this player. This can be overriden by subclasses to implement custom behaviour
+        on the connection state.
         """
         return PlayerConnectionState()
 
