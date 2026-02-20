@@ -88,7 +88,7 @@ class CurlHTTPManager(BaseHTTPManager):
             return None
 
         await self._session.close()
-        self._session = None
+        self._session = None  # pyright: ignore[reportIncompatibleVariableOverride]
 
     @property
     def is_closed(self) -> bool:
@@ -110,7 +110,7 @@ class CurlWebsocketManager(BaseWebsocketManager):
     ) -> None:
         self._ws = await self._session.ws_connect(  # type: ignore
             url=url,
-            headers=cast("HeaderTypes", headers),
+            headers=headers,
         )
 
     async def receive(self) -> Any:
@@ -138,7 +138,7 @@ class CurlWebsocketManager(BaseWebsocketManager):
             return None
 
         await self._ws.close()
-        self._ws = None
+        self._ws = None  # pyright: ignore[reportIncompatibleVariableOverride]
 
     @property
     def is_connected(self) -> bool:
