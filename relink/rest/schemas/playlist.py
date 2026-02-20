@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
+Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,14 @@ import msgspec
 
 
 class PlaylistInfo(msgspec.Struct, kw_only=True):
-    """Represents a Playlist's info available under :attr:`Playlist.info`."""
+    """
+    Represents metadata for a loaded playlist.
+
+    This object is returned under :attr:`Playlist.info` when tracks are loaded.
+    """
 
     name: str
+    """Name of the playlist."""
+
     selected_track: int = msgspec.field(name="selectedTrack")
+    """Index of the selected track within the playlist, or ``-1`` if no track is selected."""

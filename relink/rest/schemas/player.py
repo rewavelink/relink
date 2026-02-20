@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
+Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Any
 
 import msgspec
 
@@ -33,52 +33,115 @@ from .track import Track
 
 
 class Player(msgspec.Struct, kw_only=True):
-    """Represents a Player structure payload."""
+    """
+    Represents a Lavalink Player.
+    """
 
     guild_id: int = msgspec.field(name="guildId")
+    """The Discord guild ID the player belongs to."""
+
     track: Track | None = None
-    volumne: int
+    """Currently playing track (:class:`Track`) or ``None`` if no track is loaded."""
+
+    volume: int
+    """Player volume (0-1000 percent scale)."""
+
     paused: bool
+    """Whether the player is currently paused."""
+
     state: PlayerState
+    """Current state of the player (:class:`PlayerState`)."""
+
     voice: PlayerVoiceState
+    """Voice connection state (:class:`PlayerVoiceState`)."""
+
     filters: PlayerFilters
+    """Active audio filters (:class:`PlayerFilters`)."""
 
 
 class PlayerState(msgspec.Struct, kw_only=True):
-    """Represents a PlayerState structure payload."""
+    """Represents the state of a Lavalink Player."""
 
     time: int
+    """Timestamp of the state in milliseconds."""
+
     position: int
+    """Current track position in milliseconds."""
+
     connected: bool
-    ping: Annotated[int, "-1 if not connected"]
+    """Whether the player is connected to a voice channel."""
+
+    ping: int
+    """Connection ping in milliseconds, ``-1`` if not connected."""
 
 
 class PlayerVoiceState(msgspec.Struct, kw_only=True):
-    """Represents a PlayerVoiceState structure payload."""
+    """Represents the voice connection state of a Lavalink Player."""
 
     token: str
+    """Voice connection token."""
+
     endpoint: str
+    """Voice server endpoint."""
+
     session_id: str = msgspec.field(name="sessionId")
-
-
-# PATCH /v4/sessions/{sessionId}/players/{guildId}?noReplace=true
+    """Session ID of the voice connection."""
 
 
 class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
-    """Represents an UpdatePlayerRequest structure payload."""
+    """
+    Payload to update a Lavalink Player.
+
+    This object is sent to `/players/{guildId}` to modify player state.
+    """
 
     track: UpdatePlayerTrackRequest | None = None
+    """Track to play or update (:class:`UpdatePlayerTrackRequest`), optional."""
+
     position: int | None = None
+    """Seek position in milliseconds, optional."""
+
     endtime: int | None = msgspec.field(name="endTime", default=None)
+    """Track end time in milliseconds, optional."""
+
     volume: int | None = None
+    """Volume to set (0-1000 percent scale), optional."""
+
     paused: bool | None = None
+    """Whether to pause the player, optional."""
+
     filters: PlayerFilters | None = None
+    """Audio filters to apply (:class:`PlayerFilters`), optional."""
+
     voice: PlayerVoiceState | None = None
+    """Voice state updates (:class:`PlayerVoiceState`), optional."""
 
 
 class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
-    """Represents an UpdatePlayerTrackRequest structure payload."""
+    """
+    Represents a track update request for a Lavalink Player.
+
+    Used within :class:`UpdatePlayerRequest` to play or modify a track.
+    """
 
     encoded: str | None = None
+    """Base64-encoded track string, optional."""
+
     identifier: str | None = None
+    """Unique track identifier, optional."""
+
     user_data: dict[str, Any] | None = msgspec.field(name="userData", default=None)
+    """Optional user data previously provided when updating the player."""
+
+
+GetPlayersResponse = list[Player]
+"""Response type for GET /players. Returns a list of :class:`Player` objects."""
+
+GetPlayerResponse = Player
+"""Response type for GET /players/{guildId}. Returns a single :class:`Player` object."""
+
+UpdatePlayerResponse = Player
+"""Response type for PATCH /players/{guildId}. Returns the updated :class:`Player` object."""
+
+DestroyPlayerResponse = None
+"""Response type for DELETE /players/{guildId}. Returns nothing on success."""

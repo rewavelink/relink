@@ -1,3 +1,4 @@
+"""
 MIT License
 
 Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
@@ -19,3 +20,27 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+"""
+
+from __future__ import annotations
+
+import msgspec
+
+
+class UpdateSessionRequest(msgspec.Struct, kw_only=True):
+    """
+    Represents a request to update a Lavalink session.
+
+    Sent via PATCH `/v4/sessions/{sessionId}` to modify the resuming state
+    or the session timeout.
+    """
+
+    resuming: bool | None = None
+    """Optional. Whether resuming is enabled for this session."""
+
+    timeout: int | None = None
+    """Optional. Timeout in seconds for resuming. Defaults to 60s."""
+
+
+UpdateSessionResponse = UpdateSessionRequest
+"""Represents the response from updating a session, mirroring the request payload."""
