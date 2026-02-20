@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 import msgspec
 
 if TYPE_CHECKING:
-    from ..schemas import events, receive
+    from ..schemas import receive
 
 T = TypeVar("T", bound=msgspec.Struct, covariant=True)
 
