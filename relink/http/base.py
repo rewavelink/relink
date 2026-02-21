@@ -26,16 +26,16 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import Any, Generic, TypeVar
 
-if TYPE_CHECKING:
-    from . import SessionType, WebsocketType
+SessionT = TypeVar("SessionT")
+WebsocketT = TypeVar("WebsocketT")
 
 
-class BaseHTTPManager(ABC):
+class BaseHTTPManager(ABC, Generic[SessionT]):
     """Abstract Base Class for ReWaveLink HTTP backends."""
 
-    _session: SessionType | None
+    _session: SessionT | None
 
     @abstractmethod
     async def setup(self) -> None:
@@ -68,11 +68,11 @@ class BaseHTTPManager(ABC):
         pass
 
 
-class BaseWebsocketManager(ABC):
+class BaseWebsocketManager(ABC, Generic[SessionT, WebsocketT]):
     """Abstract Base Class for ReWaveLink Websocket backends."""
 
-    _session: SessionType
-    _ws: WebsocketType | None
+    _session: SessionT
+    _ws: WebsocketT | None
 
     @abstractmethod
     async def connect(

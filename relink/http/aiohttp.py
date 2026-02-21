@@ -32,7 +32,7 @@ import aiohttp
 from .base import BaseHTTPManager, BaseWebsocketManager
 
 
-class AioHTTPManager(BaseHTTPManager):
+class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):
     """Aiohttp implementation of the HTTP Manager."""
 
     def __init__(self, *, session: aiohttp.ClientSession | None = None) -> None:
@@ -82,7 +82,12 @@ class AioHTTPManager(BaseHTTPManager):
         return self._session is None or self._session.closed
 
 
-class AioWebsocketManager(BaseWebsocketManager):
+class AioWebsocketManager(
+    BaseWebsocketManager[
+        aiohttp.ClientSession,
+        aiohttp.ClientWebSocketResponse,
+    ]
+):
     """Aiohttp implementation of the Websocket Manager."""
 
     def __init__(self, session: aiohttp.ClientSession) -> None:

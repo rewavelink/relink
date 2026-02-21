@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from curl_cffi.requests.session import HttpMethod
 
 
-class CurlHTTPManager(BaseHTTPManager):
+class CurlHTTPManager(BaseHTTPManager[AsyncSession[Response]]):
     """Curl-CCFI implementation of the HTTP Manager."""
 
     def __init__(self, *, session: AsyncSession[Response] | None = None) -> None:
@@ -88,14 +88,19 @@ class CurlHTTPManager(BaseHTTPManager):
             return None
 
         await self._session.close()
-        self._session = None  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._session = None
 
     @property
     def is_closed(self) -> bool:
         return self._session is None
 
 
-class CurlWebsocketManager(BaseWebsocketManager):
+class CurlWebsocketManager(
+    BaseWebsocketManager[
+        AsyncSession[Response],
+        AsyncWebSocket,
+    ]
+):
     """Curl-cffi implementation of the Websocket Manager."""
 
     def __init__(self, session: AsyncSession[Response]) -> None:
@@ -138,7 +143,7 @@ class CurlWebsocketManager(BaseWebsocketManager):
             return None
 
         await self._ws.close()
-        self._ws = None  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._ws = None
 
     @property
     def is_connected(self) -> bool:
