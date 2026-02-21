@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import enum
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from relink.http import BaseWebsocketManager
 
@@ -71,7 +71,7 @@ class Node:
     resume_timeout: float
     """The maximum amount of seconds a resume can take before closing the node."""
     _id: str
-    _ws: BaseWebsocketManager | None
+    _ws: BaseWebsocketManager[Any, Any] | None
     _uri: str
     _pool: NodePool | None
 
