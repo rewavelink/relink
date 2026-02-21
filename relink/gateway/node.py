@@ -27,7 +27,7 @@ import enum
 import os
 from typing import TYPE_CHECKING, Any
 
-from relink.http import BaseWebsocketManager
+from relink.network import BaseWebsocketManager
 
 from .player import Player
 
