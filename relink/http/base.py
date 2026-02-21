@@ -40,7 +40,7 @@ class BaseHTTPManager(ABC, Generic[SessionT]):
     @abstractmethod
     async def setup(self) -> None:
         """Initialize the underlying session (ClientSession or AsyncSession)"""
-        pass
+        ...
 
     @abstractmethod
     async def request(
@@ -54,18 +54,18 @@ class BaseHTTPManager(ABC, Generic[SessionT]):
         data: Any | None = None,
     ) -> Any:
         """Perform an async HTTP request and return the response body/JSON"""
-        pass
+        ...
 
     @abstractmethod
     async def close(self) -> None:
         """Close the session and cleanup connectors."""
-        pass
+        ...
 
     @property
     @abstractmethod
     def is_closed(self) -> bool:
         """Check if the underlying session is closed."""
-        pass
+        ...
 
 
 class BaseWebsocketManager(ABC, Generic[SessionT, WebsocketT]):
@@ -82,20 +82,20 @@ class BaseWebsocketManager(ABC, Generic[SessionT, WebsocketT]):
         headers: Mapping[str, str],
     ) -> None:
         """Establish a connection to the Lavalink Websocket server."""
-        pass
+        ...
 
     @abstractmethod
     async def receive(self) -> Any:
         """Wait for a message from the websocket and return the parsed JSON data."""
-        pass
+        ...
 
     @abstractmethod
     async def close(self) -> None:
         """Close the websocket connection and perform cleanup."""
-        pass
+        ...
 
     @property
     @abstractmethod
     def is_connected(self) -> bool:
         """Check if the websocket is currently connected and active."""
-        pass
+        ...
