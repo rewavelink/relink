@@ -134,14 +134,14 @@ class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     """Optional user data previously provided when updating the player."""
 
 
-GetPlayersResponse = list[Player]
+type GetPlayersResponse = list[Player]
 """Response type for GET /players. Returns a list of :class:`Player` objects."""
 
-GetPlayerResponse = Player
+type GetPlayerResponse = Player
 """Response type for GET /players/{guildId}. Returns a single :class:`Player` object."""
 
-UpdatePlayerResponse = Player
+type UpdatePlayerResponse = Player
 """Response type for PATCH /players/{guildId}. Returns the updated :class:`Player` object."""
 
-DestroyPlayerResponse = None
+type DestroyPlayerResponse = None
 """Response type for DELETE /players/{guildId}. Returns nothing on success."""
