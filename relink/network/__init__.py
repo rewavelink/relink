@@ -21,6 +21,13 @@ if TYPE_CHECKING:
     WebsocketType = curl_cffi.AsyncWebSocket | aiohttp.ClientWebSocketResponse
 
 
+__all__ = (
+    "BaseHTTPManager",
+    "BaseWebsocketManager",
+    "HTTPFactory",
+)
+
+
 class HTTPFactory:
     """HTTP/Websocket selector and factory."""
 
@@ -84,10 +91,3 @@ class HTTPFactory:
         from .curl_cffi import CurlWebsocketManager
 
         return CurlWebsocketManager(session)
-
-
-__all__ = (
-    "BaseHTTPManager",
-    "BaseWebsocketManager",
-    "HTTPFactory",
-)

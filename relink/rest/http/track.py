@@ -16,20 +16,23 @@ class TrackHTTPMixin:
     async def load_track(
         self: HTTPClient, identifier: str
     ) -> track.TrackLoadingResponse:
-        url = "/loadtracks/"
+        url = "/loadtracks"
         res = await self.request("GET", url, params={"identifier": identifier})
         return msgspec.json.decode(res, type=track.TrackLoadingResponse)
 
-    async def decode_track(
-        self: HTTPClient, encoded: str
-    ) -> track.TrackLoadingResponse:
-        url = "/decodetrack/"
+    async def decode_track(self: HTTPClient, encoded: str) -> track.TrackDecodeResponse:
+        url = "/decodetrack"
         res = await self.request("GET", url, params={"encodedTrack": encoded})
-        return msgspec.json.decode(res, type=track.TrackLoadingResponse)
+        return msgspec.json.decode(res, type=track.TrackDecodeResponse)
 
     async def decode_tracks(
         self: HTTPClient, encoded_tracks: list[str]
-    ) -> track.TrackLoadingResponse:
-        url = "/decodetracks/"
-        res = await self.request("GET", url, data=encoded_tracks)
-        return msgspec.json.decode(res, type=track.TrackLoadingResponse)
+    ) -> track.TracksDecodeResponse:
+        url = "/decodetracks"
+        res = await self.request(
+            "POST",
+            url,
+            data=msgspec.json.encode(encoded_tracks),
+            headers={"Content-Type": "application/json"},
+        )
+        return msgspec.json.decode(res, type=track.TracksDecodeResponse)

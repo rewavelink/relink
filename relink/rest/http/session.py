@@ -17,14 +17,13 @@ class SessionHTTPMixin:
         self: HTTPClient,
         *,
         session_id: str,
-        data: session.UpdateSessionRequest,
-        no_replace: bool = False,
+        data: session.UpdateSessionRequest
     ) -> session.UpdateSessionResponse:
         url = f"/sessions/{session_id}"
         res = await self.request(
             "PATCH",
             url,
             data=msgspec.json.encode(data),
-            params={"noReplace": str(no_replace)},
+            headers={"Content-Type": "application/json"},
         )
         return msgspec.json.decode(res, type=session.UpdateSessionResponse)

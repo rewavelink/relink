@@ -15,16 +15,25 @@ class RoutePlannerHTTPMixin:
 
     async def status(
         self: HTTPClient,
-    ) -> planner.RoutePlannerStatusResponse:
+    ) -> planner.RoutePlannerStatusResponse | None:
         url = "/routeplanner/status"
         res = await self.request("GET", url)
+
+        if res is None:
+            return None
+
         return msgspec.json.decode(res, type=planner.RoutePlannerStatusResponse)
 
     async def unmark_failed_address(
         self: HTTPClient, data: planner.UnmarkFailedAddressRequest
     ) -> None:
         url = "/routeplanner/free/address"
-        await self.request("POST", url, data=msgspec.json.encode(data))
+        await self.request(
+            "POST",
+            url,
+            data=msgspec.json.encode(data),
+            headers={"Content-Type": "application/json"},
+        )
 
     async def unmark_all_failed_addresses(self: HTTPClient) -> None:
         url = "/routeplanner/free/all"

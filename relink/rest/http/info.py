@@ -23,7 +23,7 @@ class InfoHTTPMixin:
     ) -> info.VersionResponse:
         url = "/version"
         res = await self.request("GET", url)
-        return msgspec.json.decode(res, type=info.VersionResponse)
+        return res.decode()
 
     async def stats(self: HTTPClient) -> info.StatsResponse:
         url = "/stats"

@@ -40,12 +40,13 @@ class PlayerHTTPMixin:
             "PATCH",
             url,
             data=msgspec.json.encode(data),
-            params={"noReplace": str(no_replace)},
+            params={"noReplace": str(no_replace).lower()},
+            headers={"Content-Type": "application/json"}
         )
         return msgspec.json.decode(res, type=player.UpdatePlayerResponse)
 
     async def destroy_player(
         self: HTTPClient, *, session_id: str, guild_id: str
-    ) -> player.DestroyPlayerResponse:
+    ) -> None:
         url = f"/sessions/{session_id}/players/{guild_id}"
         await self.request("DELETE", url)

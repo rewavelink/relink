@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import Any, Protocol
 
 
-class HTTPClient(Protocol):  # TODO: implement HTTP client for a shared class
+class HTTPClient(Protocol):
     async def request(
         self,
         method: str,

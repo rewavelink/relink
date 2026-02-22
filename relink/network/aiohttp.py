@@ -69,7 +69,7 @@ class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):
                 return None
 
             try:
-                return await response.json()
+                return await response.read()
             except (aiohttp.ContentTypeError, ValueError):
                 return await response.text()
 

@@ -79,7 +79,7 @@ class CurlHTTPManager(BaseHTTPManager[AsyncSession[Response]]):
             return None
 
         try:
-            return response.json()  # type: ignore
+            return response.content
         except ValueError:
             return response.text
 
