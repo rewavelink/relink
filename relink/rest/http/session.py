@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import msgspec
-from schemas import session
+
+from ..schemas import session
 
 if TYPE_CHECKING:
     from .base import HTTPClient

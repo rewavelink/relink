@@ -1,9 +1,10 @@
 from __future__ import annotations
-from multiprocessing.util import info
+
 from typing import TYPE_CHECKING
 
 import msgspec
-from schemas import planner
+
+from ..schemas import planner
 
 if TYPE_CHECKING:
     from .base import HTTPClient

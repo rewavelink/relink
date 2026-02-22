@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import msgspec
-from schemas import track
+
+from ..schemas import track
 
 if TYPE_CHECKING:
     from .base import HTTPClient
