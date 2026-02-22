@@ -51,7 +51,7 @@ class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):
         params: Mapping[str, Any] | None = None,
         json: Any | None = None,
         data: Any | None = None,
-    ) -> Any:
+    ) -> bytes | None:
         if self._session is None:
             await self.setup()
 
@@ -68,10 +68,7 @@ class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):
             if response.status == 204:
                 return None
 
-            try:
-                return await response.read()
-            except (aiohttp.ContentTypeError, ValueError):
-                return await response.text()
+            return await response.read()
 
     async def close(self) -> None:
         if self._session is not None and not self._session.closed:
@@ -97,7 +94,6 @@ class AioWebsocketManager(
     async def connect(
         self,
         url: str,
-        # heartbeat: float,
         headers: Mapping[str, str],
     ) -> None:
         self._ws = await self._session.ws_connect(url=url, headers=headers)
