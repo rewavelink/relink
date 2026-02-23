@@ -74,6 +74,8 @@ class BaseWebsocketManager(ABC, Generic[SessionT, WebsocketT]):
     _session: SessionT
     _ws: WebsocketT | None
 
+    def __init__(self, session: SessionT) -> None: ...
+
     @abstractmethod
     async def connect(
         self,

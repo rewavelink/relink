@@ -27,12 +27,14 @@ import enum
 import os
 from typing import TYPE_CHECKING, Any
 
-from relink.network import BaseWebsocketManager
+from relink.network import BaseWebsocketManager, HTTPFactory
 
 from .player import Player
 
 if TYPE_CHECKING:
-    from .pool import NodePool
+    from .client import Client
+
+    from relink.network import SessionType
 
 
 class NodeStatus(enum.Enum):
@@ -44,24 +46,6 @@ class NodeStatus(enum.Enum):
 
 class Node:
     """Represents a connectable Node.
-
-    Parameters
-    ----------
-    uri: :class:`str`
-        The URI the node will connect to. You should only provide the base URI without
-        any routes, as the library will do it for you.
-    password: :class:`str`
-        The password of the node.
-    retries: :class:`int` | :data:`None`
-        The amount of retries to attempt when connecting or reconnecting this node. Whenever the limit
-        is reached, it closes the node automatically. If this is set to ``None``, it retries indefinetely.
-        Defaults to ``None``.
-    resume_timeout: :class:`int`
-        The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
-    inactive_player_timeout: :class:`int` | :data:`None`
-        The default :attr:`Player.inactive_timeout` for all players connected to this node. Defaults to ``300``.
-    inactive_channel_tokens: :class:`int` | :data:`None`
-        The default :attr:`Player.inactive_channel_tokens` for all players connected to this node. Defaults to ``3``.
     """
 
     password: str
@@ -73,11 +57,12 @@ class Node:
     _id: str
     _ws: BaseWebsocketManager[Any, Any] | None
     _uri: str
-    _pool: NodePool | None
+    _client: Client | None
 
     def __init__(
         self,
         *,
+        client: Client,
         uri: str,
         password: str,
         id: str | None = None,
@@ -86,6 +71,7 @@ class Node:
         inactive_player_timeout: int | None = 300,
         inactive_channel_tokens: int | None = 3,
     ) -> None:
+        self._client = client
         self._id = id or os.urandom(16).hex()
         self.password = password
         self.retries = retries
@@ -98,7 +84,6 @@ class Node:
         self._players: dict[str, Player] = {}
         
         self._ws = None
-        self._pool = None
 
     @property
     def id(self) -> str:
@@ -107,12 +92,10 @@ class Node:
 
     @id.setter
     def id(self, value: str) -> None:
-        if self._pool is not None:
-            self._pool._nodes.pop(self._id)
-            self._id = value
-            self._pool._nodes[value] = self
+        if self._client:
+            self._client._replace_node_id(self, value)
         else:
-            self._id = value
+            self._id = value or os.urandom(16).hex()
 
     @property
     def uri(self) -> str:
@@ -126,20 +109,31 @@ class Node:
         self._uri = value
 
     @property
-    def pool(self) -> NodePool | None:
-        """The pool this node is attached to."""
-        return self._pool
+    def client(self) -> Client | None:
+        """The client this node is attached to."""
+        return self._client
 
     def get_player(self, id: str) -> Player | None:
         """Gets a player connected to this node."""
         return self._players.get(id)
 
-    async def connect(self) -> None:
+    async def connect(self, *, session: SessionType | None) -> None:
         """Connects this node.
 
         This can only be done when the node has been attached to a pool.
         """
-        if self._pool is None:
+        if self._client is None:
             raise RuntimeError("Can not connect a node with no pool attached to it.")
 
         # TODO: implement connect logic
+
+        if session is not None:
+            http = HTTPFactory.from_http(session)
+            assert http._session
+            ws = HTTPFactory.create_websocket(http._session)
+        else:
+            ws = HTTPFactory.create_websocket(self._client.http._session)
+
+        self._ws = ws
+
+        url = self._client.http._base_url
