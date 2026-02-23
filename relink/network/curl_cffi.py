@@ -60,13 +60,13 @@ class CurlHTTPManager(BaseHTTPManager[AsyncSession[Response]]):
         params: Mapping[str, Any] | None = None,
         json: Any | None = None,
         data: Any | None = None,
-    ) -> Any:
+    ) -> bytes | None:
         if self._session is None:
             await self.setup()
 
         assert self._session is not None
 
-        response = await self._session.request(  # type: ignore
+        response = await self._session.request(  # pyright: ignore[reportUnknownMemberType]
             method=cast("HttpMethod", method.upper()),
             url=url,
             headers=cast("HeaderTypes", headers),
@@ -78,10 +78,7 @@ class CurlHTTPManager(BaseHTTPManager[AsyncSession[Response]]):
         if response.status_code == 204:
             return None
 
-        try:
-            return response.json()  # type: ignore
-        except ValueError:
-            return response.text
+        return response.content
 
     async def close(self) -> None:
         if not self._session:
@@ -110,10 +107,9 @@ class CurlWebsocketManager(
     async def connect(
         self,
         url: str,
-        # heartbeat: float,
         headers: Mapping[str, str],
     ) -> None:
-        self._ws = await self._session.ws_connect(  # type: ignore
+        self._ws = await self._session.ws_connect(  # pyright: ignore[reportUnknownMemberType]
             url=url,
             headers=headers,
         )

@@ -80,7 +80,6 @@ class BaseWebsocketManager(ABC, Generic[SessionT, WebsocketT]):
     async def connect(
         self,
         url: str,
-        # ! heartbeat: float, => since curl_cffi doesn't have one
         headers: Mapping[str, str],
     ) -> None:
         """Establish a connection to the Lavalink Websocket server."""
