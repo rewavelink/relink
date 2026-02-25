@@ -5,6 +5,7 @@ relink
    :maxdepth: 4
 
    gateway
+   models
    network
    rest
    utils

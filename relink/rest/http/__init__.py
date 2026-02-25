@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ...network.base import BaseHTTPManager
+from relink.network.base import BaseHTTPManager
 from .info import InfoHTTPMixin
 from .planner import RoutePlannerHTTPMixin
 from .player import PlayerHTTPMixin

@@ -2,7 +2,7 @@ import datetime
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../"))
+sys.path.insert(0, os.path.abspath("../../relink"))
 
 # -- Project information -----------------------------------------------------
 project = "relink"
@@ -21,15 +21,23 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-
 # Intersphinx link to standard Python docs
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["_build"]
 
+# -- Options for autodoc ----------------------------------------------------
+autodoc_default_options = {
+    "members": True,
+    "member-order": "bysource",
+    "undoc-members": True,
+    "show-inheritance": True,
+    "inherited-members": True,
+}
+autodoc_typehints = "both"
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "furo"

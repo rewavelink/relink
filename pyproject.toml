@@ -49,6 +49,7 @@ speed = [
     "orjson>=3.11.7,<4",
 ]
 docs = [
+    "relink[speed]",
     "sphinx>=9.0.0",
     "furo",
     "sphinx-copybutton",

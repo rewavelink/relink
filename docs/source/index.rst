@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to re[wave]link
-====================
+=======================
 
 .. add images here
 
@@ -30,4 +30,4 @@ Features
    :hidden:
 
    GitHub <https://github.com/rewavelink/relink>
-   .. PyPI <https://pypi.org/rewavelink/relink>
+   PyPI <https://pypi.org/rewavelink/relink>
