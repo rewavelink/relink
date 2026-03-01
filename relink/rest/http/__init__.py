@@ -8,8 +8,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ...network import HTTPFactory
-from ...network.base import BaseHTTPManager, BaseWebsocketManager
+from relink.network import HTTPFactory
+from relink.network.base import BaseHTTPManager, BaseWebsocketManager
+
 from .info import InfoHTTPMixin
 from .planner import RoutePlannerHTTPMixin
 from .player import PlayerHTTPMixin

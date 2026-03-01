@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 dynamic = ["version"]
-name = "rewavelink"
+name = "relink"
 dependencies = [
     "discord.py>=2.6,<3",
     "aiohttp>=3.11.0,<4",
@@ -47,6 +47,12 @@ classifiers = [
 speed = [
     "curl-cffi>=0.14.0,<1",
     "orjson>=3.11.7,<4",
+]
+docs = [
+    "relink[speed]",
+    "sphinx>=9.0.0",
+    "furo",
+    "sphinx-copybutton",
 ]
 
 [project.urls]

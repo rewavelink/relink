@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 import datetime
 
@@ -51,8 +52,6 @@ class PlayerUpdateEvent(msgspec.Struct):
     def guild_id(self) -> int:
         """The guild ID of the player."""
         return int(self._guild_id)
-
-PlayerUpdateEvent(_guild_id="1", state=msgspec.Struct(...))
 
 
 class PlayerState(msgspec.Struct):
