@@ -30,6 +30,8 @@ from typing import Any
 import aiohttp
 
 from .base import BaseHTTPManager, BaseWebsocketManager
+from .errors import WebSocketError
+from .msg import Message, MessageType
 
 
 class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):
@@ -94,11 +96,15 @@ class AioWebsocketManager(
     async def connect(
         self,
         url: str,
-        headers: Mapping[str, str],
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> None:
-        self._ws = await self._session.ws_connect(url=url, headers=headers)
+        try:
+            self._ws = await self._session.ws_connect(url=url, headers=headers)
+        except aiohttp.WSServerHandshakeError as e:
+            raise WebSocketError(e) from e
 
-    async def receive(self) -> Any:
+    async def receive(self) -> Message:
         if self._ws is None:
             raise RuntimeError("Websocket is not connected.")
 
@@ -117,7 +123,7 @@ class AioWebsocketManager(
         if msg.type == aiohttp.WSMsgType.ERROR:
             raise RuntimeError(f"Websocket received error: {ws.exception()}")
 
-        return msg.json()
+        return Message(msg.data, MessageType(msg.type.value))
 
     async def close(self) -> None:
         if self._ws and not self._ws.closed:

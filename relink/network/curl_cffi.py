@@ -24,17 +24,14 @@ SOFTWARE.
 
 from __future__ import annotations
 
-try:
-    import orjson as json
-except ImportError:
-    import json
-
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, cast
 
-from curl_cffi.requests import AsyncSession, AsyncWebSocket, Response, WebSocketClosed
+from curl_cffi.requests import AsyncSession, AsyncWebSocket, Response, WebSocketClosed, WebSocketError
 
 from .base import BaseHTTPManager, BaseWebsocketManager
+from .errors import WebSocketError as InnerWSError
+from .msg import Message, MessageType
 
 if TYPE_CHECKING:
     from curl_cffi.requests import HeaderTypes
@@ -107,21 +104,25 @@ class CurlWebsocketManager(
     async def connect(
         self,
         url: str,
-        headers: Mapping[str, str],
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> None:
-        self._ws = await self._session.ws_connect(  # pyright: ignore[reportUnknownMemberType]
-            url=url,
-            headers=headers,
-        )
+        try:
+            self._ws = await self._session.ws_connect(  # pyright: ignore[reportUnknownMemberType]
+                url=url,
+                headers=headers,
+            )
+        except WebSocketError as e:
+            raise InnerWSError(e) from e
 
-    async def receive(self) -> Any:
+    async def receive(self) -> Message:
         if self._ws is None:
             raise RuntimeError("Websocket is not connected.")
 
         ws: AsyncWebSocket = self._ws
 
         try:
-            payload, _ = await ws.recv()
+            payload, flags = await ws.recv()
         except WebSocketClosed:
             self._ws = None
             raise ConnectionResetError("Websocket connection was closed.")
@@ -132,7 +133,7 @@ class CurlWebsocketManager(
                 "Websocket received an empty payload/close frame."
             )
 
-        return json.loads(payload.decode("utf-8"))
+        return Message(payload, MessageType(flags))
 
     async def close(self) -> None:
         if self._ws is None:

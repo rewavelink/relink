@@ -69,6 +69,7 @@ class Player(discord.VoiceProtocol):
 
     _ready: bool
     _connection: PlayerConnectionState
+    guild_id: int
 
     @overload
     def __init__(self, *, node: Node) -> None: ...

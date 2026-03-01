@@ -28,6 +28,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import Any, Generic, TypeVar
 
+from .msg import Message
+
 SessionT = TypeVar("SessionT")
 WebsocketT = TypeVar("WebsocketT")
 
@@ -36,6 +38,8 @@ class BaseHTTPManager(ABC, Generic[SessionT]):
     """Abstract Base Class for ReWaveLink HTTP backends."""
 
     _session: SessionT | None
+
+    def __init__(self, *, session: SessionT | None = None) -> None: ...
 
     @abstractmethod
     async def setup(self) -> None:
@@ -80,13 +84,14 @@ class BaseWebsocketManager(ABC, Generic[SessionT, WebsocketT]):
     async def connect(
         self,
         url: str,
-        headers: Mapping[str, str],
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> None:
         """Establish a connection to the Lavalink Websocket server."""
         ...
 
     @abstractmethod
-    async def receive(self) -> Any:
+    async def receive(self) -> Message:
         """Wait for a message from the websocket and return the parsed JSON data."""
         ...
 

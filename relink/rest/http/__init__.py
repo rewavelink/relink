@@ -8,7 +8,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ...network.base import BaseHTTPManager
+from ...network import HTTPFactory
+from ...network.base import BaseHTTPManager, BaseWebsocketManager
 from .info import InfoHTTPMixin
 from .planner import RoutePlannerHTTPMixin
 from .player import PlayerHTTPMixin
@@ -33,7 +34,7 @@ class RESTClient(
         headers: dict[str, str] | None = None,
     ) -> None:
         self._manager = manager
-        self._base_url = base_url.rstrip("/")
+        self._base_url = base_url.removesuffix("/")
         self._default_headers = headers or {}
 
     async def request(
@@ -57,6 +58,26 @@ class RESTClient(
             json=json,
             data=data,
         )
+
+    async def connect_ws(
+        self,
+        url: str,
+        *,
+        headers: Mapping[str, str] | None = None,
+    ) -> BaseWebsocketManager[Any, Any]:
+        if not self._manager._session:
+            raise RuntimeError("can not create websocket without a manager session")
+        merged_headers = {**self._default_headers, **(headers or {})}
+        safe = self._base_url.startswith("https://")
+        ws_prefix = "wss://" if safe else "ws://"
+        base_url = self._base_url.removeprefix("https://").removeprefix("http://")
+        full_url = ws_prefix  + base_url + url if url.startswith("/") else url
+        ws = HTTPFactory.create_websocket(self._manager._session)
+        await ws.connect(
+            full_url,
+            headers=merged_headers,
+        )
+        return ws
 
     async def setup(self) -> None:
         await self._manager.setup()

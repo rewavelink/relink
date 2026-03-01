@@ -29,6 +29,7 @@ from typing import Any
 
 import msgspec
 
+from relink.errors import ReLinkException
 from relink.utils import cached_property
 
 
@@ -44,10 +45,6 @@ class ErrorResponseType(msgspec.Struct, kw_only=True):
 
     def to_dict(self) -> dict[str, Any]:
         return dict(self.__dict__)
-
-
-class ReLinkException(Exception):
-    """Base exception class for all errors on this library."""
 
 
 class HTTPException(ReLinkException):

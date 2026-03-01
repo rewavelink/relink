@@ -22,16 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar
+
+import asyncio
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import discord
 
-from .node import Node
+from relink._version import __version__
 
-from relink.rest.http import HTTPClient
+from .node import Node
+from .events.router import EventRouter
 
 if TYPE_CHECKING:
     from relink.network import SessionType
+
+__all__ = ("Client",)
 
 
 class Client:
@@ -50,18 +55,18 @@ class Client:
     _client: discord.Client
     _nodes: dict[str, Node]
     _session: SessionType | None
-    _http: HTTPClient
+    _event_router: EventRouter
+    __node_tasks: dict[str, asyncio.Task[Any]]
 
     def __init__(
         self,
         client: discord.Client,
-        *,
-        session: SessionType | None = None,
     ) -> None:
         self._client = client
         self._nodes = {}
         self._session = None
-        self._http = HTTPClient(session=session)
+        self._event_router = EventRouter(self)
+        self.__node_tasks = {}
 
         Client.__clients__[client] = self
 
@@ -123,16 +128,44 @@ class Client:
         self._nodes[node.id] = node
         return node
 
-    def remove_node(self, id: str, /) -> None:
+    def remove_node(self, identifier: str, /) -> None:
         """Removes a Node from this client.
 
         Parameters
         ----------
-        id: :class:`str`
+        identifier: :class:`str`
             The ID of the node to remove.
         """
 
         try:
-            self._nodes.pop(id)
+            node = self._nodes.pop(identifier)
         except KeyError:
             pass
+        else:
+            self._cleanup_node(node)
+
+    def _cleanup_node(self, node: Node) -> None:
+        if node.id in self.__node_tasks:
+            return  # the same Node is already closing
+
+        task = asyncio.create_task(node.close(), name=f"node-close:{id(node):#x}")
+        self.__node_tasks[node.id] = task
+        task.add_done_callback(lambda _: self.__node_tasks.pop(node.id, None))
+
+    def clear_nodes(self) -> None:
+        """Clears all Nodes from this Client."""
+
+        for node in self.nodes:
+            self.remove_node(node.id)
+
+    def _dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:
+        self._event_router.dispatch(event, *args, **kwargs)
+
+    def _get_ws_headers(self) -> dict[str, str]:
+        if self._client.user is None:
+            raise RuntimeError("can not connect Nodes without the underlying client running.")
+
+        return {
+            "User-Id": str(self._client.user.id),
+            "Client-Name": f"relink/{__version__}",
+        }

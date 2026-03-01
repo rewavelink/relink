@@ -29,7 +29,7 @@ import sys
 from typing import TYPE_CHECKING, Any, Coroutine, ParamSpec, TypeVar, overload
 
 if TYPE_CHECKING:
-    from relink.gateway.player import Player
+    from relink.gateway.client import Client
 
 if sys.version_info < (3, 14):
     from asyncio import iscoroutinefunction as iscoro
@@ -46,12 +46,12 @@ class EventRouter:
     on a :class:`relink.gateway.Player`.
     """
 
-    _player: Player
+    _client: Client
     _event_map: dict[str, list[EventCallback[..., Any]]]
     _task_set: set[asyncio.Task[Any]]
 
-    def __init__(self, player: Player) -> None:
-        self._player = player
+    def __init__(self, client: Client) -> None:
+        self._client = client
         self._event_map = {}
         self._task_set = set()
 
