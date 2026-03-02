@@ -174,7 +174,7 @@ class Node:
 
         self._status = NodeStatus.connecting
 
-        headers = self._client._get_ws_headers()
+        headers = self._client._build_ws_headers()
         if self._resume_session:
             headers["Session-Id"] = self._resume_session
 

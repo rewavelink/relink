@@ -21,22 +21,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import asyncio
 from typing import TYPE_CHECKING, Any, ClassVar
+from weakref import WeakKeyDictionary
 
 import discord
 
 from relink._version import __version__
 
-from .node import Node
 from .events.router import EventRouter
+from .node import Node
 
 if TYPE_CHECKING:
     from relink.network import SessionType
 
 __all__ = ("Client",)
+
+_ClientRegistry = WeakKeyDictionary[discord.Client, "Client"]
 
 
 class Client:
@@ -50,7 +54,7 @@ class Client:
         The discord.py's client this ReLink client is attached to.
     """
 
-    __clients__: ClassVar[dict[discord.Client, Client]] = {}
+    __clients__: ClassVar[_ClientRegistry] = WeakKeyDictionary()
 
     _client: discord.Client
     _nodes: dict[str, Node]
@@ -58,21 +62,24 @@ class Client:
     _event_router: EventRouter
     __node_tasks: dict[str, asyncio.Task[Any]]
 
-    def __init__(
-        self,
-        client: discord.Client,
-    ) -> None:
+    def __init__(self, client: discord.Client) -> None:
         self._client = client
         self._nodes = {}
         self._session = None
         self._event_router = EventRouter(self)
         self.__node_tasks = {}
 
+        if client in Client.__clients__:
+            raise RuntimeError("ReLink Client already attached to this discord.Client")
+
         Client.__clients__[client] = self
+
+    def __repr__(self) -> str:
+        return f"<ReLink.Client nodes={len(self._nodes)}>"
 
     @property
     def nodes(self) -> list[Node]:
-        """The nodes attached to this client."""
+        """The active nodes attached to this client."""
         return list(self._nodes.values())
 
     def create_node(
@@ -87,7 +94,7 @@ class Client:
         inactive_channel_tokens: int | None = 3,
     ) -> Node:
         """Creates a :class:`Node` attached to this client.
-        
+
         Parameters
         ----------
         uri: :class:`str`
@@ -144,13 +151,15 @@ class Client:
         else:
             self._cleanup_node(node)
 
-    def _cleanup_node(self, node: Node) -> None:
+    def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
         if node.id in self.__node_tasks:
-            return  # the same Node is already closing
+            return self.__node_tasks[node.id]
 
-        task = asyncio.create_task(node.close(), name=f"node-close:{id(node):#x}")
+        task = asyncio.create_task(node.close(), name=f"relink:node-close:{node.id}")
         self.__node_tasks[node.id] = task
+
         task.add_done_callback(lambda _: self.__node_tasks.pop(node.id, None))
+        return task
 
     def clear_nodes(self) -> None:
         """Clears all Nodes from this Client."""
@@ -161,9 +170,11 @@ class Client:
     def _dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:
         self._event_router.dispatch(event, *args, **kwargs)
 
-    def _get_ws_headers(self) -> dict[str, str]:
+    def _build_ws_headers(self) -> dict[str, str]:
         if self._client.user is None:
-            raise RuntimeError("can not connect Nodes without the underlying client running.")
+            raise RuntimeError(
+                "Cannot connect Nodes without the underlying client running."
+            )
 
         return {
             "User-Id": str(self._client.user.id),
