@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -34,17 +35,23 @@ import msgspec.json
 
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
+from relink.network.message import MessageType
 from relink.rest.http import RESTClient
 
-from .player import Player
 from .errors import InvalidNodePassword, NodeURINotFound
 from .events.raw_models import PlayerUpdateEvent, ReadyEvent
-from .schemas.receive import ReadyEvent as ReadyPayload, PlayerUpdateEvent as PlayerUpdatePayload
+from .player import Player
+from .schemas.receive import (
+    PlayerUpdateEvent as PlayerUpdatePayload,
+)
+from .schemas.receive import (
+    ReadyEvent as ReadyPayload,
+)
 
 if TYPE_CHECKING:
-    from .client import Client
-
     from relink.network import SessionType
+
+    from .client import Client
 
 _log = logging.getLogger(__name__)
 
@@ -58,19 +65,19 @@ class NodeStatus(enum.Enum):
 
 
 class Node:
-    """Represents a connectable Node.
-    """
+    """Represents a connectable Node."""
 
     retries: int | None
     """The amount of retries to attempt when connecting or reconnecting this node."""
     resume_timeout: float
     """The maximum amount of seconds a resume can take before closing the node."""
+    
     _id: str
     _ws: BaseWebsocketManager[Any, Any] | None
     _uri: str
     _password: str
     _client: Client | None
-    _keep_alive: asyncio.Task[Any] | None
+    _keep_alive: asyncio.Task[None] | None
     _resume_session: str | None
 
     def __init__(
@@ -95,7 +102,7 @@ class Node:
         self._uri = uri.removesuffix("/")
         self._inactive_player_timeout = inactive_player_timeout
         self._inactive_channel_tokens = inactive_channel_tokens
-        self._status: NodeStatus = NodeStatus.disconnected     
+        self._status: NodeStatus = NodeStatus.disconnected
         self._players: dict[str, Player] = {}
 
         headers = {
@@ -121,7 +128,7 @@ class Node:
     @password.setter
     def password(self, value: str) -> None:
         self._password = value
-        self._manager._default_headers["Authorization"] = value
+        self._manager.set_auth_header(value)
 
     @property
     def id(self) -> str:
@@ -142,7 +149,7 @@ class Node:
     @uri.setter
     def uri(self, value: str) -> None:
         if self._status is not NodeStatus.disconnected:
-            raise RuntimeError("Can not update the node uri while it is connected.")
+            raise RuntimeError("Cannot update the node uri while it is connected.")
         self._uri = value
 
     @property
@@ -156,7 +163,9 @@ class Node:
 
     def get_player_by_guild(self, guild_id: int, /) -> Player | None:
         """Gets a player connected to this Node by its guild ID."""
-        return discord.utils.find(lambda p: p.guild_id == guild_id, self._players.values())
+        return discord.utils.find(
+            lambda p: p.guild_id == guild_id, self._players.values()
+        )
 
     def is_connected(self) -> bool:
         """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
@@ -184,7 +193,9 @@ class Node:
         retries: int = self.retries or 1
 
         for i in range(retries):
-            _log.info("Starting connection attempt %d/%d on Node %r", i + 1, retries, self)
+            _log.info(
+                "Starting connection attempt %d/%d on Node %r", i + 1, retries, self
+            )
 
             try:
                 self._ws = await self._manager.connect_ws(
@@ -227,9 +238,8 @@ class Node:
 
         while True:
             msg = await self._ws.receive()
-            msg_type = msg.flags.__class__
 
-            if msg_type.CLOSE in msg.flags:
+            if MessageType.CLOSE in msg.flags:
                 # attempt a reconnect
                 # TODO: maybe add a reconnect= flag?
                 asyncio.create_task(self.connect())
@@ -253,8 +263,6 @@ class Node:
                 pd = msgspec.json.decode(data, type=PlayerUpdatePayload)
                 pupdate = PlayerUpdateEvent(pd)
                 self._client._dispatch("player_update", pupdate)
-
-                resolved = self.get_player_by_guild(pd.guild_id)
 
     async def close(self) -> None:
         """Closes the connection to this node.
@@ -293,3 +301,4 @@ class Node:
 
         This is automatically called by the library.
         """
+        ...

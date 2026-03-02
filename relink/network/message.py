@@ -42,7 +42,7 @@ class MessageType(IntFlag):
 class Message:
     __slots__ = ("data", "flags")
 
-    data: bytes | bytearray | str
+    data: bytes | bytearray | str | None
     flags: MessageType
 
     def __init__(

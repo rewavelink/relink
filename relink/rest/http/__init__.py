@@ -38,6 +38,9 @@ class RESTClient(
         self._base_url = base_url.removesuffix("/")
         self._default_headers = headers or {}
 
+    def set_auth_header(self, token: str) -> None:
+        self._default_headers["Authorization"] = token
+
     async def request(
         self,
         method: str,
@@ -72,7 +75,7 @@ class RESTClient(
         safe = self._base_url.startswith("https://")
         ws_prefix = "wss://" if safe else "ws://"
         base_url = self._base_url.removeprefix("https://").removeprefix("http://")
-        full_url = ws_prefix  + base_url + url if url.startswith("/") else url
+        full_url = ws_prefix + base_url + url if url.startswith("/") else url
         ws = HTTPFactory.create_websocket(self._manager._session)
         await ws.connect(
             full_url,

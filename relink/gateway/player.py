@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import abc
@@ -35,29 +36,33 @@ MISSING = discord.utils.MISSING
 
 
 class PlayerConnectionState(abc.ABC):
-    """A :class:`Player` voice connection state.
+    """
+    A :class:`Player` voice connection state.
 
     This offers a default implementation, but you can subclass it to implement
     custom behaviour.
     """
 
+    ...
+
 
 class Player(discord.VoiceProtocol):
-    """Represents a player that is used to play music in a voice channel.
+    """
+    Represents a player that is used to play music in a voice channel.
 
     There are two ways to create a player:
 
     1. Via creating an instance and then passing it to :meth:`Connectable.connect`:
-    
+
         .. code-block:: python3
-    
+
             player = relink.gateway.Player(node=...)
             await connectable.connect(cls=player)
-    
+
     2. Passing the class directly to :meth:`Connectable.connect`:
-    
+
         .. code-block:: python3
-    
+
             player = await connectable.connect(cls=relink.gateway.Player)
 
     Parameters
@@ -67,15 +72,24 @@ class Player(discord.VoiceProtocol):
         under the parent :class:`NodePool`.
     """
 
+    __slots__ = ("_ready", "_connection", "guild_id")
+
     _ready: bool
     _connection: PlayerConnectionState
     guild_id: int
+
+    def __repr__(self) -> str:
+        return (
+            f"<Player guild_id={getattr(self, 'guild_id', None)} ready={self._ready}>"
+        )
 
     @overload
     def __init__(self, *, node: Node) -> None: ...
 
     @overload
-    def __init__(self, client: discord.Client, channel: discord.abc.Connectable) -> None: ...
+    def __init__(
+        self, client: discord.Client, channel: discord.abc.Connectable
+    ) -> None: ...
 
     def __init__(
         self,
@@ -91,11 +105,14 @@ class Player(discord.VoiceProtocol):
             self._ready = False
 
     def get_connection_state(self) -> PlayerConnectionState:
-        """Gets the connection for this player. This can be overriden by subclasses to implement custom behaviour
-        on the connection state.
+        """
+        Gets the connection for this player.
+        This can be overriden by subclasses to implement custom behaviour on the connection state.
         """
         return PlayerConnectionState()
 
-    def __call__(self, client: discord.Client, channel: discord.abc.Connectable) -> Self:
+    def __call__(
+        self, client: discord.Client, channel: discord.abc.Connectable
+    ) -> Self:
         super().__init__(client, channel)
         return self
