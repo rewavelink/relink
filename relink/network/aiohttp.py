@@ -31,7 +31,7 @@ import aiohttp
 
 from .base import BaseHTTPManager, BaseWebsocketManager
 from .errors import WebSocketError
-from .msg import Message, MessageType
+from .message import Message, MessageType
 
 
 class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):

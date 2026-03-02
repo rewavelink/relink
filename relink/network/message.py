@@ -21,15 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
-from enum import Flag
+from enum import IntFlag
 from typing import Any
 
 import msgspec.json
 
 
-class MessageType(Flag):
+class MessageType(IntFlag):
     CONTINUATION = 0x0
     TEXT = 0x1
     BINARY = 0x2
@@ -39,14 +40,25 @@ class MessageType(Flag):
 
 
 class Message:
-    data: Any
+    __slots__ = ("data", "flags")
+
+    data: bytes | bytearray | str
     flags: MessageType
-    
-    def __init__(self, data: Any, flags: MessageType) -> None:
+
+    def __init__(
+        self,
+        data: bytes | bytearray | str,
+        flags: MessageType,
+    ) -> None:
         self.data = data
         self.flags = flags
 
+    def __repr__(self) -> str:
+        return f"Message(flags={self.flags!r}, data_type={type(self.data).__name__})"
+
     def json(self) -> Any:
+        if not isinstance(self.data, (bytes, bytearray)):
+            raise TypeError("JSON decoding requires bytes-like data")
         return msgspec.json.decode(self.data)
 
     def text(self) -> str:

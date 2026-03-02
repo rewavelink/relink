@@ -31,7 +31,7 @@ from curl_cffi.requests import AsyncSession, AsyncWebSocket, Response, WebSocket
 
 from .base import BaseHTTPManager, BaseWebsocketManager
 from .errors import WebSocketError as InnerWSError
-from .msg import Message, MessageType
+from .message import Message, MessageType
 
 if TYPE_CHECKING:
     from curl_cffi.requests import HeaderTypes

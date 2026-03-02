@@ -28,7 +28,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import Any, Generic, TypeVar
 
-from .msg import Message
+from .message import Message
 
 SessionT = TypeVar("SessionT")
 WebsocketT = TypeVar("WebsocketT")
