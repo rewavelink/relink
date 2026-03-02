@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -28,10 +29,10 @@ from typing import TYPE_CHECKING
 from relink.errors import ReLinkException
 
 if TYPE_CHECKING:
+    from typing import Union
+
     import aiohttp
     import curl_cffi
-
-    from typing import Union
 
     WSErrorType = Union[
         aiohttp.WebSocketError,
@@ -48,19 +49,19 @@ class WebSocketError(NetworkError):
     """Exception raised when a websocket error occurrs."""
 
     def __init__(self, original: WSErrorType) -> None:
-        self.__original__: WSErrorType = original
+        self._original: WSErrorType = original
 
     @property
     def code(self) -> int:
         """The code of the websocket error."""
-        return self.__original__.code
+        return self._original.code
 
     @property
     def status(self) -> int:
         """The status code of the websocket."""
-        return getattr(self.__original__, "status", self.code)
+        return getattr(self._original, "status", self.code)
 
     @property
     def message(self) -> str | None:
         """The message of the websocket error."""
-        return getattr(self.__original__, "message", None)
+        return getattr(self._original, "message", None)

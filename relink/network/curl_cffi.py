@@ -27,7 +27,13 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, cast
 
-from curl_cffi.requests import AsyncSession, AsyncWebSocket, Response, WebSocketClosed, WebSocketError
+from curl_cffi.requests import (
+    AsyncSession,
+    AsyncWebSocket,
+    Response,
+    WebSocketClosed,
+    WebSocketError,
+)
 
 from .base import BaseHTTPManager, BaseWebsocketManager
 from .errors import WebSocketError as InnerWSError

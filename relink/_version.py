@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 from typing import Literal, NamedTuple
 
@@ -28,17 +29,22 @@ __all__ = ("version_info", "__version__")
 
 
 class VersionInfo(NamedTuple):
+    __slots__ = ()
+
     major: int
     minor: int
     patch: int
     release_level: Literal["alpha", "beta", "candidate", "final"]
 
+    def __str__(self) -> str:
+        return self.as_str()
+
     def as_str(self) -> str:
         base = f"{self.major}.{self.minor}.{self.patch}"
-
         if self.release_level == "final":
             return base
         return base + f"-{self.release_level}"
+
 
 version_info = VersionInfo(major=0, minor=0, patch=1, release_level="alpha")
 __version__ = version_info.as_str()
