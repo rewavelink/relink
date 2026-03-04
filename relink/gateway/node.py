@@ -30,7 +30,6 @@ import os
 from typing import TYPE_CHECKING, Any
 
 import discord
-import msgspec.json
 
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
@@ -80,6 +79,7 @@ class Node:
         inactive_player_timeout: int | None = 300,
         inactive_channel_tokens: int | None = 3,
         session: SessionType | None = None,
+        auto_reconnect: bool = True,
     ) -> None:
         self._client = client
         self._id = id or os.urandom(16).hex()
@@ -87,6 +87,7 @@ class Node:
         self.retries = retries
         self.resume_timeout = resume_timeout
 
+        self._auto_reconnect = auto_reconnect
         self._uri = uri.removesuffix("/")
         self._inactive_player_timeout = inactive_player_timeout
         self._inactive_channel_tokens = inactive_channel_tokens
@@ -237,9 +238,9 @@ class Node:
             msg = await self._ws.receive()
 
             if MessageType.CLOSE in msg.flags:
-                # attempt a reconnect
-                # TODO: maybe add a reconnect= flag?
-                asyncio.create_task(self.connect())
+                if self._auto_reconnect:
+                    _log.info("%r WS closed, attempting reconnect...", self)
+                    asyncio.create_task(self.connect())
                 break
 
             if msg.data is None:
@@ -247,19 +248,37 @@ class Node:
                 continue
 
             data = msg.json()
+            event_type = data.get("op")
 
-            if data["op"] == "ready":
-                pd = msgspec.json.decode(data, type=ReadyPayload)
+            match event_type:
+                case "ready":
+                    await self._handle_ready(data)
+                case "playerUpdate":
+                    await self._handle_player_update(data)
+                case _:
+                    _log.debug(
+                        "Received unhandled event type %r from Node %r",
+                        event_type,
+                        self,
+                    )
 
-                self._resume_session = pd.session_id
-                self._status = NodeStatus.connected
+    async def _handle_ready(self, data: dict[str, Any]) -> None:
+        assert self._client is not None
 
-                ready = ReadyEvent(pd)
-                self._client._dispatch("node_ready", ready)
-            elif data["op"] == "playerUpdate":
-                pd = msgspec.json.decode(data, type=PlayerUpdatePayload)
-                pupdate = PlayerUpdateEvent(pd)
-                self._client._dispatch("player_update", pupdate)
+        payload = ReadyPayload(**data)
+        self._resume_session = payload.session_id
+        self._status = NodeStatus.connected
+
+        event = ReadyEvent(payload)
+        self._client._dispatch("node_ready", event)
+
+    async def _handle_player_update(self, data: dict[str, Any]) -> None:
+        assert self._client is not None
+
+        payload = PlayerUpdatePayload(**data)
+        event = PlayerUpdateEvent(payload)
+
+        self._client._dispatch("player_update", event)
 
     async def close(self) -> None:
         """Closes the connection to this node.
