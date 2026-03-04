@@ -38,8 +38,15 @@ class RESTClient(
         self._base_url = base_url.removesuffix("/")
         self._default_headers = headers or {}
 
-    def set_auth_header(self, token: str) -> None:
-        self._default_headers["Authorization"] = token
+    async def __aenter__(self) -> RESTClient:
+        await self.setup()
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.close()
+
+    def update_headers(self, headers: dict[str, str]) -> None:
+        self._default_headers.update(headers)
 
     async def request(
         self,
@@ -92,10 +99,3 @@ class RESTClient(
     @property
     def is_closed(self) -> bool:
         return self._manager.is_closed
-
-    async def __aenter__(self) -> RESTClient:
-        await self.setup()
-        return self
-
-    async def __aexit__(self, *_: object) -> None:
-        await self.close()

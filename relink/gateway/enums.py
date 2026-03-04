@@ -21,9 +21,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum, StrEnum
+
+
+class NodeStatus(Enum):
+    """Represents the connection status of a node."""
+
+    disconnected = 1
+    connected = 2
+    connecting = 3
 
 
 class TrackEndReason(StrEnum):
@@ -38,7 +47,11 @@ class TrackEndReason(StrEnum):
     @property
     def can_start_next(self) -> bool:
         """Whether the next track can start playing."""
-        return self not in (TrackEndReason.stopped, TrackEndReason.replaced, TrackEndReason.cleanup)
+        return self not in (
+            TrackEndReason.stopped,
+            TrackEndReason.replaced,
+            TrackEndReason.cleanup,
+        )
 
 
 class TrackExceptionSeverity(StrEnum):

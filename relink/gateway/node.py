@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-import enum
 import logging
 import os
 from typing import TYPE_CHECKING, Any
@@ -38,15 +37,12 @@ from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
 from relink.rest.http import RESTClient
 
+from .enums import NodeStatus
 from .errors import InvalidNodePassword, NodeURINotFound
 from .events.raw_models import PlayerUpdateEvent, ReadyEvent
 from .player import Player
-from .schemas.receive import (
-    PlayerUpdateEvent as PlayerUpdatePayload,
-)
-from .schemas.receive import (
-    ReadyEvent as ReadyPayload,
-)
+from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
+from .schemas.receive import ReadyEvent as ReadyPayload
 
 if TYPE_CHECKING:
     from relink.network import SessionType
@@ -56,14 +52,6 @@ if TYPE_CHECKING:
 _log = logging.getLogger(__name__)
 
 
-class NodeStatus(enum.Enum):
-    """Represents the connection status of a node."""
-
-    disconnected = 1
-    connected = 2
-    connecting = 3
-
-
 class Node:
     """Represents a connectable Node."""
 
@@ -71,7 +59,7 @@ class Node:
     """The amount of retries to attempt when connecting or reconnecting this node."""
     resume_timeout: float
     """The maximum amount of seconds a resume can take before closing the node."""
-    
+
     _id: str
     _ws: BaseWebsocketManager[Any, Any] | None
     _uri: str
@@ -128,7 +116,7 @@ class Node:
     @password.setter
     def password(self, value: str) -> None:
         self._password = value
-        self._manager.set_auth_header(value)
+        self._manager.update_headers({"Authorization": value})
 
     @property
     def id(self) -> str:
@@ -171,39 +159,35 @@ class Node:
         """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
         return self._status is NodeStatus.connected
 
-    async def connect(self) -> None:
-        """Connects this node.
-
-        This can only be done when the node has been attached to a pool.
-        """
-        if self._client is None:
-            raise RuntimeError("Can not connect a node that is not bound to a client.")
-
-        await self._manager.setup()
-
-        self._status = NodeStatus.connecting
+    async def _attempt_connect(self) -> None:
+        assert self._client is not None
 
         headers = self._client._build_ws_headers()
         if self._resume_session:
             headers["Session-Id"] = self._resume_session
 
-        if self._keep_alive is not None:
-            raise RuntimeError("This node is already connected.")
-
         retries: int = self.retries or 1
+        base_delay = 0.5
+        max_delay = 10.0
 
-        for i in range(retries):
+        for attempt in range(1, retries + 1):
             _log.info(
-                "Starting connection attempt %d/%d on Node %r", i + 1, retries, self
+                "Starting connection attempt %d%d on Node %r",
+                attempt,
+                retries,
+                self,
             )
 
             try:
                 self._ws = await self._manager.connect_ws(
-                    "/v4/websocket",
-                    headers=headers,
+                    "/v4/websocket", headers=headers
                 )
+
+                if self.is_connected():
+                    self._keep_alive = asyncio.create_task(self._keep_alive_coro())
+                    return
             except WebSocketError as exc:
-                if exc.status in (3000, 3003, 401):  # Forbidden / Unauthorized
+                if exc.status in (3000, 3003, 401):
                     await self.cleanup()
                     raise InvalidNodePassword(self) from exc
                 elif exc.status in (1014, 404):
@@ -211,26 +195,39 @@ class Node:
                     raise NodeURINotFound(self) from exc
                 else:
                     _log.warning(
-                        "An unexpected error ocurred while connecting %r to Lavalink: %s",
+                        "Unexpected error while connecting %r to Lavalink: %s",
                         self,
                         exc,
                     )
 
-            if self.is_connected():
-                self._keep_alive = asyncio.create_task(self._keep_alive_coro())
-                break
-
-            if i == (retries - 1):
+            if attempt >= retries:
                 _log.warning(
-                    "%r has exhausted %d connection attempts, and failed. This Node will not be connected.",
+                    "%r exhausted %d connection attempts. Node will remain disconnected.",
                     self,
                     retries,
                 )
                 await self.cleanup()
-                break
+                return
 
-            # TODO: implement some kind of backoff to not spam ws connection attemps?
-            await asyncio.sleep(0.5)
+            delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
+            _log.debug("Retrying %r in %.2f seconds...", self, delay)
+            await asyncio.sleep(delay)
+
+    async def connect(self) -> None:
+        """Connects this node.
+
+        This can only be done when the node has been attached to a pool.
+        """
+        if self._client is None:
+            raise RuntimeError("Cannot connect a node that is bound to a client.")
+
+        await self._manager.setup()
+        self._status = NodeStatus.connecting
+
+        if self._keep_alive is not None:
+            raise RuntimeError("This node is already connected.")
+
+        await self._attempt_connect()
 
     async def _keep_alive_coro(self) -> None:
         assert self._ws is not None
