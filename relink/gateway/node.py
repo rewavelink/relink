@@ -99,15 +99,16 @@ class Node:
         self._inactive_channel_tokens = inactive_channel_tokens
 
         self._uri = uri.removesuffix("/")
-        headers = {"Authorization": self.password}
+        self._manager: RESTClient = self._init_manager(session)
 
+    def _init_manager(self, session: SessionType | None) -> RESTClient:
+        headers = {"Authorization": self.password}
         if session:
             manager = HTTPFactory.from_http(session)
         else:
             manager_cls = HTTPFactory.http_manager()
             manager = manager_cls()
-
-        self._manager = RESTClient(manager, base_url=self._uri, headers=headers)
+        return RESTClient(manager, base_url=self._uri, headers=headers)
 
     @property
     def password(self) -> str:
@@ -197,7 +198,7 @@ class Node:
 
         if self._ws and self._ws.is_connected:
             await self._ws.close()
-            
+
         if not self._manager.is_closed:
             await self._manager.close()
 
@@ -210,6 +211,7 @@ class Node:
         await self.cleanup()
 
     async def _attempt_connect(self) -> None:
+        # TODO: split it into smaller functions, since it handles too much
         assert self._client is not None
 
         headers = self._client._build_ws_headers()
