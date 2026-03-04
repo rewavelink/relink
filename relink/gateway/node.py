@@ -76,27 +76,30 @@ class Node:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
+        auto_reconnect: bool = True,
         inactive_player_timeout: int | None = 300,
         inactive_channel_tokens: int | None = 3,
         session: SessionType | None = None,
-        auto_reconnect: bool = True,
     ) -> None:
         self._client = client
         self._id = id or os.urandom(16).hex()
         self._password = password
+
         self.retries = retries
         self.resume_timeout = resume_timeout
-
         self._auto_reconnect = auto_reconnect
-        self._uri = uri.removesuffix("/")
+
+        self._status: NodeStatus = NodeStatus.disconnected
+        self._resume_session = None
+        self._ws = None
+        self._keep_alive = None
+
+        self._players: dict[str, Player] = {}
         self._inactive_player_timeout = inactive_player_timeout
         self._inactive_channel_tokens = inactive_channel_tokens
-        self._status: NodeStatus = NodeStatus.disconnected
-        self._players: dict[str, Player] = {}
 
-        headers = {
-            "Authorization": self.password,
-        }
+        self._uri = uri.removesuffix("/")
+        headers = {"Authorization": self.password}
 
         if session:
             manager = HTTPFactory.from_http(session)
@@ -105,9 +108,6 @@ class Node:
             manager = manager_cls()
 
         self._manager = RESTClient(manager, base_url=self._uri, headers=headers)
-        self._ws = None
-        self._keep_alive = None
-        self._resume_session = None
 
     @property
     def password(self) -> str:
@@ -146,6 +146,10 @@ class Node:
         """The client this node is attached to."""
         return self._client
 
+    def is_connected(self) -> bool:
+        """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
+        return self._status is NodeStatus.connected
+
     def get_player(self, id: str, /) -> Player | None:
         """Gets a player connected to this node."""
         return self._players.get(id)
@@ -156,9 +160,54 @@ class Node:
             lambda p: p.guild_id == guild_id, self._players.values()
         )
 
-    def is_connected(self) -> bool:
-        """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
-        return self._status is NodeStatus.connected
+    async def connect(self) -> None:
+        """Connects this node.
+
+        This can only be done when the node has been attached to a pool.
+        """
+        if self._client is None:
+            raise RuntimeError("Cannot connect a node that is bound to a client.")
+
+        await self._manager.setup()
+        self._status = NodeStatus.connecting
+
+        if self._keep_alive is not None:
+            raise RuntimeError("This node is already connected.")
+
+        await self._attempt_connect()
+
+    async def close(self) -> None:
+        """Closes the connection to this node.
+
+        All Players connected to it will stop playing.
+
+        This also closes all HTTP and WS sessions and connections.
+
+        This dispatches a ``on_node_close`` event.
+        """
+
+        if self._client is None:
+            raise RuntimeError("Can not close a Node that is not bound to a client.")
+
+        if not self.is_connected():
+            raise RuntimeError("This Node is not connected.")
+
+        if self._keep_alive and not self._keep_alive.cancelled():
+            self._keep_alive.cancel()
+
+        if self._ws and self._ws.is_connected:
+            await self._ws.close()
+            
+        if not self._manager.is_closed:
+            await self._manager.close()
+
+        self._ws = None
+        self._keep_alive = None
+        self._resume_session = None
+        self._status = NodeStatus.disconnected
+
+        self._client._dispatch("node_close", self)
+        await self.cleanup()
 
     async def _attempt_connect(self) -> None:
         assert self._client is not None
@@ -214,22 +263,6 @@ class Node:
             _log.debug("Retrying %r in %.2f seconds...", self, delay)
             await asyncio.sleep(delay)
 
-    async def connect(self) -> None:
-        """Connects this node.
-
-        This can only be done when the node has been attached to a pool.
-        """
-        if self._client is None:
-            raise RuntimeError("Cannot connect a node that is bound to a client.")
-
-        await self._manager.setup()
-        self._status = NodeStatus.connecting
-
-        if self._keep_alive is not None:
-            raise RuntimeError("This node is already connected.")
-
-        await self._attempt_connect()
-
     async def _keep_alive_coro(self) -> None:
         assert self._ws is not None
         assert self._client
@@ -279,37 +312,6 @@ class Node:
         event = PlayerUpdateEvent(payload)
 
         self._client._dispatch("player_update", event)
-
-    async def close(self) -> None:
-        """Closes the connection to this node.
-
-        All Players connected to it will stop playing.
-
-        This also closes all HTTP and WS sessions and connections.
-
-        This dispatches a ``on_node_close`` event.
-        """
-
-        if self._client is None:
-            raise RuntimeError("Can not close a Node that is not bound to a client.")
-
-        if not self.is_connected():
-            raise RuntimeError("This Node is not connected.")
-
-        if self._keep_alive and not self._keep_alive.cancelled():
-            self._keep_alive.cancel()
-        if self._ws and self._ws.is_connected:
-            await self._ws.close()
-        if not self._manager.is_closed:
-            await self._manager.close()
-
-        self._ws = None
-        self._keep_alive = None
-        self._resume_session = None
-        self._status = NodeStatus.disconnected
-
-        self._client._dispatch("node_close", self)
-        await self.cleanup()
 
     async def cleanup(self) -> None:
         """A function that may be overriden in order to add custom clean-up
