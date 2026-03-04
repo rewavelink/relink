@@ -59,7 +59,7 @@ class RESTClient(
         data: Any | None = None,
     ) -> Any:
         merged_headers = {**self._default_headers, **(headers or {})}
-        full_url = self._base_url + url if url.startswith("/") else url
+        full_url = self._build_full_url(url)
 
         return await self._manager.request(
             method,
@@ -77,18 +77,22 @@ class RESTClient(
         headers: Mapping[str, str] | None = None,
     ) -> BaseWebsocketManager[Any, Any]:
         if not self._manager._session:
-            raise RuntimeError("can not create websocket without a manager session")
+            raise RuntimeError("Cannot create websocket without a manager session")
+
         merged_headers = {**self._default_headers, **(headers or {})}
-        safe = self._base_url.startswith("https://")
-        ws_prefix = "wss://" if safe else "ws://"
-        base_url = self._base_url.removeprefix("https://").removeprefix("http://")
-        full_url = ws_prefix + base_url + url if url.startswith("/") else url
+        full_url = self._build_ws_url(url)
         ws = HTTPFactory.create_websocket(self._manager._session)
-        await ws.connect(
-            full_url,
-            headers=merged_headers,
-        )
+        await ws.connect(full_url, headers=merged_headers)
         return ws
+
+    def _build_full_url(self, url: str) -> str:
+        return self._base_url + url if url.startswith("/") else url
+
+    def _build_ws_url(self, url: str) -> str:
+        is_secure = self._base_url.startswith("https://")
+        ws_prefix = "wss://" if is_secure else "ws://"
+        base = self._base_url.removeprefix("https://").removeprefix("http://")
+        return ws_prefix + base + url if url.startswith("/") else url
 
     async def setup(self) -> None:
         await self._manager.setup()
