@@ -227,7 +227,7 @@ class Node:
 
         headers = self._build_headers()
 
-        retries = self.retries or 1
+        retries = 1 if self.retries is None else self.retries
         base_delay = 0.5
         max_delay = 10.0
 
