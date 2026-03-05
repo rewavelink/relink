@@ -87,7 +87,7 @@ class Node:
 
         self.retries = retries
         self.resume_timeout = resume_timeout
-        self._auto_reconnect = auto_reconnect
+        self.auto_reconnect = auto_reconnect
 
         self._status: NodeStatus = NodeStatus.disconnected
         self._resume_session = None
@@ -101,6 +101,9 @@ class Node:
         self._uri = uri.removesuffix("/")
         self._manager: RESTClient = self._init_manager(session)
 
+    def __repr__(self) -> str:
+        return f"<Node id={self._id} status={self._status.name} uri={self._uri}>"
+
     def _init_manager(self, session: SessionType | None) -> RESTClient:
         headers = {"Authorization": self.password}
         if session:
@@ -109,6 +112,15 @@ class Node:
             manager_cls = HTTPFactory.http_manager()
             manager = manager_cls()
         return RESTClient(manager, base_url=self._uri, headers=headers)
+
+    def _build_headers(self) -> dict[str, str]:
+        assert self._client is not None
+
+        headers = self._client._build_ws_headers()
+        if self._resume_session:
+            headers["Session-Id"] = self._resume_session
+
+        return headers
 
     @property
     def password(self) -> str:
@@ -211,46 +223,27 @@ class Node:
         await self.cleanup()
 
     async def _attempt_connect(self) -> None:
-        # TODO: split it into smaller functions, since it handles too much
         assert self._client is not None
 
-        headers = self._client._build_ws_headers()
-        if self._resume_session:
-            headers["Session-Id"] = self._resume_session
+        headers = self._build_headers()
 
-        retries: int = self.retries or 1
+        retries = self.retries or 1
         base_delay = 0.5
         max_delay = 10.0
 
         for attempt in range(1, retries + 1):
             _log.info(
-                "Starting connection attempt %d%d on Node %r",
+                "Starting connection attempt %d/%d on Node %r",
                 attempt,
                 retries,
                 self,
             )
 
             try:
-                self._ws = await self._manager.connect_ws(
-                    "/v4/websocket", headers=headers
-                )
-
-                if self.is_connected():
-                    self._keep_alive = asyncio.create_task(self._keep_alive_coro())
+                if await self._connect_ws(headers):
                     return
             except WebSocketError as exc:
-                if exc.status in (3000, 3003, 401):
-                    await self.cleanup()
-                    raise InvalidNodePassword(self) from exc
-                elif exc.status in (1014, 404):
-                    await self.cleanup()
-                    raise NodeURINotFound(self) from exc
-                else:
-                    _log.warning(
-                        "Unexpected error while connecting %r to Lavalink: %s",
-                        self,
-                        exc,
-                    )
+                await self._handle_connection_error(exc)
 
             if attempt >= retries:
                 _log.warning(
@@ -258,6 +251,7 @@ class Node:
                     self,
                     retries,
                 )
+                self._status = NodeStatus.disconnected
                 await self.cleanup()
                 return
 
@@ -273,7 +267,10 @@ class Node:
             msg = await self._ws.receive()
 
             if MessageType.CLOSE in msg.flags:
-                if self._auto_reconnect:
+                if self.auto_reconnect and self._status not in (
+                    NodeStatus.connecting,
+                    NodeStatus.disconnected,
+                ):
                     _log.info("%r WS closed, attempting reconnect...", self)
                     asyncio.create_task(self.connect())
                 break
@@ -314,6 +311,22 @@ class Node:
         event = PlayerUpdateEvent(payload)
 
         self._client._dispatch("player_update", event)
+
+    async def _connect_ws(self, headers: dict[str, str]) -> bool:
+        self._ws = await self._manager.connect_ws("/v4/websocket", headers=headers)
+        self._keep_alive = asyncio.create_task(self._keep_alive_coro())
+        return True
+
+    async def _handle_connection_error(self, exc: WebSocketError) -> None:
+        if exc.status in (3000, 3003, 401):
+            await self.cleanup()
+            raise InvalidNodePassword(self) from exc
+
+        if exc.status in (1014, 404):
+            await self.cleanup()
+            raise NodeURINotFound(self) from exc
+
+        _log.warning("Unexpected error while connecting %r to Lavalink: %s", self, exc)
 
     async def cleanup(self) -> None:
         """A function that may be overriden in order to add custom clean-up
