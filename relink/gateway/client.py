@@ -44,7 +44,8 @@ _ClientRegistry = WeakKeyDictionary[discord.Client, "Client"]
 
 
 class Client:
-    """Represents a ReLink client.
+    """
+    Represents a ReLink client.
 
     A client helps you manage all Node connections and players.
 
@@ -93,7 +94,8 @@ class Client:
         inactive_player_timeout: int | None = 300,
         inactive_channel_tokens: int | None = 3,
     ) -> Node:
-        """Creates a :class:`Node` attached to this client.
+        """
+        Creates a :class:`Node` attached to this client.
 
         Parameters
         ----------
@@ -136,7 +138,8 @@ class Client:
         return node
 
     def remove_node(self, identifier: str, /) -> None:
-        """Removes a Node from this client.
+        """
+        Removes a Node from this client.
 
         Parameters
         ----------
@@ -151,11 +154,17 @@ class Client:
         else:
             self._cleanup_node(node)
 
+    def clear_nodes(self) -> None:
+        """Clears all Nodes from this Client."""
+
+        for node in self.nodes:
+            self.remove_node(node.id)
+
     async def start(self) -> None:
         """
         Connects all registered :class:`Node`s to their respective Lavalink servers.
 
-        This method should typically be called after the discord client is logged in, 
+        This method should typically be called after the discord client is logged in,
         often within the ``on_ready`` event.
         """
         if not self._nodes:
@@ -176,6 +185,28 @@ class Client:
 
         self._nodes.clear()
 
+    def get_best_node(self) -> Node:
+        """
+        Returns the best available :class:`Node` based on current load and connectivity.
+
+        Returns
+        -------
+        :class:`Node`
+            The node with the lowest penalty that is currently connected.
+
+        Raises
+        ------
+        RuntimeError
+            No nodes are currently connected to handle the request.
+        """
+
+        connected_nodes = [node for node in self.nodes if node.is_connected()]
+        if not connected_nodes:
+            raise RuntimeError("No nodes are currently connected.")
+
+        # There should be a better logic, e.g. sorting via load
+        return connected_nodes[0]
+
     def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
         if node.id in self.__node_tasks:
             return self.__node_tasks[node.id]
@@ -185,12 +216,6 @@ class Client:
 
         task.add_done_callback(lambda _: self.__node_tasks.pop(node.id, None))
         return task
-
-    def clear_nodes(self) -> None:
-        """Clears all Nodes from this Client."""
-
-        for node in self.nodes:
-            self.remove_node(node.id)
 
     def _dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:
         self._event_router.dispatch(event, *args, **kwargs)
