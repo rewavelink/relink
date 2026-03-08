@@ -129,6 +129,25 @@ class StatsResponse(msgspec.Struct, kw_only=True):
     )
     """Optional audio frame statistics."""
 
+    @property
+    def penalty(self) -> float:
+        """Calculate node penalty; Lower - better."""
+        player_penalty: int = self.playing_players
+        cpu_penalty: float = 1.05 ** (100 * self.cpu.system_load) * 10 - 10
+
+        null_frame_penalty: float = 0.0
+        deficit_frame_penalty: float = 0.0
+
+        if self.frame_stats:
+            null_frame_penalty = (
+                (1.03 ** (500 * (self.frame_stats.nulled / 3000))) * 300 - 300
+            ) * 2
+            deficit_frame_penalty = (
+                1.03 ** (500 * (self.frame_stats.deficit / 3000))
+            ) * 600 - 600
+
+        return player_penalty + cpu_penalty + null_frame_penalty + deficit_frame_penalty
+
 
 class MemoryObject(msgspec.Struct, kw_only=True):
     """Represents JVM memory usage statistics."""

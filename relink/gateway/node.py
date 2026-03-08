@@ -30,11 +30,13 @@ import os
 from typing import TYPE_CHECKING, Any
 
 import discord
+import msgspec
 
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
 from relink.rest.http import RESTClient
+from relink.rest.schemas.info import StatsResponse
 
 from .enums import NodeStatus
 from .errors import InvalidNodePassword, NodeURINotFound
@@ -66,6 +68,7 @@ class Node:
     _client: Client | None
     _keep_alive: asyncio.Task[None] | None
     _resume_session: str | None
+    _stats: StatsResponse | None
 
     def __init__(
         self,
@@ -93,6 +96,7 @@ class Node:
         self._resume_session = None
         self._ws = None
         self._keep_alive = None
+        self._stats = None
 
         self._players: dict[str, Player] = {}
         self._inactive_player_timeout = inactive_player_timeout
@@ -158,6 +162,11 @@ class Node:
     def client(self) -> Client | None:
         """The client this node is attached to."""
         return self._client
+
+    @property
+    def stats(self) -> StatsResponse | None:
+        """The latest stats received from the Lavalink node."""
+        return self._stats
 
     def is_connected(self) -> bool:
         """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
@@ -259,6 +268,11 @@ class Node:
             _log.debug("Retrying %r in %.2f seconds...", self, delay)
             await asyncio.sleep(delay)
 
+    async def _connect_ws(self, headers: dict[str, str]) -> bool:
+        self._ws = await self._manager.connect_ws("/v4/websocket", headers=headers)
+        self._keep_alive = asyncio.create_task(self._keep_alive_coro())
+        return True
+
     async def _keep_alive_coro(self) -> None:
         assert self._ws is not None
         assert self._client
@@ -287,6 +301,8 @@ class Node:
                     await self._handle_ready(data)
                 case "playerUpdate":
                     await self._handle_player_update(data)
+                case "stats":
+                    self._handle_stats(data)
                 case _:
                     _log.debug(
                         "Received unhandled event type %r from Node %r",
@@ -312,10 +328,8 @@ class Node:
 
         self._client._dispatch("player_update", event)
 
-    async def _connect_ws(self, headers: dict[str, str]) -> bool:
-        self._ws = await self._manager.connect_ws("/v4/websocket", headers=headers)
-        self._keep_alive = asyncio.create_task(self._keep_alive_coro())
-        return True
+    def _handle_stats(self, data: dict[str, Any]) -> None:
+        self._stats = msgspec.convert(data, StatsResponse)
 
     async def _handle_connection_error(self, exc: WebSocketError) -> None:
         if exc.status in (3000, 3003, 401):

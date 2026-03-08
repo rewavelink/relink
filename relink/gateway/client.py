@@ -204,8 +204,10 @@ class Client:
         if not connected_nodes:
             raise RuntimeError("No nodes are currently connected.")
 
-        # There should be a better logic, e.g. sorting via load
-        return connected_nodes[0]
+        return min(
+            connected_nodes,
+            key=lambda node: node.stats.penalty if node.stats else 0.0,
+        )
 
     def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
         if node.id in self.__node_tasks:
