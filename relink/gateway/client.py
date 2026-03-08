@@ -151,6 +151,31 @@ class Client:
         else:
             self._cleanup_node(node)
 
+    async def start(self) -> None:
+        """
+        Connects all registered :class:`Node`s to their respective Lavalink servers.
+
+        This method should typically be called after the discord client is logged in, 
+        often within the ``on_ready`` event.
+        """
+        if not self._nodes:
+            return
+
+        tasks = [node.connect() for node in self.nodes]
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def close(self) -> None:
+        """
+        Gracefully closes all :class:`Node` connections and cleans up internal resources.
+
+        This will stop all active players and close the underlying websocket and HTTP sessions.
+        """
+        tasks = [node.close() for node in self.nodes if node.is_connected()]
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+        self._nodes.clear()
+
     def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
         if node.id in self.__node_tasks:
             return self.__node_tasks[node.id]
