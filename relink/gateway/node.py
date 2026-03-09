@@ -176,6 +176,14 @@ class Node:
         """Gets a player connected to this node."""
         return self._players.get(guild_id)
 
+    def _add_player(self, player: Player) -> None:
+        """Internal helper to register a player to this node."""
+        self._players[player.guild_id] = player
+
+    def _remove_player(self, guild_id: int) -> None:
+        """Internal helper to unregister a player from this node."""
+        self._players.pop(guild_id, None)
+
     async def connect(self) -> None:
         """Connects this node.
 
