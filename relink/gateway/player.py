@@ -330,6 +330,34 @@ class Player(discord.VoiceProtocol):
         self._volume = value
         _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
 
+    async def stop(self) -> None:
+        """
+        Stops the current track and clears the player state.
+
+        This method sends a request to Lavalink to stop playback and resets
+        the internal position tracking.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        """
+        if self._node is None or self._node._resume_session is None:
+            raise RuntimeError("Player is not connected to a node.")
+
+        data = UpdatePlayerRequest(track=None)
+
+        await self._node._manager.update_player(
+            session_id=self._node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._last_position = 0
+        self._last_update = 0.0
+
+        _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
+
     async def pause(self, value: bool = True, /) -> None:
         """
         Sets the pause state of the player.
