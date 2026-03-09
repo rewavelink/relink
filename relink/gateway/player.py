@@ -106,7 +106,7 @@ class Player(discord.VoiceProtocol):
 
     def __repr__(self) -> str:
         return (
-            f"<Player guild_id={getattr(self, 'guild_id', None)} ready={self._ready}>"
+            f"<Player guild_id={self.guild_id} ready={self._ready} node={self._node!r}>"
         )
 
     @overload
@@ -138,6 +138,21 @@ class Player(discord.VoiceProtocol):
             self._ready = True
         else:
             self._ready = False
+
+    @property
+    def node(self) -> Node:
+        """
+        The :class:`Node` this player is currently attached to.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not currently attached to a node.
+        """
+
+        if self._node is None:
+            raise RuntimeError(f"Player {self.guild_id} is not attached to a node.")
+        return self._node
 
     def get_connection_state(self) -> PlayerConnectionState:
         """
