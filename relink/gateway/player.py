@@ -391,9 +391,7 @@ class Player(discord.VoiceProtocol):
         self._filters = filters
 
         if seek:
-            # Will implement self.position and self.seek shortly
-            # await self.seek(self.position)
-            pass
+            await self.seek(self.position)
 
         _log.debug(
             "Player %s: Successfully applied filters: %r",
