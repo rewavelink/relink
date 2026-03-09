@@ -98,12 +98,21 @@ class Player(discord.VoiceProtocol):
         The ID of the guild this player is connected to.
     """
 
-    __slots__ = ("guild_id", "_connection", "_filters", "_node", "_ready", "_volume")
+    __slots__ = (
+        "guild_id",
+        "_connection",
+        "_filters",
+        "_node",
+        "_paused",
+        "_ready",
+        "_volume",
+    )
 
     guild_id: int
     _connection: PlayerConnectionState
     _filters: PlayerFilters
     _node: Node | None
+    _paused: bool
     _ready: bool
     _volume: int
 
@@ -131,8 +140,9 @@ class Player(discord.VoiceProtocol):
         self._connection = self.get_connection_state()
         self.guild_id: int = 0
 
-        self._filters = PlayerFilters()
         self._volume = 100
+        self._paused = False
+        self._filters = PlayerFilters()
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
@@ -164,6 +174,11 @@ class Player(discord.VoiceProtocol):
     def volume(self) -> int:
         """The current volume of the player as an integer between 0 and 1000."""
         return self._volume
+
+    @property
+    def paused(self) -> bool:
+        """Whether the player is currently paused."""
+        return self._paused
 
     @property
     def filters(self) -> PlayerFilters:
@@ -258,6 +273,33 @@ class Player(discord.VoiceProtocol):
 
         self._volume = value
         _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
+
+    async def pause(self, value: bool = True, /) -> None:
+        """
+        Sets the pause state of the player.
+
+        Parameters
+        ----------
+        value: :class:`bool`
+            Whether to pause (True) or resume (False) the player.
+        """
+        if self._node is None or self._node._resume_session is None:
+            raise RuntimeError("Player is not connected to a node.")
+
+        data = UpdatePlayerRequest(paused=value)
+
+        await self._node._manager.update_player(
+            session_id=self._node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._paused = value
+        _log.debug("Player %s: Set paused state to %s", self.guild_id, value)
+
+    async def resume(self) -> None:
+        """Resumes the player if it is paused. Alias for ``pause(False)``."""
+        await self.pause(False)
 
     async def set_filters(
         self, filters: PlayerFilters, /, *, seek: bool = False
