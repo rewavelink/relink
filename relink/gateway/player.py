@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, Self, overload
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
+from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import PlayerVoiceState, UpdatePlayerRequest
 
 if TYPE_CHECKING:
@@ -97,10 +98,11 @@ class Player(discord.VoiceProtocol):
         The ID of the guild this player is connected to.
     """
 
-    __slots__ = ("guild_id", "_connection", "_node", "_ready", "_volume")
+    __slots__ = ("guild_id", "_connection", "_filters", "_node", "_ready", "_volume")
 
     guild_id: int
     _connection: PlayerConnectionState
+    _filters: PlayerFilters
     _node: Node | None
     _ready: bool
     _volume: int
@@ -129,6 +131,7 @@ class Player(discord.VoiceProtocol):
         self._connection = self.get_connection_state()
         self.guild_id: int = 0
 
+        self._filters = PlayerFilters()
         self._volume = 100
 
         if client is not MISSING and channel is not MISSING:
@@ -161,6 +164,11 @@ class Player(discord.VoiceProtocol):
     def volume(self) -> int:
         """The current volume of the player as an integer between 0 and 1000."""
         return self._volume
+
+    @property
+    def filters(self) -> PlayerFilters:
+        """The currently applied filters for this player."""
+        return self._filters
 
     def get_connection_state(self) -> PlayerConnectionState:
         """
@@ -250,6 +258,50 @@ class Player(discord.VoiceProtocol):
 
         self._volume = value
         _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
+
+    async def set_filters(
+        self, filters: PlayerFilters, /, *, seek: bool = False
+    ) -> None:
+        """
+        Sets the filters for this player.
+
+        Parameters
+        ----------
+        filters: :class:`PlayerFilters`
+            The filters to apply.
+        seek: :class:`bool`
+            Whether to seek to the current position to apply filters immediately.
+            Defaults to ``False``.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        """
+
+        if self._node is None or self._node._resume_session is None:
+            raise RuntimeError("Player is not connected to a node.")
+
+        data = UpdatePlayerRequest(filters=filters)
+
+        await self._node._manager.update_player(
+            session_id=self._node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._filters = filters
+
+        if seek:
+            # Will implement self.position and self.seek shortly
+            # await self.seek(self.position)
+            pass
+
+        _log.debug(
+            "Player %s: Successfully applied filters: %r",
+            self.guild_id,
+            filters,
+        )
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         """
