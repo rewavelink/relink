@@ -81,7 +81,6 @@ class Node:
         resume_timeout: float = 60,
         auto_reconnect: bool = True,
         inactive_player_timeout: int | None = 300,
-        inactive_channel_tokens: int | None = 3,
         session: SessionType | None = None,
     ) -> None:
         self._client = client
@@ -100,7 +99,7 @@ class Node:
 
         self._players: dict[int, Player] = {}
         self._inactive_player_timeout = inactive_player_timeout
-        self._inactive_channel_tokens = inactive_channel_tokens
+        self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
 
         self._uri = uri.removesuffix("/")
         self._manager: RESTClient = self._init_manager(session)

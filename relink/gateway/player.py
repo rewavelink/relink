@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Annotated, Self, overload
@@ -466,6 +467,7 @@ class Player(discord.VoiceProtocol):
         self._connection.channel_id = str(data.get("channel_id"))
 
         await self._dispatch_voice_update()
+        self._check_inactivity()
 
     async def _dispatch_voice_update(self) -> None:
         if not self._connection.is_complete or not self._node:
@@ -503,6 +505,48 @@ class Player(discord.VoiceProtocol):
                 exc,
                 exc_info=True,
             )
+
+    def _check_inactivity(self) -> None:
+        guild = self.client.get_guild(self.guild_id)
+
+        if guild is None or guild.me.voice is None:
+            return
+
+        channel = guild.me.voice.channel
+        if not channel:
+            return
+
+        real_members = [member for member in channel.members if not member.bot]
+
+        if len(real_members) > 1:
+            self._start_inactivity_timer()
+        else:
+            self._stop_inactivity_timer()
+
+    def _start_inactivity_timer(self) -> None:
+        if self.guild_id in self.node._waiting_to_disconnect:
+            return
+
+        timeout = self.node._inactive_player_timeout
+        if timeout is None:
+            return
+
+        task = asyncio.create_task(self._inactivity_timeout(timeout))
+        self.node._waiting_to_disconnect[self.guild_id] = task
+        _log.debug("Player %s: Started inactivity timer (%ds).", self.guild_id, timeout)
+
+    def _stop_inactivity_timer(self) -> None:
+        task = self.node._waiting_to_disconnect.pop(self.guild_id, None)
+        if task is None:
+            return
+
+        task.cancel()
+        _log.debug("Player %s: Activity detected, cancelled timer.", self.guild_id)
+
+    async def _inactivity_timeout(self, timeout: int) -> None:
+        await asyncio.sleep(timeout)
+        _log.info("Player %s: Disconnecting due to inactivity.", self.guild_id)
+        await self.disconnect()
 
     def _update_state(self, state: PlayerState, /) -> None:
         self._last_position = state.position
