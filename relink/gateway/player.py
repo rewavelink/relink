@@ -24,58 +24,84 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import abc
+import logging
 from typing import TYPE_CHECKING, Self, overload
 
 import discord
+from discord.types.voice import GuildVoiceState, VoiceServerUpdate
+
+from relink.rest.schemas.player import PlayerVoiceState, UpdatePlayerRequest
 
 if TYPE_CHECKING:
     from .node import Node
 
+_log = logging.getLogger(__name__)
 MISSING = discord.utils.MISSING
 
 
-class PlayerConnectionState(abc.ABC):
+class PlayerConnectionState:
     """
-    A :class:`Player` voice connection state.
+    Represents the voice connection state for a :class:`Player`.
 
-    This offers a default implementation, but you can subclass it to implement
-    custom behaviour.
+    This class is intended to be subclassed if you need to store
+    extra metadata during the Discord handshake.
     """
 
-    ...
+    __slots__ = ("token", "endpoint", "session_id", "channel_id")
+
+    def __init__(self) -> None:
+        self.token: str | None = None
+        self.endpoint: str | None = None
+        self.session_id: str | None = None
+        self.channel_id: str | None = None
+
+    @property
+    def is_complete(self) -> bool:
+        """Indicates if all gateway data has been received."""
+        return all((self.token, self.endpoint, self.session_id, self.channel_id))
 
 
 class Player(discord.VoiceProtocol):
     """
-    Represents a player that is used to play music in a voice channel.
+    Represents a :class:`discord.VoiceProtocol` implementation for Lavalink.
 
-    There are two ways to create a player:
+    This class handles the voice connection handshake between Discord and a Lavalink :class:`Node`.
+    It is responsible for dispatching voice server and state updates to the node to establish
+    and maintain the audio stream.
 
-    1. Via creating an instance and then passing it to :meth:`Connectable.connect`:
+    There are two primary ways to initialize a player:
 
-        .. code-block:: python3
-
-            player = relink.gateway.Player(node=...)
-            await connectable.connect(cls=player)
-
-    2. Passing the class directly to :meth:`Connectable.connect`:
+    1. Creating an instance manually and passing it to :meth:`discord.abc.Connectable.connect`:
 
         .. code-block:: python3
 
-            player = await connectable.connect(cls=relink.gateway.Player)
+            player = relink.Player(node=some_node)
+            await voice_channel.connect(cls=player)
+
+    2. Passing the class directly to :meth:`discord.abc.Connectable.connect`:
+
+        .. code-block:: python3
+
+            # This will use the default NodePool to find an available node
+            await voice_channel.connect(cls=relink.Player)
 
     Parameters
     ----------
     node: :class:`Node` | :data:`None`
-        The node to connect this player to. If ``None``, then this attempts to connect to an available node
-        under the parent :class:`NodePool`.
+        The node to associate this player with. If ``None``, the player will attempt
+        to fetch an available node from the :class:`NodePool` during the connection process.
+
+    Attributes
+    ----------
+    guild_id: :class:`int`
+        The ID of the guild this player is connected to.
     """
 
-    __slots__ = ("_ready", "_connection", "guild_id")
+    __slots__ = ("_ready", "_connection", "_node", "guild_id")
 
     _ready: bool
     _connection: PlayerConnectionState
+    _node: Node | None
     guild_id: int
 
     def __repr__(self) -> str:
@@ -98,21 +124,164 @@ class Player(discord.VoiceProtocol):
         *,
         node: Node | None = None,
     ) -> None:
+        self._node = node
+        self._connection = self.get_connection_state()
+        self.guild_id: int = 0
+
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
+
+            guild = getattr(channel, "guild", None)
+            if guild is not None:
+                self.guild_id = guild.id
+
             self._ready = True
         else:
             self._ready = False
 
     def get_connection_state(self) -> PlayerConnectionState:
         """
-        Gets the connection for this player.
-        This can be overriden by subclasses to implement custom behaviour on the connection state.
+        Returns the connection state handler for this player.
+
+        This can be overridden by subclasses to implement custom behavior
+        or use a custom :class:`PlayerConnectionState` implementation.
+
+        Returns
+        -------
+        :class:`PlayerConnectionState`
+            The connection state instance for this player.
         """
         return PlayerConnectionState()
+
+    async def disconnect(self, *, force: bool = False) -> None:
+        """
+        Disconnects the player, destroys it on the Lavalink node, and cleans up state.
+
+        This method handles the unregistration of the player from the :class:`Node`
+        and sends a destruction request to the Lavalink server.
+
+        Parameters
+        ----------
+        force: :class:`bool`
+            Whether to force the disconnection even if the player is not currently connected.
+            Defaults to ``False``.
+        """
+        try:
+            if self._node is None:
+                return
+
+            self._node._remove_player(self.guild_id)
+
+            if self._node._resume_session is None:
+                return
+
+            await self._node._manager.destroy_player(
+                session_id=self._node._resume_session, guild_id=str(self.guild_id)
+            )
+
+            _log.info(
+                "Player %s: Disconnected and removed from Node %r.",
+                self.guild_id,
+                self._node.id,
+            )
+
+        except Exception as exc:
+            _log.warning(
+                "Player %s: Error during disconnect cleanup: %s",
+                self.guild_id,
+                exc,
+            )
+
+        finally:
+            await super().disconnect(force=force)
+
+    async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
+        """
+        Processes the ``VOICE_SERVER_UPDATE`` payload from Discord.
+
+        This provides the voice token and the endpoint needed for Lavalink
+        to connect to the voice server.
+
+        Parameters
+        ----------
+        data: :class:`discord.types.voice.VoiceServerUpdate`
+            The raw payload data received from the Discord Gateway.
+        """
+        self._connection.token = data.get("token")
+        self._connection.endpoint = data.get("endpoint")
+
+        # The endpoint might be None; Lavalink needs a string or it will fail.
+        # Thus we wait for a non-None endpoint before dispatching.
+        if self._connection.endpoint:
+            await self._dispatch_voice_update()
+
+    async def on_voice_state_update(self, data: GuildVoiceState) -> None:
+        """
+        Processes the ``VOICE_STATE_UPDATE`` payload from Discord.
+
+        This provides the session ID and channel ID needed for the
+        voice connection handshake.
+
+        Parameters
+        ----------
+        data: :class:`discord.types.voice.GuildVoiceState`
+            The raw payload data received from the Discord Gateway.
+        """
+        self._connection.session_id = data.get("session_id")
+        self._connection.channel_id = str(data.get("channel_id"))
+
+        await self._dispatch_voice_update()
+
+    async def _dispatch_voice_update(self) -> None:
+        if not self._connection.is_complete or not self._node:
+            return
+
+        assert self._connection.token is not None
+        assert self._connection.endpoint is not None
+        assert self._connection.session_id is not None
+        assert self._node._resume_session is not None
+
+        voice_state = PlayerVoiceState(
+            token=self._connection.token,
+            endpoint=self._connection.endpoint,
+            session_id=self._connection.session_id,
+        )
+
+        request_data = UpdatePlayerRequest(voice=voice_state)
+
+        try:
+            await self._node._manager.update_player(
+                session_id=self._node._resume_session,
+                guild_id=str(self.guild_id),
+                data=request_data,
+            )
+            _log.debug(
+                "Player %s: Successfully dispatched voice update to Node %r.",
+                self.guild_id,
+                self._node.id,
+            )
+        except Exception as exc:
+            _log.error(
+                "Player %s: Failed to dispatch voice update to Node %r. Error: %s",
+                self.guild_id,
+                self._node.id,
+                exc,
+                exc_info=True,
+            )
 
     def __call__(
         self, client: discord.Client, channel: discord.abc.Connectable
     ) -> Self:
         super().__init__(client, channel)
+
+        guild = getattr(channel, "guild", None)
+
+        if guild is None:
+            return self
+
+        self.guild_id = guild.id
+
+        if self._node:
+            self._node._add_player(self)
+
         return self
