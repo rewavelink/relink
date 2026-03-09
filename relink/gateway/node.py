@@ -29,7 +29,6 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any
 
-import discord
 import msgspec
 
 from relink.network import BaseWebsocketManager, HTTPFactory
@@ -37,6 +36,7 @@ from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
+from relink.rest.schemas.session import UpdateSessionRequest
 
 from .enums import NodeStatus
 from .errors import InvalidNodePassword, NodeURINotFound
@@ -98,7 +98,7 @@ class Node:
         self._keep_alive = None
         self._stats = None
 
-        self._players: dict[str, Player] = {}
+        self._players: dict[int, Player] = {}
         self._inactive_player_timeout = inactive_player_timeout
         self._inactive_channel_tokens = inactive_channel_tokens
 
@@ -106,7 +106,7 @@ class Node:
         self._manager: RESTClient = self._init_manager(session)
 
     def __repr__(self) -> str:
-        return f"<Node id={self._id} status={self._status.name} uri={self._uri}>"
+        return f"<Node id={self._id} status={self._status.name} players={len(self._players)} uri={self._uri}>"
 
     def _init_manager(self, session: SessionType | None) -> RESTClient:
         headers = {"Authorization": self.password}
@@ -172,15 +172,9 @@ class Node:
         """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
         return self._status is NodeStatus.connected
 
-    def get_player(self, id: str, /) -> Player | None:
+    def get_player(self, guild_id: int, /) -> Player | None:
         """Gets a player connected to this node."""
-        return self._players.get(id)
-
-    def get_player_by_guild(self, guild_id: int, /) -> Player | None:
-        """Gets a player connected to this Node by its guild ID."""
-        return discord.utils.find(
-            lambda p: p.guild_id == guild_id, self._players.values()
-        )
+        return self._players.get(guild_id)
 
     async def connect(self) -> None:
         """Connects this node.
@@ -281,6 +275,8 @@ class Node:
             msg = await self._ws.receive()
 
             if MessageType.CLOSE in msg.flags:
+                self._client._dispatch("node_close", self)
+
                 if self.auto_reconnect and self._status not in (
                     NodeStatus.connecting,
                     NodeStatus.disconnected,
@@ -316,6 +312,26 @@ class Node:
         payload = ReadyPayload(**data)
         self._resume_session = payload.session_id
         self._status = NodeStatus.connected
+
+        try:
+            update_data = UpdateSessionRequest(
+                resuming=True, timeout=int(self.resume_timeout)
+            )
+
+            await self._manager.update_session(
+                session_id=self._resume_session, data=update_data
+            )
+            _log.info(
+                "Node %r: Session resumption configured (timeout: %ds).",
+                self._id,
+                self.resume_timeout,
+            )
+        except Exception as exc:
+            _log.error(
+                "Node %r: Failed to configure session resumption: %s",
+                self._id,
+                exc,
+            )
 
         event = ReadyEvent(payload)
         self._client._dispatch("node_ready", event)
