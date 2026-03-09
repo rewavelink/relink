@@ -97,12 +97,13 @@ class Player(discord.VoiceProtocol):
         The ID of the guild this player is connected to.
     """
 
-    __slots__ = ("_ready", "_connection", "_node", "guild_id")
+    __slots__ = ("guild_id", "_connection", "_node", "_ready", "_volume")
 
-    _ready: bool
+    guild_id: int
     _connection: PlayerConnectionState
     _node: Node | None
-    guild_id: int
+    _ready: bool
+    _volume: int
 
     def __repr__(self) -> str:
         return (
@@ -127,6 +128,8 @@ class Player(discord.VoiceProtocol):
         self._node = node
         self._connection = self.get_connection_state()
         self.guild_id: int = 0
+
+        self._volume = 100
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
@@ -153,6 +156,11 @@ class Player(discord.VoiceProtocol):
         if self._node is None:
             raise RuntimeError(f"Player {self.guild_id} is not attached to a node.")
         return self._node
+
+    @property
+    def volume(self) -> int:
+        """The current volume of the player as an integer between 0 and 1000."""
+        return self._volume
 
     def get_connection_state(self) -> PlayerConnectionState:
         """
@@ -209,6 +217,39 @@ class Player(discord.VoiceProtocol):
 
         finally:
             await super().disconnect(force=force)
+
+    async def set_volume(self, value: int, /) -> None:
+        """
+        Sets the player's volume.
+
+        Parameters
+        ----------
+        value: :class:`int`
+            The volume to set. Must be between 0 and 1000.
+
+        Raises
+        ------
+        ValueError
+            The volume provided was not between 0 and 1000.
+        RuntimeError
+            The player is not currently connected to a node or session.
+        """
+        if not 0 <= value <= 1000:
+            raise ValueError("Volume must be between 0 and 1000.")
+
+        if self._node is None or self._node._resume_session is None:
+            raise RuntimeError("Player is not connected to a node.")
+
+        data = UpdatePlayerRequest(volume=value)
+
+        await self._node._manager.update_player(
+            session_id=self._node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._volume = value
+        _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         """
