@@ -25,7 +25,8 @@ SOFTWARE.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Self, overload
+import time
+from typing import TYPE_CHECKING, Annotated, Self, overload
 
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
@@ -96,12 +97,22 @@ class Player(discord.VoiceProtocol):
     ----------
     guild_id: :class:`int`
         The ID of the guild this player is connected to.
+    filters: :class:`PlayerFilters`
+        The currently applied filters for this player.
+    paused: :class:`bool`
+        Whether the player is currently paused.
+    position: :class:`int`
+        The current position of the player in milliseconds.
+    volume: :class:`int`
+        The current volume of the player (0-1000).
     """
 
     __slots__ = (
         "guild_id",
         "_connection",
         "_filters",
+        "_last_position",
+        "_last_update",
         "_node",
         "_paused",
         "_ready",
@@ -111,6 +122,8 @@ class Player(discord.VoiceProtocol):
     guild_id: int
     _connection: PlayerConnectionState
     _filters: PlayerFilters
+    _last_position: Annotated[int, "ms"]
+    _last_update: Annotated[float, "time.monotonic"]
     _node: Node | None
     _paused: bool
     _ready: bool
@@ -144,6 +157,9 @@ class Player(discord.VoiceProtocol):
         self._paused = False
         self._filters = PlayerFilters()
 
+        self._last_position = 0
+        self._last_update = 0.0
+
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
 
@@ -169,6 +185,15 @@ class Player(discord.VoiceProtocol):
         if self._node is None:
             raise RuntimeError(f"Player {self.guild_id} is not attached to a node.")
         return self._node
+
+    @property
+    def position(self) -> int:
+        """The current position of the player in milliseconds."""
+        if self._paused or self._last_update == 0:
+            return self._last_position
+
+        delta = int((time.monotonic() - self._last_update) * 1000)
+        return self._last_position + delta
 
     @property
     def volume(self) -> int:
@@ -240,6 +265,37 @@ class Player(discord.VoiceProtocol):
 
         finally:
             await super().disconnect(force=force)
+
+    async def seek(self, position: int, /) -> None:
+        """
+        Seeks to a specific position in the current track.
+
+        Parameters
+        ----------
+        position: :class:`int`
+            The position to seek to in milliseconds.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        """
+
+        if self._node is None or self._node._resume_session is None:
+            raise RuntimeError("Player is not connected to a node.")
+
+        data = UpdatePlayerRequest(position=position)
+
+        await self._node._manager.update_player(
+            session_id=self._node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._last_position = position
+        self._last_update = time.monotonic()
+
+        _log.debug("Player %s: Seeked to %dms", self.guild_id, position)
 
     async def set_volume(self, value: int, /) -> None:
         """
