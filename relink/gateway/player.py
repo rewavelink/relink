@@ -119,7 +119,6 @@ class Player(discord.VoiceProtocol):
         "_node",
         "_paused",
         "_ready",
-        "_track",
         "_volume",
     )
 
@@ -516,27 +515,39 @@ class Player(discord.VoiceProtocol):
         if not channel:
             return
 
-        real_members = [member for member in channel.members if not member.bot]
+        members = [member for member in channel.members if not member.bot]
 
-        if len(real_members) > 1:
+        is_alone = len(members) == 0
+        # TODO: is_idle = self._track is None, when _track is done
+
+        if is_alone:
             self._start_inactivity_timer()
         else:
             self._stop_inactivity_timer()
 
     def _start_inactivity_timer(self) -> None:
-        if self.guild_id in self.node._waiting_to_disconnect:
+        node = self._node
+
+        if node is None or self.guild_id in node._waiting_to_disconnect:
             return
 
-        timeout = self.node._inactive_player_timeout
+        timeout = node._inactive_player_timeout
         if timeout is None:
             return
 
         task = asyncio.create_task(self._inactivity_timeout(timeout))
-        self.node._waiting_to_disconnect[self.guild_id] = task
+        task.add_done_callback(
+            lambda _: node._waiting_to_disconnect.pop(self.guild_id, None)
+        )
+        node._waiting_to_disconnect[self.guild_id] = task
         _log.debug("Player %s: Started inactivity timer (%ds).", self.guild_id, timeout)
 
     def _stop_inactivity_timer(self) -> None:
-        task = self.node._waiting_to_disconnect.pop(self.guild_id, None)
+        if self._node is None:
+            return
+
+        task = self._node._waiting_to_disconnect.pop(self.guild_id, None)
+
         if task is None:
             return
 
