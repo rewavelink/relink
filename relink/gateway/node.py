@@ -348,8 +348,14 @@ class Node:
         assert self._client is not None
 
         payload = PlayerUpdatePayload(**data)
-        event = PlayerUpdateEvent(payload)
 
+        guild_id = int(payload.guild_id)
+        player = self.get_player(guild_id)
+
+        if player:
+            player._update_state(payload.state)
+
+        event = PlayerUpdateEvent(payload)
         self._client._dispatch("player_update", event)
 
     def _handle_stats(self, data: dict[str, Any]) -> None:

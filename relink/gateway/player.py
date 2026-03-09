@@ -34,6 +34,8 @@ from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import PlayerVoiceState, UpdatePlayerRequest
 
+from .schemas.receive import PlayerState
+
 if TYPE_CHECKING:
     from .node import Node
 
@@ -116,6 +118,7 @@ class Player(discord.VoiceProtocol):
         "_node",
         "_paused",
         "_ready",
+        "_track",
         "_volume",
     )
 
@@ -500,6 +503,17 @@ class Player(discord.VoiceProtocol):
                 exc,
                 exc_info=True,
             )
+
+    def _update_state(self, state: PlayerState, /) -> None:
+        self._last_position = state.position
+        self._last_update = time.monotonic()
+
+        _log.debug(
+            "Player %s: Synced position to %dms (connected %s)",
+            self.guild_id,
+            state.position,
+            state.connected,
+        )
 
     def __call__(
         self, client: discord.Client, channel: discord.abc.Connectable
