@@ -38,6 +38,7 @@ from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
 
+from .cache import LFUCache
 from .enums import NodeStatus
 from .errors import InvalidNodePassword, NodeURINotFound
 from .events.raw_models import PlayerUpdateEvent, ReadyEvent
@@ -82,6 +83,7 @@ class Node:
         auto_reconnect: bool = True,
         inactive_player_timeout: int | None = 300,
         session: SessionType | None = None,
+        cache_capacity: int = 1000,
     ) -> None:
         self._client = client
         self._id = id or os.urandom(16).hex()
@@ -100,6 +102,7 @@ class Node:
         self._players: dict[int, Player] = {}
         self._inactive_player_timeout = inactive_player_timeout
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
+        self._cache: LFUCache[str, Any] = LFUCache(capacity=cache_capacity)
 
         self._uri = uri.removesuffix("/")
         self._manager: RESTClient = self._init_manager(session)
