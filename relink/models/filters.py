@@ -34,7 +34,16 @@ if TYPE_CHECKING:
 
 
 class Equalizer(BaseModel[filters.EqualizerFilter]):
-    """Represents a single Lavalink equalizer band."""
+    """
+    Represents a single Lavalink equalizer band.
+
+    Attributes
+    ----------
+    band: int
+        The target band index (0 to 14).
+    gain: float
+        The band gain multiplier (-0.25 to 1.0).
+    """
 
     @property
     def band(self) -> int:
@@ -48,7 +57,20 @@ class Equalizer(BaseModel[filters.EqualizerFilter]):
 
 
 class Karaoke(BaseModel[filters.KaraokeFilter]):
-    """Filter that reduces vocal levels in a track."""
+    """
+    Filter that reduces vocal levels in a track, useful for karaoke.
+
+    Attributes
+    ----------
+    level: float | None
+        Overall effect intensity (0.0 to 1.0).
+    mono_level: float | None
+        Mono signal amount (0.0 to 1.0).
+    filter_band: float | None
+        Center frequency in Hz for the target region.
+    filter_width: float | None
+        Bandwidth around the filter band in Hz.
+    """
 
     @property
     def level(self) -> float | None:
@@ -72,7 +94,18 @@ class Karaoke(BaseModel[filters.KaraokeFilter]):
 
 
 class Timescale(BaseModel[filters.TimescaleFilter]):
-    """Adjust speed, pitch, and rate of playback."""
+    """
+    Adjusts the speed, pitch, and rate of audio playback.
+
+    Attributes
+    ----------
+    speed: float | None
+        Playback speed multiplier (>= 0.0). 1.0 is normal.
+    pitch: float | None
+        Pitch multiplier (>= 0.0). 1.0 is normal.
+    rate: float | None
+        Internal rate multiplier (>= 0.0). 1.0 is normal.
+    """
 
     @property
     def speed(self) -> float | None:
@@ -91,7 +124,16 @@ class Timescale(BaseModel[filters.TimescaleFilter]):
 
 
 class Tremolo(BaseModel[filters.TremoloFilter]):
-    """Rapidly oscillates the volume."""
+    """
+    Rapidly oscillates the volume of the audio.
+
+    Attributes
+    ----------
+    frequency: float | None
+        Oscillation frequency in Hz (> 0.0).
+    depth: float | None
+        Effect depth (0.0 < x <= 1.0).
+    """
 
     @property
     def frequency(self) -> float | None:
@@ -105,7 +147,16 @@ class Tremolo(BaseModel[filters.TremoloFilter]):
 
 
 class Vibrato(BaseModel[filters.VibratoFilter]):
-    """Rapidly oscillates pitch."""
+    """
+    Rapidly oscillates the pitch of the audio.
+
+    Attributes
+    ----------
+    frequency: float | None
+        Oscillation frequency in Hz (0.0 < x <= 14.0).
+    depth: float | None
+        Effect depth (0.0 < x <= 1.0).
+    """
 
     @property
     def frequency(self) -> float | None:
@@ -119,7 +170,14 @@ class Vibrato(BaseModel[filters.VibratoFilter]):
 
 
 class Rotation(BaseModel[filters.RotationFilter]):
-    """Rotates the audio across the stereo channels."""
+    """
+    Rotates the audio across the stereo channels (panning effect).
+
+    Attributes
+    ----------
+    rotation_hz: float | None
+        Rotation frequency in Hz.
+    """
 
     @property
     def rotation_hz(self) -> float | None:
@@ -128,7 +186,24 @@ class Rotation(BaseModel[filters.RotationFilter]):
 
 
 class Distortion(BaseModel[filters.DistortionFilter]):
-    """Applies various distortion effects using sine/cosine/tangent transforms"""
+    """
+    Applies distortion effects using sine, cosine, and tangent transforms.
+
+    Attributes
+    ----------
+    sin_offset: float | None
+        The sine input offset component.
+    sin_scale: float | None
+        The sine scaling component.
+    cos_offset: float | None
+        The cosine input offset component.
+    cos_scale: float | None
+        The cosine scaling component.
+    tan_offset: float | None
+        The tangent input offset component.
+    tan_scale: float | None
+        The tangent scaling component.
+    """
 
     @property
     def sin_offset(self) -> float | None:
@@ -162,7 +237,20 @@ class Distortion(BaseModel[filters.DistortionFilter]):
 
 
 class ChannelMix(BaseModel[filters.ChannelMixFilter]):
-    """Mixes the left and right audio channels to manipulate stereo separation."""
+    """
+    Mixes left and right audio channels to manipulate stereo separation.
+
+    Attributes
+    ----------
+    left_to_left: float | None
+        Left input contribution to left output.
+    left_to_right: float | None
+        Left input contribution to right output.
+    right_to_left: float | None
+        Right input contribution to left output.
+    right_to_right: float | None
+        Right input contribution to right output.
+    """
 
     @property
     def left_to_left(self) -> float | None:
@@ -186,7 +274,14 @@ class ChannelMix(BaseModel[filters.ChannelMixFilter]):
 
 
 class LowPass(BaseModel[filters.LowPassFilter]):
-    """Suppresses higher frequencies."""
+    """
+    Suppresses higher frequencies in the audio signal.
+
+    Attributes
+    ----------
+    smoothing: float | None
+        Smoothing factor (x > 1.0).
+    """
 
     @property
     def smoothing(self) -> float | None:
@@ -199,6 +294,31 @@ class Filters(BaseModel[filters.PlayerFilters]):
     The main container for all active player filters.
 
     This class provides a Pythonic interface to the underlying Lavalink filter state.
+
+    Attributes
+    ----------
+    volume: float
+        The linear volume multiplier (0.0 to 5.0).
+    equalizer: list[Equalizer]
+        A list of active equalizer bands.
+    karaoke: Karaoke | None
+        The active karaoke filter, if set.
+    timescale: Timescale | None
+        The active timescale filter, if set.
+    tremolo: Tremolo | None
+        The active tremolo filter, if set.
+    vibrato: Vibrato | None
+        The active vibrato filter, if set.
+    rotation: Rotation | None
+        The active rotation filter, if set.
+    distortion: Distortion | None
+        The active distortion filter, if set.
+    channel_mix: ChannelMix | None
+        The active channel mix filter, if set.
+    low_pass: LowPass | None
+        The active low pass filter, if set.
+    plugin_filters: dict[str, Any]
+        A dictionary of raw plugin-defined filter payloads.
     """
 
     def __init__(self, *, client: Client, data: filters.PlayerFilters) -> None:
