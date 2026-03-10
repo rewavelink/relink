@@ -28,7 +28,12 @@ from enum import Enum, StrEnum
 
 
 class NodeStatus(Enum):
-    """Represents the connection status of a node."""
+    """Represents the connection status of a node.
+
+    :ivar disconnected: The node is not connected to Lavalink.
+    :ivar connected: The node is connected to Lavalink.
+    :ivar connecting: The node is in the process of connecting to Lavalink.
+    """
 
     disconnected = 1
     connected = 2
@@ -36,7 +41,14 @@ class NodeStatus(Enum):
 
 
 class TrackEndReason(StrEnum):
-    """Represents a TrackEndEvent's :attr:`TrackEndEvent.reason`."""
+    """Represents a TrackEndEvent's :attr:`TrackEndEvent.reason`.
+
+    :ivar finished: The track finished playing.
+    :ivar load_failed: The track failed to load.
+    :ivar stopped: The track was stopped.
+    :ivar replaced: The track was replaced.
+    :ivar cleanup: The track was cleaned up.
+    """
 
     finished = "finished"
     load_failed = "loadFailed"
@@ -55,7 +67,18 @@ class TrackEndReason(StrEnum):
 
 
 class TrackExceptionSeverity(StrEnum):
-    """Represents a TrackException's error severity."""
+    """Represents a TrackException's error severity.
+
+    :ivar common: The cause is known and expected, indicates that there
+        is nothing wrong with the library itself.
+    :ivar suspicious: The cause might not be exactly known, but is possibly
+        caused by outside factors. For example when an outside service responds
+        in a format that we do not expect.
+    :ivar fault: The probable cause is an issue with the library or there is
+        no way to tell what the cause might be. This is the default level and
+        other levels are used in cases where the thrower has more in-depth
+        knowledge about the error.
+    """
 
     common = "common"
     suspicious = "suspicious"
