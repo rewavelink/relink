@@ -43,17 +43,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-[project.optional-dependencies]
-speed = [
-    "curl-cffi>=0.14.0,<1",
-    "orjson>=3.11.7,<4",
-]
-docs = [
-    "relink[speed]",
-    "sphinx>=9.0.0",
-    "furo",
-    "sphinx-copybutton",
-]
+[dependency-groups]
+speed = ["curl-cffi>=0.14.0,<1", "orjson>=3.11.7,<4"]
+docs = ["relink[speed]", "sphinx>=9.0.0", "furo", "sphinx-copybutton"]
 
 [project.urls]
 Repository = "https://github.com/rewavelink/relink.git"
