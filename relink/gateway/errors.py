@@ -54,3 +54,7 @@ class NodeURINotFound(NodeError):
 
     def __init__(self, node: Node) -> None:
         self.node = node
+
+
+class QueueEmpty(ReLinkException):
+    """Exception raised when trying to get a track from an empty queue."""

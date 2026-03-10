@@ -31,6 +31,7 @@ from typing import TYPE_CHECKING, Annotated, Self, overload
 
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
+from .queue import Queue
 
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import (
@@ -171,6 +172,8 @@ class Player(discord.VoiceProtocol):
         self._last_position = 0
         self._last_update = 0.0
 
+        self.queue: Queue = Queue()
+
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
             guild = getattr(channel, "guild", None)
@@ -216,7 +219,7 @@ class Player(discord.VoiceProtocol):
     @property
     def current(self) -> Playable | None:
         """The currently playing track, or None if nothing is playing."""
-        return self._track
+        return self._track or self.queue.current_track
 
     @property
     def position(self) -> int:
@@ -297,6 +300,7 @@ class Player(discord.VoiceProtocol):
             )
 
         finally:
+            self.queue.reset()
             await super().disconnect(force=force)
 
     async def move_to(self, node: Node, /) -> None:
@@ -372,6 +376,7 @@ class Player(discord.VoiceProtocol):
         end: int | None = None,
         volume: int | None = None,
         paused: bool | None = None,
+        add_to_history: bool = True,
     ) -> Playable:
         """
         Plays the specified track on this player.
@@ -388,6 +393,10 @@ class Player(discord.VoiceProtocol):
             The volume to set for this playback. Defaults to the current player volume.
         paused: :class:`bool` | :data:`None`
             Whether to start the track in a paused state. Defaults to the current player state.
+        add_to_history: :class:`bool`
+            Whether to add the currently playing track to the history before playing the new track.
+
+            Defaults to ``True``.
 
         Returns
         -------
@@ -422,6 +431,10 @@ class Player(discord.VoiceProtocol):
         self._last_update = time.monotonic()
         self._stop_inactivity_timer()
 
+        self.queue.current_track = self._track
+        if add_to_history and self.queue.history is not None:
+            self.queue.history.put(self.queue.current_track)
+
         return track
 
     async def stop(self) -> None:
@@ -429,7 +442,7 @@ class Player(discord.VoiceProtocol):
         Stops the current track and clears the player state.
 
         This method sends a request to Lavalink to stop playback and resets
-        the internal position tracking.
+        the internal position tracking, current track, and queue state.
 
         Raises
         ------
@@ -450,6 +463,8 @@ class Player(discord.VoiceProtocol):
         self._track = None
         self._last_position = 0
         self._last_update = 0.0
+        self.queue.clear()
+        self.queue.clear_history()
 
         _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
         self._check_inactivity()
@@ -511,6 +526,46 @@ class Player(discord.VoiceProtocol):
         self._last_update = time.monotonic()
 
         _log.debug("Player %s: Seeked to %dms", self.guild_id, position)
+
+    async def next(self) -> None:
+        """Skips to the next track in the queue. Alias for :meth:`skip_track()`."""
+        await self.skip_track()
+
+    async def previous(self) -> None:
+        """
+        Returns to the previous track in the queue.
+
+        This is only possible if history tracking is enabled for the player's queue.
+        It retrieves the last played track from the history and plays it again.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        QueueEmpty
+            There is no previous track in the history to return to.
+        ValueError
+            History tracking is disabled for this player's queue.
+        """
+        if not self.queue.history:
+            raise ValueError("History tracking is disabled for this player's queue.")
+
+        previous_track = self.queue.history.get()
+        await self.play(previous_track)
+
+    async def skip(self) -> None:
+        """
+        Skips to the next track in the queue.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        QueueEmpty
+            The queue is empty and there is no track to skip to.
+        """
+        next_track = self.queue.get()
+        await self.play(next_track)
 
     async def set_volume(self, value: int, /) -> None:
         """
