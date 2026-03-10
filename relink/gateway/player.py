@@ -33,8 +33,13 @@ import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink.rest.schemas.filters import PlayerFilters
-from relink.rest.schemas.player import PlayerVoiceState, UpdatePlayerRequest
+from relink.rest.schemas.player import (
+    PlayerVoiceState,
+    UpdatePlayerRequest,
+    UpdatePlayerTrackRequest,
+)
 
+from ..models.track import Playable
 from .schemas.receive import PlayerState
 
 if TYPE_CHECKING:
@@ -119,6 +124,7 @@ class Player(discord.VoiceProtocol):
         "_node",
         "_paused",
         "_ready",
+        "_track",
         "_volume",
     )
 
@@ -130,6 +136,7 @@ class Player(discord.VoiceProtocol):
     _node: Node | None
     _paused: bool
     _ready: bool
+    _track: Playable | None
     _volume: int
 
     def __repr__(self) -> str:
@@ -156,6 +163,7 @@ class Player(discord.VoiceProtocol):
         self._connection = self.get_connection_state()
         self.guild_id: int = 0
 
+        self._track = None
         self._volume = 100
         self._paused = False
         self._filters = PlayerFilters()
@@ -188,6 +196,11 @@ class Player(discord.VoiceProtocol):
         if self._node is None:
             raise RuntimeError(f"Player {self.guild_id} is not attached to a node.")
         return self._node
+
+    @property
+    def current(self) -> Playable | None:
+        """The currently playing track, or None if nothing is playing."""
+        return self._track
 
     @property
     def position(self) -> int:
@@ -226,6 +239,67 @@ class Player(discord.VoiceProtocol):
             The connection state instance for this player.
         """
         return PlayerConnectionState()
+
+    async def play(
+        self,
+        track: Playable,
+        /,
+        *,
+        start: int = 0,
+        end: int | None = None,
+        volume: int | None = None,
+        paused: bool | None = None,
+    ) -> Playable:
+        """
+        Plays the specified track on this player.
+
+        Parameters
+        ----------
+        playable: :class:`Playable` | :class:`str`
+            The track to play. Can be a Playable object or a base64 encoded track string.
+        start: :class:`int`
+            The position in milliseconds to start playback at. Defaults to 0.
+        end: :class:`int` | :data:`None`
+            The position in milliseconds to end playback at. Defaults to None.
+        volume: :class:`int` | :data:`None`
+            The volume to set for this playback. Defaults to the current player volume.
+        paused: :class:`bool` | :data:`None`
+            Whether to start the track in a paused state. Defaults to the current player state.
+
+        Returns
+        -------
+        :class:`Playable`
+            The track that was requested for playback.
+        """
+        if self._node is None or self._node._resume_session is None:
+            raise RuntimeError("Player is not connected to a node.")
+
+        volume = volume if volume is not None else self._volume
+        paused = paused if paused is not None else self._paused
+
+        track_request = UpdatePlayerTrackRequest(encoded=track.encoded)
+        data = UpdatePlayerRequest(
+            track=track_request,
+            position=start,
+            endtime=end,
+            volume=volume,
+            paused=paused,
+        )
+
+        await self._node._manager.update_player(
+            session_id=self._node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._track = track
+        self._volume = volume
+        self._paused = paused
+        self._last_position = start
+        self._last_update = time.monotonic()
+        self._stop_inactivity_timer()
+
+        return track
 
     async def disconnect(self, *, force: bool = False) -> None:
         """
@@ -356,10 +430,12 @@ class Player(discord.VoiceProtocol):
             data=data,
         )
 
+        self._track = None
         self._last_position = 0
         self._last_update = 0.0
 
         _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
+        self._check_inactivity()
 
     async def pause(self, value: bool = True, /) -> None:
         """
@@ -518,9 +594,9 @@ class Player(discord.VoiceProtocol):
         members = [member for member in channel.members if not member.bot]
 
         is_alone = len(members) == 0
-        # TODO: is_idle = self._track is None, when _track is done
+        is_idle = self._track is None
 
-        if is_alone:
+        if is_alone or is_idle:
             self._start_inactivity_timer()
         else:
             self._stop_inactivity_timer()
