@@ -271,8 +271,8 @@ class Player(discord.VoiceProtocol):
         :class:`Playable`
             The track that was requested for playback.
         """
-        if self._node is None or self._node._resume_session is None:
-            raise RuntimeError("Player is not connected to a node.")
+        node = self.node
+        assert node._resume_session is not None
 
         volume = volume if volume is not None else self._volume
         paused = paused if paused is not None else self._paused
@@ -286,8 +286,8 @@ class Player(discord.VoiceProtocol):
             paused=paused,
         )
 
-        await self._node._manager.update_player(
-            session_id=self._node._resume_session,
+        await node._manager.update_player(
+            session_id=node._resume_session,
             guild_id=str(self.guild_id),
             data=data,
         )
@@ -358,13 +358,13 @@ class Player(discord.VoiceProtocol):
             The player is not connected to a node or session.
         """
 
-        if self._node is None or self._node._resume_session is None:
-            raise RuntimeError("Player is not connected to a node.")
+        node = self.node
+        assert node._resume_session is not None
 
         data = UpdatePlayerRequest(position=position)
 
-        await self._node._manager.update_player(
-            session_id=self._node._resume_session,
+        await node._manager.update_player(
+            session_id=node._resume_session,
             guild_id=str(self.guild_id),
             data=data,
         )
@@ -393,13 +393,13 @@ class Player(discord.VoiceProtocol):
         if not 0 <= value <= 1000:
             raise ValueError("Volume must be between 0 and 1000.")
 
-        if self._node is None or self._node._resume_session is None:
-            raise RuntimeError("Player is not connected to a node.")
+        node = self.node
+        assert node._resume_session is not None
 
         data = UpdatePlayerRequest(volume=value)
 
-        await self._node._manager.update_player(
-            session_id=self._node._resume_session,
+        await node._manager.update_player(
+            session_id=node._resume_session,
             guild_id=str(self.guild_id),
             data=data,
         )
@@ -419,13 +419,13 @@ class Player(discord.VoiceProtocol):
         RuntimeError
             The player is not connected to a node or session.
         """
-        if self._node is None or self._node._resume_session is None:
-            raise RuntimeError("Player is not connected to a node.")
+        node = self.node
+        assert node._resume_session is not None
 
         data = UpdatePlayerRequest(track=None)
 
-        await self._node._manager.update_player(
-            session_id=self._node._resume_session,
+        await node._manager.update_player(
+            session_id=node._resume_session,
             guild_id=str(self.guild_id),
             data=data,
         )
@@ -446,13 +446,13 @@ class Player(discord.VoiceProtocol):
         value: :class:`bool`
             Whether to pause (True) or resume (False) the player.
         """
-        if self._node is None or self._node._resume_session is None:
-            raise RuntimeError("Player is not connected to a node.")
+        node = self.node
+        assert node._resume_session is not None
 
         data = UpdatePlayerRequest(paused=value)
 
-        await self._node._manager.update_player(
-            session_id=self._node._resume_session,
+        await node._manager.update_player(
+            session_id=node._resume_session,
             guild_id=str(self.guild_id),
             data=data,
         )
@@ -484,13 +484,13 @@ class Player(discord.VoiceProtocol):
             The player is not connected to a node or session.
         """
 
-        if self._node is None or self._node._resume_session is None:
-            raise RuntimeError("Player is not connected to a node.")
+        node = self.node
+        assert node._resume_session is not None
 
         data = UpdatePlayerRequest(filters=filters)
 
-        await self._node._manager.update_player(
-            session_id=self._node._resume_session,
+        await node._manager.update_player(
+            session_id=node._resume_session,
             guild_id=str(self.guild_id),
             data=data,
         )
