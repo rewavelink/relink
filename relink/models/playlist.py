@@ -30,6 +30,7 @@ from .base import BaseModel
 from .track import Playable
 
 if TYPE_CHECKING:
+    from ..gateway.client import Client
     from ..rest.schemas.track import TrackLoadingData
 
 
@@ -41,7 +42,7 @@ class Playlist(BaseModel["TrackLoadingData"]):
     and implements the Sequence protocol to allow iteration over tracks.
     """
 
-    def __init__(self, *, client: Any, data: TrackLoadingData) -> None:
+    def __init__(self, *, client: Client, data: TrackLoadingData) -> None:
         super().__init__(client=client, data=data)
         self._tracks: list[Playable] = [
             Playable(client=client, data=track) for track in data.tracks

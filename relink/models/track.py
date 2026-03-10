@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, Any
 from .base import BaseModel
 
 if TYPE_CHECKING:
+    from ..gateway.client import Client
     from ..rest.schemas.track import Track
     from .playlist import Playlist
 
@@ -102,7 +103,7 @@ class Playable(BaseModel[Track]):
     def __init__(
         self,
         *,
-        client: Any,
+        client: Client,
         data: Track,
         playlist: Playlist | None = None,
     ) -> None:
