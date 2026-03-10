@@ -173,14 +173,30 @@ class Player(discord.VoiceProtocol):
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
-
             guild = getattr(channel, "guild", None)
+            
             if guild is not None:
                 self.guild_id = guild.id
-
             self._ready = True
         else:
             self._ready = False
+
+    def __call__(
+        self, client: discord.Client, channel: discord.abc.Connectable
+    ) -> Self:
+        super().__init__(client, channel)
+
+        guild = getattr(channel, "guild", None)
+
+        if guild is None:
+            return self
+
+        self.guild_id = guild.id
+
+        if self._node:
+            self._node._add_player(self)
+
+        return self
 
     @property
     def node(self) -> Node:
@@ -239,6 +255,48 @@ class Player(discord.VoiceProtocol):
             The connection state instance for this player.
         """
         return PlayerConnectionState()
+
+    async def disconnect(self, *, force: bool = False) -> None:
+        """
+        Disconnects the player, destroys it on the Lavalink node, and cleans up state.
+
+        This method handles the unregistration of the player from the :class:`Node`
+        and sends a destruction request to the Lavalink server.
+
+        Parameters
+        ----------
+        force: :class:`bool`
+            Whether to force the disconnection even if the player is not currently connected.
+            Defaults to ``False``.
+        """
+        try:
+            if self._node is None:
+                return
+
+            self._node._remove_player(self.guild_id)
+
+            if self._node._resume_session is None:
+                return
+
+            await self._node._manager.destroy_player(
+                session_id=self._node._resume_session, guild_id=str(self.guild_id)
+            )
+
+            _log.info(
+                "Player %s: Disconnected and removed from Node %r.",
+                self.guild_id,
+                self._node.id,
+            )
+
+        except Exception as exc:
+            _log.warning(
+                "Player %s: Error during disconnect cleanup: %s",
+                self.guild_id,
+                exc,
+            )
+
+        finally:
+            await super().disconnect(force=force)
 
     async def play(
         self,
@@ -301,47 +359,62 @@ class Player(discord.VoiceProtocol):
 
         return track
 
-    async def disconnect(self, *, force: bool = False) -> None:
+    async def stop(self) -> None:
         """
-        Disconnects the player, destroys it on the Lavalink node, and cleans up state.
+        Stops the current track and clears the player state.
 
-        This method handles the unregistration of the player from the :class:`Node`
-        and sends a destruction request to the Lavalink server.
+        This method sends a request to Lavalink to stop playback and resets
+        the internal position tracking.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        """
+        node = self.node
+        assert node._resume_session is not None
+
+        data = UpdatePlayerRequest(track=None)
+
+        await node._manager.update_player(
+            session_id=node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        self._track = None
+        self._last_position = 0
+        self._last_update = 0.0
+
+        _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
+        self._check_inactivity()
+
+    async def pause(self, value: bool = True, /) -> None:
+        """
+        Sets the pause state of the player.
 
         Parameters
         ----------
-        force: :class:`bool`
-            Whether to force the disconnection even if the player is not currently connected.
-            Defaults to ``False``.
+        value: :class:`bool`
+            Whether to pause (True) or resume (False) the player.
         """
-        try:
-            if self._node is None:
-                return
+        node = self.node
+        assert node._resume_session is not None
 
-            self._node._remove_player(self.guild_id)
+        data = UpdatePlayerRequest(paused=value)
 
-            if self._node._resume_session is None:
-                return
+        await node._manager.update_player(
+            session_id=node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
 
-            await self._node._manager.destroy_player(
-                session_id=self._node._resume_session, guild_id=str(self.guild_id)
-            )
+        self._paused = value
+        _log.debug("Player %s: Set paused state to %s", self.guild_id, value)
 
-            _log.info(
-                "Player %s: Disconnected and removed from Node %r.",
-                self.guild_id,
-                self._node.id,
-            )
-
-        except Exception as exc:
-            _log.warning(
-                "Player %s: Error during disconnect cleanup: %s",
-                self.guild_id,
-                exc,
-            )
-
-        finally:
-            await super().disconnect(force=force)
+    async def resume(self) -> None:
+        """Resumes the player if it is paused. Alias for ``pause(False)``."""
+        await self.pause(False)
 
     async def seek(self, position: int, /) -> None:
         """
@@ -407,63 +480,6 @@ class Player(discord.VoiceProtocol):
         self._volume = value
         _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
 
-    async def stop(self) -> None:
-        """
-        Stops the current track and clears the player state.
-
-        This method sends a request to Lavalink to stop playback and resets
-        the internal position tracking.
-
-        Raises
-        ------
-        RuntimeError
-            The player is not connected to a node or session.
-        """
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(track=None)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._track = None
-        self._last_position = 0
-        self._last_update = 0.0
-
-        _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
-        self._check_inactivity()
-
-    async def pause(self, value: bool = True, /) -> None:
-        """
-        Sets the pause state of the player.
-
-        Parameters
-        ----------
-        value: :class:`bool`
-            Whether to pause (True) or resume (False) the player.
-        """
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(paused=value)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._paused = value
-        _log.debug("Player %s: Set paused state to %s", self.guild_id, value)
-
-    async def resume(self) -> None:
-        """Resumes the player if it is paused. Alias for ``pause(False)``."""
-        await self.pause(False)
-
     async def set_filters(
         self, filters: PlayerFilters, /, *, seek: bool = False
     ) -> None:
@@ -525,6 +541,17 @@ class Player(discord.VoiceProtocol):
         # Thus we wait for a non-None endpoint before dispatching.
         if self._connection.endpoint:
             await self._dispatch_voice_update()
+
+    def _update_state(self, state: PlayerState, /) -> None:
+        self._last_position = state.position
+        self._last_update = time.monotonic()
+
+        _log.debug(
+            "Player %s: Synced position to %dms (connected %s)",
+            self.guild_id,
+            state.position,
+            state.connected,
+        )
 
     async def on_voice_state_update(self, data: GuildVoiceState) -> None:
         """
@@ -634,31 +661,3 @@ class Player(discord.VoiceProtocol):
         await asyncio.sleep(timeout)
         _log.info("Player %s: Disconnecting due to inactivity.", self.guild_id)
         await self.disconnect()
-
-    def _update_state(self, state: PlayerState, /) -> None:
-        self._last_position = state.position
-        self._last_update = time.monotonic()
-
-        _log.debug(
-            "Player %s: Synced position to %dms (connected %s)",
-            self.guild_id,
-            state.position,
-            state.connected,
-        )
-
-    def __call__(
-        self, client: discord.Client, channel: discord.abc.Connectable
-    ) -> Self:
-        super().__init__(client, channel)
-
-        guild = getattr(channel, "guild", None)
-
-        if guild is None:
-            return self
-
-        self.guild_id = guild.id
-
-        if self._node:
-            self._node._add_player(self)
-
-        return self
