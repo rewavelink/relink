@@ -49,9 +49,6 @@ class Album:
     def __init__(self, data: dict[str, Any]) -> None:
         self._data = data
 
-    def __repr__(self) -> str:
-        return f"<relink.Album name={self.name!r}>"
-
     @property
     def name(self) -> str | None:
         """The name of the album."""
@@ -77,9 +74,6 @@ class Artist:
 
     def __init__(self, data: dict[str, Any]) -> None:
         self._data = data
-
-    def __repr__(self) -> str:
-        return f"<relink.Artist name={self.name!r}>"
 
     @property
     def name(self) -> str | None:
@@ -112,9 +106,6 @@ class Playable(BaseModel[Track]):
 
     def __str__(self) -> str:
         return self.title
-
-    def __repr__(self) -> str:
-        return f"<relink.Playable title={self.title!r} author={self.author!r} source={self.source_name!r}>"
 
     def __len__(self) -> int:
         """Returns the length of the track in milliseconds."""

@@ -42,6 +42,14 @@ class BaseModel[D]:
         self._client: Client = client
         self._data: D = data
 
+    def __repr__(self) -> str:
+        attrs = ", ".join(
+            f"{k}={v!r}"
+            for k, v in self._data.__dict__.items()
+            if v is not None and not isinstance(v, (list, dict))
+        )
+        return f"<relink.{self.__class__.__name__} {attrs}>"
+
     @property
     def client(self) -> Client:
         """The :class:`relink.Client` instance associated with this object."""

@@ -48,9 +48,6 @@ class Playlist(BaseModel["TrackLoadingData"]):
             Playable(client=client, data=track) for track in data.tracks
         ]
 
-    def __repr__(self) -> str:
-        return f"<relink.Playlist name={self.name!r} tracks={len(self._tracks)}>"
-
     def __str__(self) -> str:
         return self.name
 
