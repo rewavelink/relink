@@ -92,7 +92,6 @@ class Client:
         retries: int | None = None,
         resume_timeout: float = 60,
         inactive_player_timeout: int | None = 300,
-        inactive_channel_tokens: int | None = 3,
     ) -> Node:
         """
         Creates a :class:`Node` attached to this client.
@@ -115,8 +114,6 @@ class Client:
             The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
         inactive_player_timeout: :class:`int` | :data:`None`
             The default :attr:`Player.inactive_timeout` for all players connected to this node. Defaults to ``300``.
-        inactive_channel_tokens: :class:`int` | :data:`None`
-            The default :attr:`Player.inactive_channel_tokens` for all players connected to this node. Defaults to ``3``.
 
         Returns
         -------
@@ -132,7 +129,6 @@ class Client:
             retries=retries,
             resume_timeout=resume_timeout,
             inactive_player_timeout=inactive_player_timeout,
-            inactive_channel_tokens=inactive_channel_tokens,
         )
         self._nodes[node.id] = node
         return node
