@@ -174,7 +174,7 @@ class Player(discord.VoiceProtocol):
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
             guild = getattr(channel, "guild", None)
-            
+
             if guild is not None:
                 self.guild_id = guild.id
             self._ready = True
@@ -293,10 +293,75 @@ class Player(discord.VoiceProtocol):
                 "Player %s: Error during disconnect cleanup: %s",
                 self.guild_id,
                 exc,
+                exc_info=True,
             )
 
         finally:
             await super().disconnect(force=force)
+
+    async def move_to(self, node: Node, /) -> None:
+        """
+        Moves this player to a different Lavalink node seamlessly.
+
+        This method handles the migration of the player state, filters,
+        and voice connection to the new node.
+
+        Parameters
+        ----------
+        node: :class:`Node`
+            The destination node to move this player to.
+        """
+
+        if self._node is node:
+            return
+
+        old_node = self._node
+        self._node = node
+
+        if old_node:
+            old_node._remove_player(self.guild_id)
+        node._add_player(self)
+
+        await self._dispatch_voice_update()
+        assert node._resume_session is not None
+
+        track_payload = (
+            UpdatePlayerTrackRequest(encoded=self.current.encoded)
+            if self.current
+            else None
+        )
+        data = UpdatePlayerRequest(
+            track=track_payload,
+            position=self.position,
+            volume=self._volume,
+            paused=self._paused,
+            filters=self._filters,
+        )
+
+        await node._manager.update_player(
+            session_id=node._resume_session,
+            guild_id=str(self.guild_id),
+            data=data,
+        )
+
+        if old_node and old_node._resume_session:
+            try:
+                await old_node._manager.destroy_player(
+                    session_id=old_node._resume_session, guild_id=str(self.guild_id)
+                )
+            except Exception as exc:
+                _log.warning(
+                    "Player %s: Failed to destroy player on old node during migration. Error: %s",
+                    self.guild_id,
+                    exc,
+                    exc_info=True,
+                )
+
+        _log.info(
+            "Player %s: Successfully migrated to Node %r.",
+            self.guild_id,
+            node.id,
+        )
 
     async def play(
         self,
@@ -335,9 +400,9 @@ class Player(discord.VoiceProtocol):
         volume = volume if volume is not None else self._volume
         paused = paused if paused is not None else self._paused
 
-        track_request = UpdatePlayerTrackRequest(encoded=track.encoded)
+        track_payload = UpdatePlayerTrackRequest(encoded=track.encoded)
         data = UpdatePlayerRequest(
-            track=track_request,
+            track=track_payload,
             position=start,
             endtime=end,
             volume=volume,
