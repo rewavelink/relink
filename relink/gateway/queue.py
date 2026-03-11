@@ -38,7 +38,8 @@ from .errors import QueueEmpty
 
 
 class QueueBase:
-    """A queue implementation for managing playable tracks.
+    """
+    A queue implementation for managing playable tracks.
 
     This queue supports multiple modes including normal, loop, and loop_all.
     It maintains a history of played tracks and supports asynchronous waiting.
@@ -130,7 +131,8 @@ class QueueBase:
         *,
         atomic: bool = True,
     ) -> int:
-        """Put one or more tracks at the end of the queue.
+        """
+        Put one or more tracks at the end of the queue.
 
         Parameters
         ----------
@@ -159,7 +161,8 @@ class QueueBase:
         return count
 
     def get(self) -> Playable:
-        """Get and remove the next track from the queue.
+        """
+        Get and remove the next track from the queue.
 
         Returns
         -------
@@ -177,7 +180,8 @@ class QueueBase:
         return self._items.popleft()
 
     def copy(self) -> Self:
-        """Create a shallow copy of the queue.
+        """
+        Create a shallow copy of the queue.
 
         Returns
         -------
@@ -230,7 +234,8 @@ class Queue(QueueBase):
 
     @property
     def mode(self) -> QueueMode:
-        """The current queue mode.
+        """
+        The current queue mode.
 
         - :attr:`QueueMode.normal`: Tracks are played in order and removed from the queue.
         - :attr:`QueueMode.loop`: :attr:`current_track` is repeated indefinitely until manually changed.
@@ -252,7 +257,8 @@ class Queue(QueueBase):
 
     @property
     def current_track(self) -> Playable | None:
-        """The currently loaded track.
+        """
+        The currently loaded track.
 
         This track is typically the one being played or most recently played.
 
@@ -274,7 +280,8 @@ class Queue(QueueBase):
 
     @property
     def history(self) -> History | None:
-        """The queue history.
+        """
+        The queue history.
 
         Returns
         -------
@@ -297,7 +304,8 @@ class Queue(QueueBase):
         *,
         atomic: bool = True,
     ) -> int:
-        """Put one or more tracks at the end of the queue.
+        """
+        Put one or more tracks at the end of the queue.
 
         Parameters
         ----------
@@ -323,7 +331,8 @@ class Queue(QueueBase):
         return count
 
     def put_at(self, index: int, track: Playable) -> None:
-        """Insert a track into the queue at a specific index.
+        """
+        Insert a track into the queue at a specific index.
 
         Parameters
         ----------
@@ -348,7 +357,8 @@ class Queue(QueueBase):
         *,
         atomic: bool = True,
     ) -> int:
-        """Asynchronously put one or more tracks into the queue.
+        """
+        Asynchronously put one or more tracks into the queue.
 
         This method is thread-safe and maintains insert order through a lock.
 
@@ -380,7 +390,8 @@ class Queue(QueueBase):
         return count
 
     def get(self) -> Playable:
-        """Get the next track from the queue, respecting the current queue mode.
+        """
+        Get the next track from the queue, respecting the current queue mode.
 
         If the queue is in ``loop`` mode, returns the current track.
         If the queue is in ``loop_all`` mode and empty, restores tracks from history.
@@ -414,7 +425,8 @@ class Queue(QueueBase):
         return self.pop()
 
     def get_at(self, index: int) -> Playable:
-        """Get a track from a specific queue index.
+        """
+        Get a track from a specific queue index.
 
         This method retrieves exactly the item at ``index`` and sets it as current.
 
@@ -441,7 +453,8 @@ class Queue(QueueBase):
         return self.pop_at(index)
 
     async def get_wait(self) -> Playable:
-        """Asynchronously get a track from the queue, waits if necessary.
+        """
+        Asynchronously get a track from the queue, waits if necessary.
 
         This method will wait indefinitely until a track is available in the queue.
 
@@ -473,7 +486,8 @@ class Queue(QueueBase):
         return self.get()
 
     def pop(self) -> Playable:
-        """Remove and return the next track from the queue.
+        """
+        Remove and return the next track from the queue.
 
         The returned track is set as the current track.
         If history is enabled, the previous current track is added to history.
@@ -497,7 +511,8 @@ class Queue(QueueBase):
         return track
 
     def pop_at(self, index: int) -> Playable:
-        """Remove and return a track from a specific queue index.
+        """
+        Remove and return a track from a specific queue index.
 
         The returned track is set as the current track.
         If history is enabled, the previous current track is added to history.
@@ -529,7 +544,8 @@ class Queue(QueueBase):
         return track
 
     def peek(self, index: int = 0) -> Playable:
-        """Peek at an item in the queue without removing it.
+        """
+        Peek at an item in the queue without removing it.
 
         Parameters
         ----------
@@ -573,7 +589,8 @@ class Queue(QueueBase):
         *,
         return_count: bool = False,
     ) -> int | None:
-        """Remove a specific track from the queue.
+        """
+        Remove a specific track from the queue.
 
         Searches from the left side of the queue and removes up to ``count`` instances
         of the specified track.
@@ -605,26 +622,33 @@ class Queue(QueueBase):
         if count is not None and count < 0:
             raise ValueError("count must be >= 0 or None")
 
-        removed = 0
-        new_items: deque[Playable] = deque()
+        if count == 1:
+            try:
+                self._items.remove(track)
+                return 1 if return_count else None
+            except ValueError:
+                return 0 if return_count else None
 
-        for item in self._items:
-            should_remove = item == track and (count is None or removed < count)
+        initial_len = len(self._items)
+        if count is None:
+            self._items = deque(t for t in self._items if t != track)
+        else:
+            removed = 0
+            new_items: deque[Playable] = deque()
 
-            if should_remove:
-                removed += 1
-                continue
+            for item in self._items:
+                if removed < count and item == track:
+                    removed += 1
+                    continue
+                new_items.append(item)
+            
+            self._items = new_items
 
-            new_items.append(item)
-
-        self._items = new_items
-
-        if return_count:
-            return removed
-        return None
+        return (initial_len - len(self._items)) if return_count else None
 
     def delete(self, index: int) -> None:
-        """Delete a track from the queue at a specific index.
+        """
+        Delete a track from the queue at a specific index.
 
         Parameters
         ----------
@@ -639,7 +663,8 @@ class Queue(QueueBase):
         del self._items[index]
 
     def swap(self, old: int, new: int) -> None:
-        """Swap two tracks in the queue by index.
+        """
+        Swap two tracks in the queue by index.
 
         Parameters
         ----------
@@ -656,7 +681,8 @@ class Queue(QueueBase):
         self._items[old], self._items[new] = self._items[new], self._items[old]
 
     def index(self, track: Playable) -> int:
-        """Return the index of the first occurrence of a track in the queue.
+        """
+        Return the index of the first occurrence of a track in the queue.
 
         Parameters
         ----------
@@ -679,14 +705,16 @@ class Queue(QueueBase):
         return self._items.index(track)
 
     def shuffle(self) -> None:
-        """Shuffle the queue in place.
+        """
+        Shuffle the queue in place.
 
         This does not return anything.
         """
         random.shuffle(self._items)
 
     def copy(self) -> Queue:
-        """Create a shallow copy of the queue.
+        """
+        Create a shallow copy of the queue.
 
         Returns
         -------
@@ -706,14 +734,16 @@ class Queue(QueueBase):
         return new_queue
 
     def clear(self) -> None:
-        """Remove all items from the queue.
+        """
+        Remove all items from the queue.
 
         This does not clear history.
         """
         super().clear()
 
     def clear_history(self) -> None:
-        """Clear the queue history if history is enabled.
+        """
+        Clear the queue history if history is enabled.
 
         If history is disabled, this method does nothing.
         """
@@ -721,7 +751,8 @@ class Queue(QueueBase):
             self._history.clear()
 
     def reset(self) -> None:
-        """Reset the queue to its default state.
+        """
+        Reset the queue to its default state.
 
         This will:
         - Clear all items from the queue
