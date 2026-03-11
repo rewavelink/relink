@@ -93,7 +93,7 @@ class Node:
         self.resume_timeout = resume_timeout
         self.auto_reconnect = auto_reconnect
 
-        self._status: NodeStatus = NodeStatus.disconnected
+        self._status: NodeStatus = NodeStatus.DISCONNECTED
         self._resume_session = None
         self._ws = None
         self._keep_alive = None
@@ -151,12 +151,12 @@ class Node:
 
     @property
     def uri(self) -> str:
-        """The URI this node connects to. This can only be changed when :attr:`Node.status` is :attr:`NodeStatus.disconnected`"""
+        """The URI this node connects to. This can only be changed when :attr:`Node.status` is :attr:`NodeStatus.DISCONNECTED`"""
         return self._uri
 
     @uri.setter
     def uri(self, value: str) -> None:
-        if self._status is not NodeStatus.disconnected:
+        if self._status is not NodeStatus.DISCONNECTED:
             raise RuntimeError("Cannot update the node uri while it is connected.")
         self._uri = value
 
@@ -172,7 +172,7 @@ class Node:
 
     def is_connected(self) -> bool:
         """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
-        return self._status is NodeStatus.connected
+        return self._status is NodeStatus.CONNECTED
 
     def get_player(self, guild_id: int, /) -> Player | None:
         """Gets a player connected to this node."""
@@ -187,7 +187,8 @@ class Node:
         self._players.pop(guild_id, None)
 
     async def connect(self) -> None:
-        """Connects this node.
+        """
+        Connects this node.
 
         This can only be done when the node has been attached to a pool.
         """
@@ -195,7 +196,7 @@ class Node:
             raise RuntimeError("Cannot connect a node that is bound to a client.")
 
         await self._manager.setup()
-        self._status = NodeStatus.connecting
+        self._status = NodeStatus.CONNECTING
 
         if self._keep_alive is not None:
             raise RuntimeError("This node is already connected.")
@@ -203,7 +204,8 @@ class Node:
         await self._attempt_connect()
 
     async def close(self) -> None:
-        """Closes the connection to this node.
+        """
+        Closes the connection to this node.
 
         All Players connected to it will stop playing.
 
@@ -230,7 +232,7 @@ class Node:
         self._ws = None
         self._keep_alive = None
         self._resume_session = None
-        self._status = NodeStatus.disconnected
+        self._status = NodeStatus.DISCONNECTED
 
         self._client._dispatch("node_close", self)
         await self.cleanup()
@@ -264,7 +266,7 @@ class Node:
                     self,
                     retries,
                 )
-                self._status = NodeStatus.disconnected
+                self._status = NodeStatus.DISCONNECTED
                 await self.cleanup()
                 return
 
@@ -288,8 +290,8 @@ class Node:
                 self._client._dispatch("node_close", self)
 
                 if self.auto_reconnect and self._status not in (
-                    NodeStatus.connecting,
-                    NodeStatus.disconnected,
+                    NodeStatus.CONNECTING,
+                    NodeStatus.DISCONNECTED,
                 ):
                     _log.info("%r WS closed, attempting reconnect...", self)
                     asyncio.create_task(self.connect())
@@ -321,7 +323,7 @@ class Node:
 
         payload = ReadyPayload(**data)
         self._resume_session = payload.session_id
-        self._status = NodeStatus.connected
+        self._status = NodeStatus.CONNECTED
 
         try:
             update_data = UpdateSessionRequest(
