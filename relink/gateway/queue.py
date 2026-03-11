@@ -410,17 +410,13 @@ class Queue(QueueBase):
             return self._current_track
 
         if self._mode is QueueMode.loop_all and not self:
-            if self._history is not None:
-                if self._history:
-                    self._items.extend(self._history)
-                    self._history.clear()
+            if self._history is not None and self._history:
+                self._items.extend(self._history)
+                self._history.clear()
 
-                if self._current_track is not None:
-                    self._items.append(self._current_track)
-                    self._current_track = None
-
-        if not self:
-            raise QueueEmpty
+            if self._current_track is not None:
+                self._items.append(self._current_track)
+                self._current_track = None
 
         return self.pop()
 
@@ -641,7 +637,7 @@ class Queue(QueueBase):
                     removed += 1
                     continue
                 new_items.append(item)
-            
+
             self._items = new_items
 
         return (initial_len - len(self._items)) if return_count else None
