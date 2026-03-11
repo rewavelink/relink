@@ -158,20 +158,22 @@ class Player(discord.VoiceProtocol):
 
     @overload
     def __init__(
-        self, client: discord.Client, channel: discord.abc.Connectable
+        self,
+        client: discord.Client,
+        channel: discord.VoiceChannel | discord.StageChannel,
     ) -> None: ...
 
     def __init__(
         self,
         client: discord.Client = MISSING,
-        channel: discord.abc.Connectable = MISSING,
+        channel: discord.VoiceChannel | discord.StageChannel = MISSING,
         *,
         node: Node | None = None,
     ) -> None:
-        self.guild_id: int = 0
+        self.guild_id = 0
         self._node = node
         self._connection = self.get_connection_state()
-        
+
         self._filters = PlayerFilters()
         self._queue: Queue = Queue()
         self._paused = False
@@ -181,26 +183,19 @@ class Player(discord.VoiceProtocol):
         self._last_update = 0.0
 
         if client is not MISSING and channel is not MISSING:
-            super().__init__(client, channel)
-            guild = getattr(channel, "guild", None)
-
-            if guild is not None:
-                self.guild_id = guild.id
+            self.guild_id = channel.guild.id
             self._ready = True
         else:
             self._ready = False
 
     def __call__(
-        self, client: discord.Client, channel: discord.abc.Connectable
+        self,
+        client: discord.Client,
+        channel: discord.VoiceChannel | discord.StageChannel,
     ) -> Self:
         super().__init__(client, channel)
 
-        guild = getattr(channel, "guild", None)
-
-        if guild is None:
-            return self
-
-        self.guild_id = guild.id
+        self.guild_id = channel.guild.id
 
         if self._node:
             self._node._add_player(self)
