@@ -29,7 +29,7 @@ import random
 from collections import deque
 from collections.abc import Iterable, Iterator
 from itertools import islice
-from typing import Literal, Self, TypeGuard, overload
+from typing import Any, Literal, Self, TypeGuard, overload
 
 from ..models.playlist import Playlist
 from ..models.track import Playable
@@ -297,6 +297,36 @@ class Queue(QueueBase):
                 waiter.set_result(None)
                 return
 
+    def previous(self) -> Playable:
+        """
+        Pop the most recent track from history and set it as current.
+
+        The current track is pushed back to the front of the queue.
+
+        Returns
+        -------
+        :class:`Playable`
+            The track retrieved from history.
+
+        Raises
+        ------
+        :class:`QueueEmpty`
+            The history is empty.
+        """
+
+        if self._history is None:
+            raise RuntimeError("History tracking is disabled for this queue.")
+
+        if len(self._history._items) == 0:
+            raise QueueEmpty("History is empty.")
+
+        if self._current_track:
+            self._items.appendleft(self._current_track)
+
+        track = self._history._items.pop()
+        self._current_track = track
+        return track
+
     def put(
         self,
         tracks: Iterable[Playable] | Playable | Playlist,
@@ -412,7 +442,7 @@ class Queue(QueueBase):
         if self._mode is QueueMode.loop_all and not self:
             if self._history is not None and self._history:
                 self._items.extend(self._history)
-                self._history.clear()
+                self._history._items.clear()
 
             if self._current_track is not None:
                 self._items.append(self._current_track)
@@ -501,8 +531,10 @@ class Queue(QueueBase):
         if not self:
             raise QueueEmpty
 
-        track = self._items.popleft()
+        if self._history is not None and self._history_enabled and self._current_track:
+            self._history._push(self._current_track)
 
+        track = self._items.popleft()
         self._current_track = track
         return track
 
@@ -744,7 +776,7 @@ class Queue(QueueBase):
         If history is disabled, this method does nothing.
         """
         if self._history is not None:
-            self._history.clear()
+            self._history._items.clear()
 
     def reset(self) -> None:
         """
@@ -771,4 +803,20 @@ class Queue(QueueBase):
 
 
 class History(QueueBase):
-    pass
+    """
+    A specialized queue for tracking playback history.
+
+    This class is intended to be read-only for users. Mutation methods
+    will raise :exc:`AttributeError`.
+    """
+
+    __slots__ = ()
+
+    def put(self, *args: Any, **kwargs: Any) -> Any:
+        raise AttributeError("History is read-only. Tracks are added automatically.")
+
+    def clear(self) -> None:
+        raise AttributeError("History is read-only. Use Queue.clear_history() instead.")
+
+    def _push(self, track: Playable) -> None:
+        self._items.append(track)
