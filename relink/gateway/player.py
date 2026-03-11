@@ -31,7 +31,6 @@ from typing import TYPE_CHECKING, Annotated, Self, overload
 
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
-from .queue import Queue
 
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import (
@@ -41,6 +40,8 @@ from relink.rest.schemas.player import (
 )
 
 from ..models.track import Playable
+from .enums import QueueMode
+from .queue.queue import Queue
 from .schemas.receive import PlayerState
 
 if TYPE_CHECKING:
@@ -114,6 +115,13 @@ class Player(discord.VoiceProtocol):
         The current position of the player in milliseconds.
     volume: :class:`int`
         The current volume of the player (0-1000).
+    queue: :class:`Queue`
+        The track queue associated with this player. This handles both upcoming
+        tracks and playback history.
+    current: :class:`Playable` | :data:`None`
+        The currently playing track, or ``None`` if nothing is playing.
+    node: :class:`Node`
+        The node this player is currently attached to.
     """
 
     __slots__ = (
@@ -124,8 +132,8 @@ class Player(discord.VoiceProtocol):
         "_last_update",
         "_node",
         "_paused",
+        "_queue",
         "_ready",
-        "_track",
         "_volume",
     )
 
@@ -136,8 +144,8 @@ class Player(discord.VoiceProtocol):
     _last_update: Annotated[float, "time.monotonic"]
     _node: Node | None
     _paused: bool
+    _queue: Queue
     _ready: bool
-    _track: Playable | None
     _volume: int
 
     def __repr__(self) -> str:
@@ -160,19 +168,17 @@ class Player(discord.VoiceProtocol):
         *,
         node: Node | None = None,
     ) -> None:
+        self.guild_id: int = 0
         self._node = node
         self._connection = self.get_connection_state()
-        self.guild_id: int = 0
-
-        self._track = None
-        self._volume = 100
-        self._paused = False
+        
         self._filters = PlayerFilters()
+        self._queue: Queue = Queue()
+        self._paused = False
+        self._volume = 100
 
         self._last_position = 0
         self._last_update = 0.0
-
-        self.queue: Queue = Queue()
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client, channel)
@@ -202,6 +208,16 @@ class Player(discord.VoiceProtocol):
         return self
 
     @property
+    def current(self) -> Playable | None:
+        """The currently playing track, or None if nothing is playing."""
+        return self._queue.current_track
+
+    @property
+    def filters(self) -> PlayerFilters:
+        """The currently applied filters for this player."""
+        return self._filters
+
+    @property
     def node(self) -> Node:
         """
         The :class:`Node` this player is currently attached to.
@@ -217,9 +233,9 @@ class Player(discord.VoiceProtocol):
         return self._node
 
     @property
-    def current(self) -> Playable | None:
-        """The currently playing track, or None if nothing is playing."""
-        return self._track or self.queue.current_track
+    def paused(self) -> bool:
+        """Whether the player is currently paused."""
+        return self._paused
 
     @property
     def position(self) -> int:
@@ -231,19 +247,14 @@ class Player(discord.VoiceProtocol):
         return self._last_position + delta
 
     @property
+    def queue(self) -> Queue:
+        """The :class:`Queue` associated with this player, handling upcoming tracks and history."""
+        return self._queue
+
+    @property
     def volume(self) -> int:
         """The current volume of the player as an integer between 0 and 1000."""
         return self._volume
-
-    @property
-    def paused(self) -> bool:
-        """Whether the player is currently paused."""
-        return self._paused
-
-    @property
-    def filters(self) -> PlayerFilters:
-        """The currently applied filters for this player."""
-        return self._filters
 
     def get_connection_state(self) -> PlayerConnectionState:
         """
@@ -300,7 +311,7 @@ class Player(discord.VoiceProtocol):
             )
 
         finally:
-            self.queue.reset()
+            self._queue.reset()
             await super().disconnect(force=force)
 
     async def move_to(self, node: Node, /) -> None:
@@ -376,7 +387,6 @@ class Player(discord.VoiceProtocol):
         end: int | None = None,
         volume: int | None = None,
         paused: bool | None = None,
-        add_to_history: bool = True,
     ) -> Playable:
         """
         Plays the specified track on this player.
@@ -424,20 +434,22 @@ class Player(discord.VoiceProtocol):
             data=data,
         )
 
-        self._track = track
         self._volume = volume
         self._paused = paused
         self._last_position = start
         self._last_update = time.monotonic()
+        self._queue.current_track = track
+
         self._stop_inactivity_timer()
-
-        self.queue.current_track = self._track
-        if add_to_history and self.queue.history is not None:
-            self.queue.history.put(self.queue.current_track)
-
         return track
 
-    async def stop(self) -> None:
+    async def stop(
+        self,
+        /,
+        *,
+        clear_queue: bool = False,
+        clear_history: bool = False,
+    ) -> None:
         """
         Stops the current track and clears the player state.
 
@@ -460,11 +472,16 @@ class Player(discord.VoiceProtocol):
             data=data,
         )
 
-        self._track = None
         self._last_position = 0
         self._last_update = 0.0
-        self.queue.clear()
-        self.queue.clear_history()
+        self._queue.current_track = None
+
+        if clear_queue:
+            self._queue.clear()
+            self._queue.mode = QueueMode.NORMAL
+
+        if clear_history:
+            self._queue.clear_history()
 
         _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
         self._check_inactivity()
@@ -496,6 +513,39 @@ class Player(discord.VoiceProtocol):
         """Resumes the player if it is paused. Alias for ``pause(False)``."""
         await self.pause(False)
 
+    async def previous(self) -> None:
+        """
+        Returns to the previous track in the history.
+
+        This retrieves the most recently played track from the history,
+        pushes the current track back to the front of the queue,
+        and begins playback of the historical track.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        HistoryEmpty
+            There is no previous track in the history to return to.
+        """
+
+        track = self._queue.previous()
+        await self.play(track)
+
+    async def skip(self) -> None:
+        """
+        Skips to the next track in the queue.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        QueueEmpty
+            The queue is empty and there is no track to skip to.
+        """
+        next_track = self._queue.get()
+        await self.play(next_track)
+
     async def seek(self, position: int, /) -> None:
         """
         Seeks to a specific position in the current track.
@@ -526,46 +576,6 @@ class Player(discord.VoiceProtocol):
         self._last_update = time.monotonic()
 
         _log.debug("Player %s: Seeked to %dms", self.guild_id, position)
-
-    async def next(self) -> None:
-        """Skips to the next track in the queue. Alias for :meth:`skip_track()`."""
-        await self.skip_track()
-
-    async def previous(self) -> None:
-        """
-        Returns to the previous track in the queue.
-
-        This is only possible if history tracking is enabled for the player's queue.
-        It retrieves the last played track from the history and plays it again.
-
-        Raises
-        ------
-        RuntimeError
-            The player is not connected to a node or session.
-        QueueEmpty
-            There is no previous track in the history to return to.
-        ValueError
-            History tracking is disabled for this player's queue.
-        """
-        if not self.queue.history:
-            raise ValueError("History tracking is disabled for this player's queue.")
-
-        previous_track = self.queue.history.get()
-        await self.play(previous_track)
-
-    async def skip(self) -> None:
-        """
-        Skips to the next track in the queue.
-
-        Raises
-        ------
-        RuntimeError
-            The player is not connected to a node or session.
-        QueueEmpty
-            The queue is empty and there is no track to skip to.
-        """
-        next_track = self.queue.get()
-        await self.play(next_track)
 
     async def set_volume(self, value: int, /) -> None:
         """
@@ -601,7 +611,11 @@ class Player(discord.VoiceProtocol):
         _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
 
     async def set_filters(
-        self, filters: PlayerFilters, /, *, seek: bool = False
+        self,
+        filters: PlayerFilters,
+        /,
+        *,
+        seek: bool = False,
     ) -> None:
         """
         Sets the filters for this player.
@@ -741,7 +755,7 @@ class Player(discord.VoiceProtocol):
         members = [member for member in channel.members if not member.bot]
 
         is_alone = len(members) == 0
-        is_idle = self._track is None
+        is_idle = self.current is None
 
         if is_alone or is_idle:
             self._start_inactivity_timer()

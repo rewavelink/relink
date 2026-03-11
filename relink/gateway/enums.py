@@ -88,13 +88,13 @@ class TrackExceptionSeverity(StrEnum):
 class QueueMode(StrEnum):
     """Enum representing the various modes on :class:`wavelink.Queue`
 
-    :ivar normal: Normal queue mode. Tracks are played in the order they were added.
-    :ivar loop: Loop the current track indefinitely. The next track will not be played until the current track is stopped or replaced.
-    :ivar loop_all: Loop the entire queue indefinitely. Once the queue is empty, it will be refilled with the tracks in the
+    :ivar NORMAL: Normal queue mode. Tracks are played in the order they were added.
+    :ivar LOOP: Loop the current track indefinitely. The next track will not be played until the current track is stopped or replaced.
+    :ivar LOOP_ALL: Loop the entire queue indefinitely. Once the queue is empty, it will be refilled with the tracks in the
         history (if enabled) and playback will continue. If history is not enabled, the queue will simply start over
         with the original tracks.
     """
 
-    normal = "normal"
-    loop = "loop"
-    loop_all = "loop_all"
+    NORMAL = "normal"
+    LOOP = "loop"
+    LOOP_ALL = "loop_all"
