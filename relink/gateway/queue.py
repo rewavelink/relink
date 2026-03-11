@@ -26,16 +26,15 @@ from __future__ import annotations
 
 import asyncio
 import random
-
 from collections import deque
-from collections.abc import Collection, Iterable, Iterator
+from collections.abc import Iterable, Iterator
 from itertools import islice
 from typing import Literal, Self, TypeGuard, overload
 
-from .enums import QueueMode
-from .errors import QueueEmpty
 from ..models.playlist import Playlist
 from ..models.track import Playable
+from .enums import QueueMode
+from .errors import QueueEmpty
 
 
 class QueueBase:
@@ -99,9 +98,10 @@ class QueueBase:
         return isinstance(value, Playable)
 
     @classmethod
-    def _ensure_playable(cls, value: object) -> None:
+    def _ensure_playable(cls, value: object) -> bool:
         if not cls._is_playable(value):
             raise TypeError("This queue only accepts Playable items.")
+        return True
 
     @classmethod
     def _materialize_tracks(
@@ -117,25 +117,11 @@ class QueueBase:
             raise TypeError("Expected Playable, Playlist, or iterable of Playable")
 
         if atomic:
-            if isinstance(tracks, Collection):
-                for item in tracks:
-                    cls._ensure_playable(item)
-                return tracks, len(tracks)
+            validated = [t for t in tracks if cls._ensure_playable(t)]
+            return validated, len(validated)
 
-            validated_items = tuple(tracks)
-
-            for item in validated_items:
-                cls._ensure_playable(item)
-
-            return validated_items, len(validated_items)
-
-        filtered_items: deque[Playable] = deque()
-
-        for track in tracks:
-            if cls._is_playable(track):
-                filtered_items.append(track)
-
-        return filtered_items, len(filtered_items)
+        items = list(tracks)
+        return items, len(items)
 
     def put(
         self,
