@@ -71,12 +71,12 @@ class Client:
         self.__node_tasks = {}
 
         if client in Client.__clients__:
-            raise RuntimeError("ReLink Client already attached to this discord.Client")
+            raise RuntimeError("relink.Client already attached to this discord.Client")
 
         Client.__clients__[client] = self
 
     def __repr__(self) -> str:
-        return f"<ReLink.Client nodes={len(self._nodes)}>"
+        return f"<relink.Client nodes={len(self._nodes)}>"
 
     @property
     def nodes(self) -> list[Node]:

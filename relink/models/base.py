@@ -24,7 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import copy
+from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
 
 class BaseModel[D]:
     """
-    The base class for all relink models.
+    A base class for all relink models.
 
     This class provides the connection to the :class:`relink.Client`
     and holds the raw msgspec data structure.
@@ -69,3 +70,27 @@ class BaseModel[D]:
     def data(self) -> D:
         """The raw msgspec schema object holding the data for this model."""
         return self._data
+
+
+class BaseSettings:
+    """
+    A base class for configuration proxies in relink.
+
+    This class provides utility methods for immutable-style updates
+    and fluent attribute setting (chaining).
+    """
+
+    __slots__ = ()
+
+    def replace(self, **kwrags: Any) -> Self:
+        """
+        Returns a new instance of the settings with updated values.
+
+        This uses a shallow copy to ensure the original configuration
+        instance remains immutable.
+        """
+        new = copy.copy(self)
+        for key, value in kwrags.items():
+            if hasattr(self, key):
+                setattr(new, key, value)
+        return new

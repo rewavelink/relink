@@ -98,3 +98,16 @@ class QueueMode(StrEnum):
     NORMAL = "normal"
     LOOP = "loop"
     LOOP_ALL = "loop_all"
+
+
+class InactivityMode(Enum):
+    """Represents the mode used to determine if a player is inactive.
+
+    :ivar ALL_BOTS: The player is considered inactive if no non-bot members are in the voice channel.
+    :ivar ONLY_SELF: The player is considered inactive only if it is the only member in the voice channel.
+    :ivar IGNORED_USERS: The player is considered inactive if none of the specified "Keep Alive" user IDs are in the voice channel.
+    """
+
+    ALL_BOTS = 1
+    ONLY_SELF = 2
+    IGNORED_USERS = 3
