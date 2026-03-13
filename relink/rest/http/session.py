@@ -14,10 +14,7 @@ class SessionHTTPMixin:
     """Mixin for Session related HTTP operations."""
 
     async def update_session(
-        self: HTTPClient,
-        *,
-        session_id: str,
-        data: session.UpdateSessionRequest
+        self: HTTPClient, *, session_id: str, data: session.UpdateSessionRequest
     ) -> session.UpdateSessionResponse:
         url = f"/sessions/{session_id}"
         res = await self.request(

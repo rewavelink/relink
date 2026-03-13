@@ -92,7 +92,7 @@ class Client:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
-        inactivity_settings: InactivitySettings | None = None
+        inactivity_settings: InactivitySettings | None = None,
     ) -> Node:
         """
         Creates a :class:`Node` attached to this client.
@@ -114,7 +114,7 @@ class Client:
         resume_timeout: :class:`int`
             The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
         inactivity_settings: :class:`InactivitySettings` | :data:`None`
-            The inactivity configuration for all players connected to this node. 
+            The inactivity configuration for all players connected to this node.
             If ``None`` is passed, it uses :meth:`InactivitySettings.default`.
 
         Returns

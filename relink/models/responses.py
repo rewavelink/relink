@@ -56,7 +56,7 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
 
     def is_empty(self) -> bool:
         """
-        Whether this search result is empty. 
+        Whether this search result is empty.
         An empty search result has no :attr:`SearchResult.result`.
         """
         return self.type is TrackLoadResult.EMPTY
@@ -84,7 +84,7 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
                     client=self._client, data=cast("PlaylistData", self._data.data)
                 )
             case TrackLoadResult.SEARCH:
-                tracks = cast("list[Track]", self._data.data)   
+                tracks = cast("list[Track]", self._data.data)
                 return [
                     Playable(client=self._client, data=d, playlist=None) for d in tracks
                 ]
@@ -94,8 +94,8 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
     @property
     def exception(self) -> TrackException | None:
         """
-        The raw exception data of this search result. 
-        
+        The raw exception data of this search result.
+
         This will be ``None`` if :meth:`SearchResult.is_error` is ``False``.
         """
         if not self.is_error():

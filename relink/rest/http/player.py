@@ -41,7 +41,7 @@ class PlayerHTTPMixin:
             url,
             data=msgspec.json.encode(data),
             params={"noReplace": str(no_replace).lower()},
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         return msgspec.json.decode(res, type=player.UpdatePlayerResponse)
 
