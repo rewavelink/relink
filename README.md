@@ -1,6 +1,6 @@
 <div align="center">
 
-![Logo](https://i.ibb.co/CKwT091w/relink-banner.png)
+![Logo](docs/logo.png)
 
 ![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13%20|%203.14+%20-blue)
 [![Github License](https://img.shields.io/github/license/rewavelink/relink)](LICENSE)
