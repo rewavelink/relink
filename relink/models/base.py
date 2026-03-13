@@ -38,16 +38,26 @@ class BaseModel[D]:
     and holds the raw msgspec data structure.
     """
 
+    __slots__ = (
+        "_client",
+        "_data",
+    )
+
     def __init__(self, *, client: Client, data: D) -> None:
         self._client: Client = client
         self._data: D = data
 
     def __repr__(self) -> str:
-        attrs = ", ".join(
-            f"{k}={v!r}"
-            for k, v in self._data.__dict__.items()
-            if v is not None and not isinstance(v, (list, dict))
-        )
+        fields = getattr(self._data, "__struct_fields__", ())
+
+        parts = [
+            f"{field}={value!r}"
+            for field in fields
+            if (value := getattr(self._data, field)) is not None
+            and not isinstance(value, (list, dict))
+        ]
+
+        attrs = f" {', '.join(parts)}" if parts else ""
         return f"<relink.{self.__class__.__name__} {attrs}>"
 
     @property

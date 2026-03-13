@@ -46,8 +46,13 @@ class Album:
         The URL to the album on the source provider.
     """
 
+    __slots__ = ("_data",)
+
     def __init__(self, data: dict[str, Any]) -> None:
         self._data = data
+
+    def __repr__(self) -> str:
+        return f"<relink.Album name={self.name!r}>"
 
     @property
     def name(self) -> str | None:
@@ -72,8 +77,13 @@ class Artist:
         The URL to the artist's profile on the source provider.
     """
 
+    __slots__ = ("_data",)
+
     def __init__(self, data: dict[str, Any]) -> None:
         self._data = data
+
+    def __repr__(self) -> str:
+        return f"<relink.Album name={self.name!r}>"
 
     @property
     def name(self) -> str | None:
@@ -93,6 +103,8 @@ class Playable(BaseModel[Track]):
     This class wraps the raw :class:`relink.rest.schemas.Track` schema and provides
     a high-level interface for accessing track metadata and state.
     """
+
+    __slots__ = ("_playlist",)
 
     def __init__(
         self,

@@ -42,6 +42,8 @@ class Playlist(BaseModel["TrackLoadingData"]):
     and implements the Sequence protocol to allow iteration over tracks.
     """
 
+    __slots__ = ("_tracks",)
+
     def __init__(self, *, client: Client, data: TrackLoadingData) -> None:
         super().__init__(client=client, data=data)
         self._tracks: list[Playable] = [

@@ -45,6 +45,8 @@ class Equalizer(BaseModel[filters.EqualizerFilter]):
         The band gain multiplier (-0.25 to 1.0).
     """
 
+    __slots__ = ()
+
     @property
     def band(self) -> int:
         """The target band index (0 to 14)."""
@@ -71,6 +73,8 @@ class Karaoke(BaseModel[filters.KaraokeFilter]):
     filter_width: float | None
         Bandwidth around the filter band in Hz.
     """
+
+    __slots__ = ()
 
     @property
     def level(self) -> float | None:
@@ -107,6 +111,8 @@ class Timescale(BaseModel[filters.TimescaleFilter]):
         Internal rate multiplier (>= 0.0). 1.0 is normal.
     """
 
+    __slots__ = ()
+
     @property
     def speed(self) -> float | None:
         """Playback speed multiplier (>= 0.0)."""
@@ -135,6 +141,8 @@ class Tremolo(BaseModel[filters.TremoloFilter]):
         Effect depth (0.0 < x <= 1.0).
     """
 
+    __slots__ = ()
+
     @property
     def frequency(self) -> float | None:
         """Oscillation frequency in Hz (> 0.0)."""
@@ -158,6 +166,8 @@ class Vibrato(BaseModel[filters.VibratoFilter]):
         Effect depth (0.0 < x <= 1.0).
     """
 
+    __slots__ = ()
+
     @property
     def frequency(self) -> float | None:
         """Oscillation frequency in Hz (0.0 < x <= 14.0)."""
@@ -178,6 +188,8 @@ class Rotation(BaseModel[filters.RotationFilter]):
     rotation_hz: float | None
         Rotation frequency in Hz.
     """
+
+    __slots__ = ()
 
     @property
     def rotation_hz(self) -> float | None:
@@ -204,6 +216,8 @@ class Distortion(BaseModel[filters.DistortionFilter]):
     tan_scale: float | None
         The tangent scaling component.
     """
+
+    __slots__ = ()
 
     @property
     def sin_offset(self) -> float | None:
@@ -252,6 +266,8 @@ class ChannelMix(BaseModel[filters.ChannelMixFilter]):
         Right input contribution to right output.
     """
 
+    __slots__ = ()
+
     @property
     def left_to_left(self) -> float | None:
         """The contribution of the left input channel to the left output channel."""
@@ -282,6 +298,8 @@ class LowPass(BaseModel[filters.LowPassFilter]):
     smoothing: float | None
         Smoothing factor (x > 1.0).
     """
+
+    __slots__ = ()
 
     @property
     def smoothing(self) -> float | None:
@@ -320,6 +338,18 @@ class Filters(BaseModel[filters.PlayerFilters]):
     plugin_filters: dict[str, Any]
         A dictionary of raw plugin-defined filter payloads.
     """
+
+    __slots__ = (
+        "_equalizer",
+        "_karaoke",
+        "_timescale",
+        "_tremolo",
+        "_vibrato",
+        "_rotation",
+        "_distortion",
+        "_channel_mix",
+        "_low_pass",
+    )
 
     def __init__(self, *, client: Client, data: filters.PlayerFilters) -> None:
         super().__init__(client=client, data=data)
