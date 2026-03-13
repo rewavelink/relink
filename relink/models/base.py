@@ -82,6 +82,11 @@ class BaseSettings:
 
     __slots__ = ()
 
+    @classmethod
+    def default(cls) -> Self:
+        """Returns a fresh instance of this settings class with defaults."""
+        return cls()
+
     def replace(self, **kwrags: Any) -> Self:
         """
         Returns a new instance of the settings with updated values.

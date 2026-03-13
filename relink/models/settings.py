@@ -24,8 +24,13 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from .base import BaseSettings
+from typing import Iterable
+
+import discord
+
 from relink.gateway.enums import InactivityMode
+
+from .base import BaseSettings
 
 
 class InactivitySettings(BaseSettings):
@@ -38,8 +43,8 @@ class InactivitySettings(BaseSettings):
         The time in seconds to wait before disconnecting. Defaults to 300.
     mode: :class:`InactivityMode`
         The strategy used to determine if the channel is "inactive".
-    user_ids: Set[:class:`int`]
-        A set of user IDs that act as "Keep Alive" members.
+    user_ids: Iterable[:class:`discord.abc.Snowflake` | :class:`int`]
+        An iterable of user IDs or Discord objects that act as "Keep Alive" members.
     """
 
     __slots__ = (
@@ -53,13 +58,8 @@ class InactivitySettings(BaseSettings):
         *,
         timeout: int | None = 300,
         mode: InactivityMode = InactivityMode.ALL_BOTS,
-        user_ids: set[int] | None = None,
+        user_ids: Iterable[discord.abc.Snowflake | int] | None = None,
     ) -> None:
         self.timeout = timeout
         self.mode = mode
-        self.user_ids = user_ids or set()
-
-    @classmethod
-    def default(cls) -> InactivitySettings:
-        """Returns a fresh instance with standard library defaults."""
-        return cls()
+        self.user_ids = user_ids or []
