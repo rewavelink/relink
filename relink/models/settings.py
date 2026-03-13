@@ -74,7 +74,7 @@ class HistorySettings(BaseSettings):
     enabled: :class:`bool`
         Whether history tracking is enabled. Defaults to true.
     max_items: :class:`int` | :data:`None`
-        The maximum number of items to keep in history. Defaults to 100.
+        The maximum number of items to keep in history.
     """
 
     __slots__ = (
@@ -86,7 +86,7 @@ class HistorySettings(BaseSettings):
         self,
         *,
         enabled: bool = True,
-        max_items: int | None = 100,
+        max_items: int | None = None,
     ) -> None:
         self.enabled = enabled
         self.max_items = max_items

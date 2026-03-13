@@ -33,6 +33,7 @@ import discord
 import msgspec
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
+from relink.models.settings import HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import (
     PlayerVoiceState,
@@ -177,13 +178,14 @@ class Player(discord.VoiceProtocol):
         channel: discord.VoiceChannel | discord.StageChannel = MISSING,
         *,
         node: Node | None = None,
+        history_settings: HistorySettings | None = None,
     ) -> None:
         self.guild_id = 0
         self._node = node
         self._connection = self.get_connection_state()
 
         self._filters = PlayerFilters()
-        self._queue: Queue = Queue()
+        self._queue: Queue = Queue(history_settings=history_settings)
         self._paused = False
         self._volume = 100
 

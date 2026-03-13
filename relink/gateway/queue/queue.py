@@ -29,6 +29,8 @@ import random
 from collections import deque
 from typing import TYPE_CHECKING, Iterable
 
+from relink.models.settings import HistorySettings
+
 from ..enums import QueueMode
 from ..errors import HistoryEmpty, QueueEmpty
 from .base import MutableQueueBase
@@ -54,13 +56,15 @@ class Queue(MutableQueueBase):
         self,
         *,
         mode: QueueMode = QueueMode.NORMAL,
+        history_settings: HistorySettings | None = None,
     ) -> None:
         super().__init__()
 
         self._mode: QueueMode = mode
         self._lock: asyncio.Lock = asyncio.Lock()
         self._waiters: deque[asyncio.Future[None]] = deque()
-        self._history: History = History()
+
+        self._history: History = History(settings=history_settings)
         self._current_track: Playable | None = None
 
     @property
@@ -298,7 +302,10 @@ class Queue(MutableQueueBase):
         :class:`Queue`
             A shallow copy of the queue with the same items, mode, and history.
         """
-        new_queue = self.__class__(mode=self._mode)
+        new_queue = self.__class__(
+            mode=self._mode,
+            history_settings=self._history._settings,
+        )
         new_queue._items = self._items.copy()
         new_queue._current_track = self._current_track
         new_queue._history = self._history._copy()
