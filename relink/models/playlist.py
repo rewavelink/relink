@@ -31,10 +31,10 @@ from .track import Playable
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
-    from ..rest.schemas.track import TrackLoadingData
+    from ..rest.schemas.track import PlaylistData
 
 
-class Playlist(BaseModel["TrackLoadingData"]):
+class Playlist(BaseModel["PlaylistData"]):
     """
     Represents a Lavalink Playlist.
 
@@ -42,7 +42,7 @@ class Playlist(BaseModel["TrackLoadingData"]):
     and implements the Sequence protocol to allow iteration over tracks.
     """
 
-    def __init__(self, *, client: Client, data: TrackLoadingData) -> None:
+    def __init__(self, *, client: Client, data: PlaylistData) -> None:
         super().__init__(client=client, data=data)
         self._tracks: list[Playable] = [
             Playable(client=client, data=track) for track in data.tracks

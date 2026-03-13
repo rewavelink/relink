@@ -28,6 +28,8 @@ from typing import Any
 
 import msgspec
 
+from relink.gateway.schemas.events import TrackException
+
 from .playlist import PlaylistInfo
 from ..enums import TrackLoadResult
 
@@ -91,16 +93,15 @@ class TrackLoadingResponse(msgspec.Struct, kw_only=True):
     load_type: TrackLoadResult = msgspec.field(name="loadType")
     """Type of load result (:class:`TrackLoadResult`)."""
 
-    data: TrackLoadingData
+    data: PlaylistData | Track | list[Track] | TrackException
     """Associated load result data (:class:`TrackLoadingData`)."""
 
 
-class TrackLoadingData(msgspec.Struct, kw_only=True):
+class PlaylistData(msgspec.Struct, kw_only=True):
     """
     Contains the detailed results of a track load request.
 
     For playlists, this contains playlist metadata and a list of tracks.
-    For single-track results or search results, the track is wrapped in a playlist-like structure.
     """
 
     info: PlaylistInfo

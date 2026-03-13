@@ -55,6 +55,19 @@ class TrackLoadResult(StrEnum):
     ERROR = "error"
 
 
+class TrackSourceType(StrEnum):
+    """
+    A track source type. This can be used when searching using :meth:`Node.search_tracks`
+    or :meth:`Client.search_tracks`.
+    
+    This provides the default track sources by Lavalink.
+    """
+    
+    YouTube = "ytsearch"
+    YouTubeMusic = "ytmsearch"
+    SoundCloud = "scsearch"
+
+
 class RoutePlannerType(StrEnum):
     """
     IP route planner strategy used by Lavalink.
@@ -84,3 +97,11 @@ class IPBlockType(StrEnum):
 
     IPV4 = "inet4"
     IPV6 = "inet6"
+
+
+class ExceptionSeverity(StrEnum):
+    """
+    Exception severity type.
+
+    :ivar COMMON: Cause is known and expected, there is nothing wrong with the library.
+    """
