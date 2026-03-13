@@ -27,9 +27,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import TYPE_CHECKING, Annotated, Self, overload
+from typing import TYPE_CHECKING, Annotated, Any, Self, overload
 
 import discord
+import msgspec
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink.rest.schemas.filters import PlayerFilters
@@ -40,8 +41,15 @@ from relink.rest.schemas.player import (
 )
 
 from ..models.track import Playable
-from .enums import QueueMode
+from .enums import QueueMode, TrackEndReason
 from .queue.queue import Queue
+from .schemas.events import (
+    TrackEndEvent,
+    TrackExceptionEvent,
+    TrackStartEvent,
+    TrackStuckEvent,
+    WebSocketClosedEvent,
+)
 from .schemas.receive import PlayerState
 
 if TYPE_CHECKING:
@@ -671,6 +679,73 @@ class Player(discord.VoiceProtocol):
         if self._connection.endpoint:
             await self._dispatch_voice_update()
 
+    async def _dispatch_event(self, data: dict[str, Any]) -> None:
+        event_type = data.get("type")
+        _log.debug("Player %s receiving even type: %s", self.guild_id, event_type)
+
+        assert self._node is not None
+        assert self._node._client is not None
+
+        match event_type:
+            case "TrackStartEvent":
+                payload = msgspec.convert(data, TrackStartEvent)
+
+                self._paused = False
+                self._stop_inactivity_timer()
+
+                self._node._client._dispatch("track_start", self, payload)
+
+            case "TrackEndEvent":
+                payload = msgspec.convert(data, TrackEndEvent)
+
+                if payload.reason != TrackEndReason.REPLACED:
+                    self._last_position = 0
+                    self._last_update = 0.0
+
+                if payload.reason.can_start_next:
+                    await self.skip()
+
+                self._node._client._dispatch("track_end", self, payload)
+                self._check_inactivity()
+
+            case "TrackExceptionEvent":
+                payload = msgspec.convert(data, TrackExceptionEvent)
+                _log.error(
+                    "Track exception in guild %s: %s",
+                    self.guild_id,
+                    payload.exception.message,
+                )
+
+                self._node._client._dispatch("track_exception", self, payload)
+
+            case "TrackStuckEvent":
+                payload = msgspec.convert(data, TrackStuckEvent)
+                _log.warning(
+                    "Track stuck in guild %s at %dms", self.guild_id, payload.threshold
+                )
+
+                self._node._client._dispatch("track_stuck", self, payload)
+
+            case "WebSocketClosedEvent":
+                payload = msgspec.convert(data, WebSocketClosedEvent)
+
+                _log.warning(
+                    "Player %s: Lavalink voice WS closed. Code %s, Reason: %s",
+                    self.guild_id,
+                    payload.code,
+                    payload.reason,
+                )
+
+                if not payload.by_remote:
+                    await self._dispatch_voice_update()
+
+            case _:
+                _log.debug(
+                    "Player %s received unhandled event type: %s",
+                    self.guild_id,
+                    event_type,
+                )
+
     def _update_state(self, state: PlayerState, /) -> None:
         self._last_position = state.position
         self._last_update = time.monotonic()
@@ -747,6 +822,7 @@ class Player(discord.VoiceProtocol):
         if not channel:
             return
 
+        # NOTE: member intent is required; otherwise it will always return []
         members = [member for member in channel.members if not member.bot]
 
         is_alone = len(members) == 0

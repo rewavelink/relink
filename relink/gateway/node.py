@@ -311,12 +311,30 @@ class Node:
                     await self._handle_player_update(data)
                 case "stats":
                     self._handle_stats(data)
+                case "event":
+                    await self._handle_event(data)
                 case _:
                     _log.debug(
                         "Received unhandled event type %r from Node %r",
                         event_type,
                         self,
                     )
+
+    async def _handle_event(self, data: dict[str, Any]) -> None:
+        assert self._client is not None
+
+        guild_id = int(data.get("guildId", 0))
+        player = self.get_player(guild_id)
+
+        if player is None:
+            _log.debug(
+                "Received event %r for unknown player in guild %s",
+                data.get("type"),
+                guild_id,
+            )
+            return
+        
+        await player._dispatch_event(data)
 
     async def _handle_ready(self, data: dict[str, Any]) -> None:
         assert self._client is not None
