@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -29,9 +30,7 @@ from typing import Any, Generic, Self, TypeVar, overload
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 
-__all__ = (
-    "cached_property",
-)
+__all__ = ("cached_property",)
 
 
 class _cached_property(Generic[T, T_co]):
@@ -89,8 +88,12 @@ class _cached_property(Generic[T, T_co]):
         return self
 
 
-def cached_property(attribute: str) -> Callable[[Callable[[T], T_co]], _cached_property[T, T_co]]:
+def cached_property(
+    attribute: str,
+) -> Callable[[Callable[[T], T_co]], _cached_property[T, T_co]]:
     """Creates a cached property that stores the result under ``class.attribute``."""
+
     def inner(func: Callable[[T], T_co]) -> _cached_property[T, T_co]:
         return _cached_property(attribute, func)
+
     return inner

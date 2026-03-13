@@ -59,5 +59,6 @@ class NodeURINotFound(NodeError):
 class QueueEmpty(ReLinkException):
     """Exception raised when trying to get a track from an empty queue."""
 
+
 class HistoryEmpty(ReLinkException):
     """Exception raised when trying to get a track from an empty history."""

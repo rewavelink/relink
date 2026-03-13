@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import abc
@@ -50,7 +51,9 @@ class EventModel(abc.ABC, Generic[T]):
         try:
             return getattr(self._underlying, name)
         except AttributeError as exc:
-            raise AttributeError(f"{self.__class__.__name__} does not have an attribute named {name}") from exc
+            raise AttributeError(
+                f"{self.__class__.__name__} does not have an attribute named {name}"
+            ) from exc
 
     def __repr__(self) -> str:
         attrs = ", ".join(f"{a}={getattr(self, a)}" for a in self.__repr_attrs__)
@@ -122,5 +125,6 @@ class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
     """The reason why the connection was closed."""
     by_remote: bool
     """Whether the closure was made by Discord."""
+
 
 # TODO: implement schemas/events.py models when rest models are made
