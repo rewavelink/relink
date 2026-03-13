@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from ..rest.schemas.track import PlaylistData
 
 
-class Playlist(BaseModel["PlaylistData"]):
+class Playlist(BaseModel[PlaylistData]):
     """
     Represents a Lavalink Playlist.
 

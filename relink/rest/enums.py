@@ -26,12 +26,27 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-
 __all__ = (
+    "ExceptionSeverity",
     "TrackLoadResult",
+    "TrackSourceType",
     "RoutePlannerType",
     "IPBlockType",
 )
+
+
+class ExceptionSeverity(StrEnum):
+    """
+    Exception severity type.
+
+    :ivar COMMON: The cause is known and expected, indicates that there is nothing wrong with the library itself.
+    :ivar SUSPICIOUS: The cause might not be exactly known, but is possibly caused by outside factors.
+    :ivar FAULT: The probable cause is an issue with the library or there is no way to tell what the cause might be.
+    """
+
+    COMMON = "common"
+    SUSPICIOUS = "suspicious"
+    FAULT = "fault"
 
 
 class TrackLoadResult(StrEnum):
@@ -59,10 +74,10 @@ class TrackSourceType(StrEnum):
     """
     A track source type. This can be used when searching using :meth:`Node.search_tracks`
     or :meth:`Client.search_tracks`.
-    
+
     This provides the default track sources by Lavalink.
     """
-    
+
     YouTube = "ytsearch"
     YouTubeMusic = "ytmsearch"
     SoundCloud = "scsearch"
@@ -97,11 +112,3 @@ class IPBlockType(StrEnum):
 
     IPV4 = "inet4"
     IPV6 = "inet6"
-
-
-class ExceptionSeverity(StrEnum):
-    """
-    Exception severity type.
-
-    :ivar COMMON: Cause is known and expected, there is nothing wrong with the library.
-    """

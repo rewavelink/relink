@@ -27,23 +27,23 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import urllib.parse
 from typing import TYPE_CHECKING, Any
 
 import msgspec
-import urllib.parse
 
+from relink.models.player_info import PlayerInfo
+from relink.models.responses import SearchResult
+from relink.models.server_info import ServerInfo
+from relink.models.settings import InactivitySettings
+from relink.models.track import Playable
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
-from relink.rest.http import RESTClient
 from relink.rest.enums import TrackSourceType
+from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
-from relink.models.responses import SearchResult
-from relink.models.track import Playable
-from relink.models.player_info import PlayerInfo
-from relink.models.server_info import ServerInfo
-from relink.models.settings import InactivitySettings
 
 from .cache import LFUCache
 from .enums import NodeStatus
@@ -135,15 +135,17 @@ class Node:
 
         return headers
 
-    @property
-    def password(self) -> str:
-        """The password of the node."""
-        return self._password
+    def _ensure_client(self) -> Client:
+        if not self._client:
+            raise RuntimeError(
+                "Cannot perform HTTP requests without an attached client."
+            )
+        return self._client
 
-    @password.setter
-    def password(self, value: str) -> None:
-        self._password = value
-        self._manager.update_headers({"Authorization": value})
+    @property
+    def client(self) -> Client | None:
+        """The client this node is attached to."""
+        return self._client
 
     @property
     def id(self) -> str:
@@ -157,6 +159,37 @@ class Node:
         self._id = value
 
     @property
+    def is_connected(self) -> bool:
+        """Whether the Node is connected and Players can be attached to it."""
+        return self._status is NodeStatus.CONNECTED
+
+    @property
+    def inactivity_settings(self) -> InactivitySettings:
+        """The inactivity configuration for all players on this node."""
+        return self._inactivity_settings
+
+    @property
+    def password(self) -> str:
+        """The password of the node."""
+        return self._password
+
+    @password.setter
+    def password(self, value: str) -> None:
+        self._password = value
+        self._manager.update_headers({"Authorization": value})
+
+    @property
+    def stats(self) -> StatsResponse | None:
+        """The latest stats received from the Lavalink node."""
+        return self._stats
+
+    @property
+    def session_id(self) -> str:
+        if not self._resume_session:
+            raise RuntimeError(f"Node {self._id!r} is not connected (no session ID).")
+        return self._resume_session
+
+    @property
     def uri(self) -> str:
         """The URI this node connects to. This can only be changed when :attr:`Node.status` is :attr:`NodeStatus.DISCONNECTED`"""
         return self._uri
@@ -166,37 +199,6 @@ class Node:
         if self._status is not NodeStatus.DISCONNECTED:
             raise RuntimeError("Cannot update the node uri while it is connected.")
         self._uri = value
-
-    @property
-    def client(self) -> Client | None:
-        """The client this node is attached to."""
-        return self._client
-
-    @property
-    def inactivity_settings(self) -> InactivitySettings:
-        """The inactivity configuration for all players on this node."""
-        return self._inactivity_settings
-
-    @property
-    def stats(self) -> StatsResponse | None:
-        """The latest stats received from the Lavalink node."""
-        return self._stats
-
-    def is_connected(self) -> bool:
-        """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
-        return self._status is NodeStatus.CONNECTED
-
-    def get_player(self, guild_id: int, /) -> Player | None:
-        """Gets a player connected to this node."""
-        return self._players.get(guild_id)
-
-    def _add_player(self, player: Player) -> None:
-        """Internal helper to register a player to this node."""
-        self._players[player.guild_id] = player
-
-    def _remove_player(self, guild_id: int) -> None:
-        """Internal helper to unregister a player from this node."""
-        self._players.pop(guild_id, None)
 
     async def connect(self) -> None:
         """
@@ -229,7 +231,7 @@ class Node:
         if self._client is None:
             raise RuntimeError("Can not close a Node that is not bound to a client.")
 
-        if not self.is_connected():
+        if not self.is_connected:
             raise RuntimeError("This Node is not connected.")
 
         if self._keep_alive and not self._keep_alive.cancelled():
@@ -248,6 +250,165 @@ class Node:
 
         self._client._dispatch("node_close", self)
         await self.cleanup()
+
+    async def search_track(
+        self,
+        query: str,
+        *,
+        source: TrackSourceType | str | None = None,
+    ) -> SearchResult:
+        """
+        Searches for ``query`` in this Node.
+
+        Parameters
+        ----------
+        query: :class:`str`
+            The query to search. This can be a full URL, or headed by hosts specified by any plugins.
+        source: :class:`TrackSourceType` | :class:`str` | :data:`None`
+            The source to search from. This is, essentially, providing a host to ``query``. The library
+            provides default source types under :class:`TrackSourceType`, but custom ones can be passed
+            with a raw string.
+
+        Returns
+        -------
+        :class:`SearchResult`
+            The search result.
+        """
+        client = self._ensure_client()
+        formatted = f"{source.removesuffix(':')}:{query}" if source else query
+
+        encoded = urllib.parse.quote(formatted)
+        cached_result = self._cache.get(encoded)
+
+        if isinstance(cached_result, SearchResult):
+            return cached_result
+
+        data = await self._manager.load_track(query)
+        result = SearchResult(client=client, data=data)
+        self._cache.put(encoded, result)
+        return result
+
+    async def decode_track(self, encoded: str) -> Playable:
+        """
+        Decodes a track from its encoded data.
+
+        When a track is fetched, the encoded data can be found under :attr:`Track.encoded`.
+
+        Parameters
+        ----------
+        encoded: :class:`str`
+            The encoded data to resolve the track from.
+
+        Returns
+        -------
+        :class:`Playable`
+            The decoded resolved track.
+        """
+
+        client = self._ensure_client()
+        data = await self._manager.decode_track(encoded)
+        return Playable(client=client, data=data)
+
+    async def decode_tracks(self, *encoded: str) -> list[Playable]:
+        """
+        Bulk decodes encoded tracks.
+
+        Parameters
+        ----------
+        *encoded: :class:`str`
+            The encoded data for each track to be decoded.
+
+        Returns
+        -------
+        list[:class:`Playable`]
+            The decoded resolved tracks.
+        """
+
+        client = self._ensure_client()
+        data = await self._manager.decode_tracks(list(encoded))
+        return [Playable(client=client, data=d) for d in data]
+
+    async def fetch_info(self) -> ServerInfo:
+        """
+        Fetches the Lavalink server info this node is connected to.
+
+        Returns
+        -------
+        :class:`relink.models.ServerInfo`
+            The server info.
+        """
+
+        client = self._ensure_client()
+        data = await self._manager.lavalink_info()
+        return ServerInfo(client=client, data=data)
+
+    async def fetch_players(self) -> list[PlayerInfo]:
+        """
+        Fetches all the player that are connected to this node.
+
+        Usually, you should use :attr:`Node.players` instead of this method.
+
+        Returns
+        -------
+        list[:class:`PlayerInfo`]
+            The players connected to this node.
+        """
+
+        client = self._ensure_client()
+        data = await self._manager.get_players(self.session_id)
+        return [PlayerInfo(client=client, data=d) for d in data]
+
+    async def fetch_player(self, guild_id: int) -> PlayerInfo:
+        """
+        Fetches a player from this node connected to the provided guild ID.
+
+        Usually, you should use :attr:`Node.get_player` instead of this method.
+
+        Parameters
+        ----------
+        guild_id: :class:`int`
+            The guild ID the player is connected to.
+
+        Returns
+        -------
+        :class:`PlayerInfo`
+            The player connected to the guild ID.
+        """
+
+        client = self._ensure_client()
+        data = await self._manager.get_player(
+            session_id=self.session_id,
+            guild_id=str(guild_id),
+        )
+        return PlayerInfo(client=client, data=data)
+
+    async def disconnect_player(self, guild_id: int) -> None:
+        """
+        Force disconnects a player from this node connected to the provided guild ID.
+
+        Parameters
+        ----------
+        guild_id: :class:`int`
+            The guild ID to disconnect the player from.
+        """
+
+        _ = self._ensure_client()
+        await self._manager.destroy_player(
+            session_id=self.session_id,
+            guild_id=str(guild_id),
+        )
+
+    def get_player(self, guild_id: int, /) -> Player | None:
+        """Gets a player connected to this node."""
+        return self._players.get(guild_id)
+
+    def _add_player(self, player: Player) -> None:
+        """Internal helper to register a player to this node."""
+        self._players[player.guild_id] = player
+
+    def _remove_player(self, guild_id: int) -> None:
+        """Internal helper to unregister a player from this node."""
+        self._players.pop(guild_id, None)
 
     async def _attempt_connect(self) -> None:
         assert self._client is not None
@@ -332,22 +493,6 @@ class Node:
                         self,
                     )
 
-    async def _handle_event(self, data: dict[str, Any]) -> None:
-        assert self._client is not None
-
-        guild_id = int(data.get("guildId", 0))
-        player = self.get_player(guild_id)
-
-        if player is None:
-            _log.debug(
-                "Received event %r for unknown player in guild %s",
-                data.get("type"),
-                guild_id,
-            )
-            return
-
-        await player._dispatch_event(data)
-
     async def _handle_ready(self, data: dict[str, Any]) -> None:
         assert self._client is not None
 
@@ -395,6 +540,22 @@ class Node:
     def _handle_stats(self, data: dict[str, Any]) -> None:
         self._stats = msgspec.convert(data, StatsResponse)
 
+    async def _handle_event(self, data: dict[str, Any]) -> None:
+        assert self._client is not None
+
+        guild_id = int(data.get("guildId", 0))
+        player = self.get_player(guild_id)
+
+        if player is None:
+            _log.debug(
+                "Received event %r for unknown player in guild %s",
+                data.get("type"),
+                guild_id,
+            )
+            return
+
+        await player._dispatch_event(data)
+
     async def _handle_connection_error(self, exc: WebSocketError) -> None:
         if exc.status in (3000, 3003, 401):
             await self.cleanup()
@@ -413,160 +574,3 @@ class Node:
         This is automatically called by the library.
         """
         ...
-
-    async def search_track(
-        self,
-        query: str,
-        *,
-        source: TrackSourceType | str | None = None,
-    ) -> SearchResult:
-        """
-        Searches for ``query`` in this Node.
-
-        Parameters
-        ----------
-        query: :class:`str`
-            The query to search. This can be a full URL, or headed by hosts specified by any plugins.
-        source: :class:`TrackSourceType` | :class:`str` | :data:`None`
-            The source to search from. This is, essentially, providing a host to ``query``. The library
-            provides default source types under :class:`TrackSourceType`, but custom ones can be passed
-            with a raw string.
-
-        Returns
-        -------
-        :class:`SearchResult`
-            The search result.
-        """
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-
-        if source is not None:
-            formatted = f"{source.removesuffix(':')}:{query}"
-        else:
-            formatted = query
-
-        encoded = urllib.parse.quote(formatted)
-        cached_result = self._cache.get(encoded)
-
-        if isinstance(cached_result, SearchResult):
-            return cached_result
-
-        data = await self._manager.load_track(query)
-        ret = SearchResult(client=self._client, data=data)
-        self._cache.put(encoded, ret)
-        return ret
-
-    async def decode_track(self, encoded: str) -> Playable:
-        """
-        Decodes a track from its encoded data.
-
-        When a track is fetched, the encoded data can be found under :attr:`Track.encoded`.
-
-        Parameters
-        ----------
-        encoded: :class:`str`
-            The encoded data to resolve the track from.
-
-        Returns
-        -------
-        :class:`Playable`
-            The decoded resolved track.
-        """
-
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-
-        data = await self._manager.decode_track(encoded)
-        return Playable(client=self._client, data=data)
-
-    async def decode_tracks(self, *encoded: str) -> list[Playable]:
-        """
-        Bulk decodes encoded tracks.
-
-        Parameters
-        ----------
-        *encoded: :class:`str`
-            The encoded data for each track to be decoded.
-
-        Returns
-        -------
-        list[:class:`Playable`]
-            The decoded resolved tracks.
-        """
-
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-
-        data = await self._manager.decode_tracks(list(encoded))
-        return [Playable(client=self._client, data=d) for d in data]
-
-    async def fetch_players(self) -> list[PlayerInfo]:
-        """
-        Fetches all the player that are connected to this node.
-
-        Usually, you should use :attr:`Node.players` instead of this method.
-
-        Returns
-        -------
-        list[:class:`PlayerInfo`]
-            The players connected to this node.
-        """
-
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-
-        data = await self._manager.get_players("session_id?")
-        return [PlayerInfo(client=self._client, data=d) for d in data]
-
-    async def fetch_player(self, guild_id: int) -> PlayerInfo:
-        """
-        Fetches a player from this node connected to the provided guild ID.
-
-        Usually, you should use :attr:`Node.get_player` instead of this method.
-
-        Parameters
-        ----------
-        guild_id: :class:`int`
-            The guild ID the player is connected to.
-
-        Returns
-        -------
-        :class:`PlayerInfo`
-            The player connected to the guild ID.
-        """
-
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-
-        data = await self._manager.get_player(session_id="session_id?", guild_id=str(guild_id))
-        return PlayerInfo(client=self._client, data=data)
-
-    async def disconnect_player(self, guild_id: int) -> None:
-        """
-        Force disconnects a player from this node connected to the provided guild ID.
-        
-        Parameters
-        ----------
-        guild_id: :class:`int`
-            The guild ID to disconnect the player from.
-        """
-
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-
-        await self._manager.destroy_player(session_id="session_id?", guild_id=str(guild_id))
-
-    async def fetch_info(self) -> ServerInfo:
-        """
-        Fetches the Lavalink server info this node is connected to.
-
-        Returns
-        -------
-        :class:`relink.models.ServerInfo`
-            The server info.
-        """
-        
-        if not self._client:
-            raise RuntimeError("can not perform HTTP requests without an attached client")
-        data = await self._manager.lavalink_info()
-        return ServerInfo(client=self._client, data=data)

@@ -21,28 +21,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from relink.utils import cached_property
 from relink.rest.enums import TrackLoadResult
+from relink.utils import cached_property
 
 from .base import BaseModel
-from .track import Playable
 from .playlist import Playlist
+from .track import Playable
 
 if TYPE_CHECKING:
-    from relink.rest.schemas.track import TrackLoadingResponse
     from relink.gateway.schemas.events import TrackException
+    from relink.rest.schemas.track import PlaylistData, Track, TrackLoadingResponse
 
 
-class SearchResult(BaseModel["TrackLoadingResponse"]):
+class SearchResult(BaseModel[TrackLoadingResponse]):
     """
     The result of a track search.
     """
 
-    __slots__ = ("_cs_data")
+    __slots__ = "_cs_data"
 
     @property
     def type(self) -> TrackLoadResult:
@@ -54,14 +55,16 @@ class SearchResult(BaseModel["TrackLoadingResponse"]):
         return self.type is TrackLoadResult.ERROR
 
     def is_empty(self) -> bool:
-        """Whether this search result is empty. An empty search result
-        has no :attr:`SearchResult.result`.
+        """
+        Whether this search result is empty. 
+        An empty search result has no :attr:`SearchResult.result`.
         """
         return self.type is TrackLoadResult.EMPTY
 
     @cached_property("_cs_data")
     def result(self) -> Playlist | Playable | list[Playable] | None:
-        r"""The data of the search result. Depending on :attr:`SearchResult.type`, this property
+        r"""
+        The data of the search result. Depending on :attr:`SearchResult.type`, this property
         will return a different value.
 
         If type is :attr:`TrackLoadResult.TRACK`, this will return a :class:`Playable`.
@@ -71,19 +74,31 @@ class SearchResult(BaseModel["TrackLoadingResponse"]):
 
         match self.type:
             case TrackLoadResult.TRACK:
-                return Playable(client=self._client, data=self._data.data, playlist=None)  # pyright: ignore[reportArgumentType]
+                return Playable(
+                    client=self._client,
+                    data=cast("Track", self._data.data),
+                    playlist=None,
+                )
             case TrackLoadResult.PLAYLIST:
-                return Playlist(client=self._client, data=self._data.data)  # pyright: ignore[reportArgumentType]
+                return Playlist(
+                    client=self._client, data=cast("PlaylistData", self._data.data)
+                )
             case TrackLoadResult.SEARCH:
-                return [Playable(client=self._client, data=d, playlist=None) for d in self._data.data]  # pyright: ignore
+                tracks = cast("list[Track]", self._data.data)   
+                return [
+                    Playable(client=self._client, data=d, playlist=None) for d in tracks
+                ]
             case _:
                 return None
 
     @property
     def exception(self) -> TrackException | None:
-        """The raw exception data of this search result. This will be ``None`` if :meth:`SearchResult.is_error`
-        is ``False``.
+        """
+        The raw exception data of this search result. 
+        
+        This will be ``None`` if :meth:`SearchResult.is_error` is ``False``.
         """
         if not self.is_error():
             return None
-        return self._data.data  # pyright: ignore[reportReturnType]
+
+        return cast("TrackException", self._data.data)

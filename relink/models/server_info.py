@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -32,16 +33,17 @@ from .base import BaseModel
 
 if TYPE_CHECKING:
     from ..rest.schemas.info import (
-        InfoResponse as ServerInfoPayload,
-        VersionObject,
         GitObject,
         PluginObject,
+        VersionObject,
     )
+    from ..rest.schemas.info import InfoResponse as ServerInfoPayload
 
 
 # TODO: maybe add Model-like classes for version, git, and plugins?
 
-class ServerInfo(BaseModel["ServerInfoPayload"]):
+
+class ServerInfo(BaseModel[ServerInfoPayload]):
     """
     Represents a Lavalink server's metadata & stats information.
 
@@ -61,7 +63,9 @@ class ServerInfo(BaseModel["ServerInfoPayload"]):
         """A datetime.datetime object representing the timestamp on which the Lavalink
         jar was built.
         """
-        return datetime.datetime.fromtimestamp(self._data.build_time, tz=datetime.timezone.utc)
+        return datetime.datetime.fromtimestamp(
+            self._data.build_time, tz=datetime.timezone.utc
+        )
 
     @property
     def git(self) -> GitObject:

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from ..rest.schemas.player import Player as PlayerInfoPayload
 
 
-class PlayerInfo(BaseModel["PlayerInfoPayload"]):
+class PlayerInfo(BaseModel[PlayerInfoPayload]):
     """
     Represents a player's info data.
 
