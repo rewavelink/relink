@@ -63,3 +63,30 @@ class InactivitySettings(BaseSettings):
         self.timeout = timeout
         self.mode = mode
         self.user_ids = user_ids or []
+
+
+class HistorySettings(BaseSettings):
+    """
+    Configuration for player history tracking.
+
+    Attributes
+    ----------
+    enabled: :class:`bool`
+        Whether history tracking is enabled. Defaults to true.
+    max_items: :class:`int` | :data:`None`
+        The maximum number of items to keep in history. Defaults to 100.
+    """
+
+    __slots__ = (
+        "enabled",
+        "max_items",
+    )
+
+    def __init__(
+        self,
+        *,
+        enabled: bool = True,
+        max_items: int | None = 100,
+    ) -> None:
+        self.enabled = enabled
+        self.max_items = max_items
