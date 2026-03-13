@@ -815,17 +815,16 @@ class Player(discord.VoiceProtocol):
     def _check_inactivity(self) -> None:
         guild = self.client.get_guild(self.guild_id)
 
-        if guild is None or guild.me.voice is None:
+        if guild is None or guild.me.voice is None or guild.me.voice.channel is None:
             return
 
-        channel = guild.me.voice.channel
-        if not channel:
-            return
+        members = sum(
+            1
+            for user_id in guild.me.voice.channel.voice_states
+            if not (member := guild.get_member(user_id)) or not member.bot
+        )
 
-        # NOTE: member intent is required; otherwise it will always return []
-        members = [member for member in channel.members if not member.bot]
-
-        is_alone = len(members) == 0
+        is_alone = members == 0
         is_idle = self.current is None
 
         if is_alone or is_idle:
