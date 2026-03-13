@@ -44,8 +44,8 @@ class BaseModel[D]:
         "_data",
     )
 
-    def __init__(self, *, client: Client, data: D) -> None:
-        self._client: Client = client
+    def __init__(self, *, client: Client[Any], data: D) -> None:
+        self._client: Client[Any] = client
         self._data: D = data
 
     def __repr__(self) -> str:
@@ -62,7 +62,7 @@ class BaseModel[D]:
         return f"<relink.{self.__class__.__name__} {attrs}>"
 
     @property
-    def client(self) -> Client:
+    def client(self) -> Client[Any]:
         """The :class:`relink.Client` instance associated with this object."""
         return self._client
 
