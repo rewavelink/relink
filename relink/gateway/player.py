@@ -27,11 +27,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import TYPE_CHECKING, Annotated, Self, overload
+from typing import TYPE_CHECKING, Annotated, Any, Self, overload
 
 import discord
+import msgspec
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
+from relink.models.settings import HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import (
     PlayerVoiceState,
@@ -40,6 +42,15 @@ from relink.rest.schemas.player import (
 )
 
 from ..models.track import Playable
+from .enums import InactivityMode, QueueMode, TrackEndReason
+from .queue.queue import Queue
+from .schemas.events import (
+    TrackEndEvent,
+    TrackExceptionEvent,
+    TrackStartEvent,
+    TrackStuckEvent,
+    WebSocketClosedEvent,
+)
 from .schemas.receive import PlayerState
 
 if TYPE_CHECKING:
@@ -113,6 +124,13 @@ class Player(discord.VoiceProtocol):
         The current position of the player in milliseconds.
     volume: :class:`int`
         The current volume of the player (0-1000).
+    queue: :class:`Queue`
+        The track queue associated with this player. This handles both upcoming
+        tracks and playback history.
+    current: :class:`Playable` | :data:`None`
+        The currently playing track, or ``None`` if nothing is playing.
+    node: :class:`Node`
+        The node this player is currently attached to.
     """
 
     __slots__ = (
@@ -123,8 +141,8 @@ class Player(discord.VoiceProtocol):
         "_last_update",
         "_node",
         "_paused",
+        "_queue",
         "_ready",
-        "_track",
         "_volume",
     )
 
@@ -135,8 +153,8 @@ class Player(discord.VoiceProtocol):
     _last_update: Annotated[float, "time.monotonic"]
     _node: Node | None
     _paused: bool
+    _queue: Queue
     _ready: bool
-    _track: Playable | None
     _volume: int
 
     def __repr__(self) -> str:
@@ -149,54 +167,60 @@ class Player(discord.VoiceProtocol):
 
     @overload
     def __init__(
-        self, client: discord.Client, channel: discord.abc.Connectable
+        self,
+        client: discord.Client,
+        channel: discord.VoiceChannel | discord.StageChannel,
     ) -> None: ...
 
     def __init__(
         self,
         client: discord.Client = MISSING,
-        channel: discord.abc.Connectable = MISSING,
+        channel: discord.VoiceChannel | discord.StageChannel = MISSING,
         *,
         node: Node | None = None,
+        history_settings: HistorySettings | None = None,
     ) -> None:
+        self.guild_id = 0
         self._node = node
         self._connection = self.get_connection_state()
-        self.guild_id: int = 0
 
-        self._track = None
-        self._volume = 100
-        self._paused = False
         self._filters = PlayerFilters()
+        self._queue: Queue = Queue(history_settings=history_settings)
+        self._paused = False
+        self._volume = 100
 
         self._last_position = 0
         self._last_update = 0.0
 
         if client is not MISSING and channel is not MISSING:
-            super().__init__(client, channel)
-            guild = getattr(channel, "guild", None)
-
-            if guild is not None:
-                self.guild_id = guild.id
+            self.guild_id = channel.guild.id
             self._ready = True
         else:
             self._ready = False
 
     def __call__(
-        self, client: discord.Client, channel: discord.abc.Connectable
+        self,
+        client: discord.Client,
+        channel: discord.VoiceChannel | discord.StageChannel,
     ) -> Self:
         super().__init__(client, channel)
 
-        guild = getattr(channel, "guild", None)
-
-        if guild is None:
-            return self
-
-        self.guild_id = guild.id
+        self.guild_id = channel.guild.id
 
         if self._node:
             self._node._add_player(self)
 
         return self
+
+    @property
+    def current(self) -> Playable | None:
+        """The currently playing track, or None if nothing is playing."""
+        return self._queue.current_track
+
+    @property
+    def filters(self) -> PlayerFilters:
+        """The currently applied filters for this player."""
+        return self._filters
 
     @property
     def node(self) -> Node:
@@ -214,9 +238,9 @@ class Player(discord.VoiceProtocol):
         return self._node
 
     @property
-    def current(self) -> Playable | None:
-        """The currently playing track, or None if nothing is playing."""
-        return self._track
+    def paused(self) -> bool:
+        """Whether the player is currently paused."""
+        return self._paused
 
     @property
     def position(self) -> int:
@@ -228,19 +252,14 @@ class Player(discord.VoiceProtocol):
         return self._last_position + delta
 
     @property
+    def queue(self) -> Queue:
+        """The :class:`Queue` associated with this player, handling upcoming tracks and history."""
+        return self._queue
+
+    @property
     def volume(self) -> int:
         """The current volume of the player as an integer between 0 and 1000."""
         return self._volume
-
-    @property
-    def paused(self) -> bool:
-        """Whether the player is currently paused."""
-        return self._paused
-
-    @property
-    def filters(self) -> PlayerFilters:
-        """The currently applied filters for this player."""
-        return self._filters
 
     def get_connection_state(self) -> PlayerConnectionState:
         """
@@ -297,6 +316,7 @@ class Player(discord.VoiceProtocol):
             )
 
         finally:
+            self._queue.reset()
             await super().disconnect(force=force)
 
     async def move_to(self, node: Node, /) -> None:
@@ -388,6 +408,10 @@ class Player(discord.VoiceProtocol):
             The volume to set for this playback. Defaults to the current player volume.
         paused: :class:`bool` | :data:`None`
             Whether to start the track in a paused state. Defaults to the current player state.
+        add_to_history: :class:`bool`
+            Whether to add the currently playing track to the history before playing the new track.
+
+            Defaults to ``True``.
 
         Returns
         -------
@@ -415,21 +439,27 @@ class Player(discord.VoiceProtocol):
             data=data,
         )
 
-        self._track = track
         self._volume = volume
         self._paused = paused
         self._last_position = start
         self._last_update = time.monotonic()
-        self._stop_inactivity_timer()
+        self._queue.current_track = track
 
+        self._stop_inactivity_timer()
         return track
 
-    async def stop(self) -> None:
+    async def stop(
+        self,
+        /,
+        *,
+        clear_queue: bool = False,
+        clear_history: bool = False,
+    ) -> None:
         """
         Stops the current track and clears the player state.
 
         This method sends a request to Lavalink to stop playback and resets
-        the internal position tracking.
+        the internal position tracking, current track, and queue state.
 
         Raises
         ------
@@ -447,9 +477,16 @@ class Player(discord.VoiceProtocol):
             data=data,
         )
 
-        self._track = None
         self._last_position = 0
         self._last_update = 0.0
+        self._queue.current_track = None
+
+        if clear_queue:
+            self._queue.clear()
+            self._queue.mode = QueueMode.NORMAL
+
+        if clear_history:
+            self._queue.clear_history()
 
         _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
         self._check_inactivity()
@@ -480,6 +517,39 @@ class Player(discord.VoiceProtocol):
     async def resume(self) -> None:
         """Resumes the player if it is paused. Alias for ``pause(False)``."""
         await self.pause(False)
+
+    async def previous(self) -> None:
+        """
+        Returns to the previous track in the history.
+
+        This retrieves the most recently played track from the history,
+        pushes the current track back to the front of the queue,
+        and begins playback of the historical track.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        HistoryEmpty
+            There is no previous track in the history to return to.
+        """
+
+        track = self._queue.previous()
+        await self.play(track)
+
+    async def skip(self) -> None:
+        """
+        Skips to the next track in the queue.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not connected to a node or session.
+        QueueEmpty
+            The queue is empty and there is no track to skip to.
+        """
+        next_track = self._queue.get()
+        await self.play(next_track)
 
     async def seek(self, position: int, /) -> None:
         """
@@ -546,7 +616,11 @@ class Player(discord.VoiceProtocol):
         _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
 
     async def set_filters(
-        self, filters: PlayerFilters, /, *, seek: bool = False
+        self,
+        filters: PlayerFilters,
+        /,
+        *,
+        seek: bool = False,
     ) -> None:
         """
         Sets the filters for this player.
@@ -606,6 +680,73 @@ class Player(discord.VoiceProtocol):
         # Thus we wait for a non-None endpoint before dispatching.
         if self._connection.endpoint:
             await self._dispatch_voice_update()
+
+    async def _dispatch_event(self, data: dict[str, Any]) -> None:
+        event_type = data.get("type")
+        _log.debug("Player %s receiving even type: %s", self.guild_id, event_type)
+
+        assert self._node is not None
+        assert self._node._client is not None
+
+        match event_type:
+            case "TrackStartEvent":
+                payload = msgspec.convert(data, TrackStartEvent)
+
+                self._paused = False
+                self._stop_inactivity_timer()
+
+                self._node._client._dispatch("track_start", self, payload)
+
+            case "TrackEndEvent":
+                payload = msgspec.convert(data, TrackEndEvent)
+
+                if payload.reason != TrackEndReason.REPLACED:
+                    self._last_position = 0
+                    self._last_update = 0.0
+
+                if payload.reason.can_start_next:
+                    await self.skip()
+
+                self._node._client._dispatch("track_end", self, payload)
+                self._check_inactivity()
+
+            case "TrackExceptionEvent":
+                payload = msgspec.convert(data, TrackExceptionEvent)
+                _log.error(
+                    "Track exception in guild %s: %s",
+                    self.guild_id,
+                    payload.exception.message,
+                )
+
+                self._node._client._dispatch("track_exception", self, payload)
+
+            case "TrackStuckEvent":
+                payload = msgspec.convert(data, TrackStuckEvent)
+                _log.warning(
+                    "Track stuck in guild %s at %dms", self.guild_id, payload.threshold
+                )
+
+                self._node._client._dispatch("track_stuck", self, payload)
+
+            case "WebSocketClosedEvent":
+                payload = msgspec.convert(data, WebSocketClosedEvent)
+
+                _log.warning(
+                    "Player %s: Lavalink voice WS closed. Code %s, Reason: %s",
+                    self.guild_id,
+                    payload.code,
+                    payload.reason,
+                )
+
+                if not payload.by_remote:
+                    await self._dispatch_voice_update()
+
+            case _:
+                _log.debug(
+                    "Player %s received unhandled event type: %s",
+                    self.guild_id,
+                    event_type,
+                )
 
     def _update_state(self, state: PlayerState, /) -> None:
         self._last_position = state.position
@@ -674,21 +815,42 @@ class Player(discord.VoiceProtocol):
             )
 
     def _check_inactivity(self) -> None:
+        node = self._node
         guild = self.client.get_guild(self.guild_id)
 
-        if guild is None or guild.me.voice is None:
+        if (
+            node is None
+            or guild is None
+            or guild.me.voice is None
+            or guild.me.voice.channel is None
+        ):
             return
 
-        channel = guild.me.voice.channel
-        if not channel:
-            return
+        settings = node.inactivity_settings
+        whitelist = {u if isinstance(u, int) else u.id for u in settings.user_ids}
 
-        members = [member for member in channel.members if not member.bot]
+        is_active = False
+        is_idle = self.current is None
 
-        is_alone = len(members) == 0
-        is_idle = self._track is None
+        for user_id in guild.me.voice.channel.voice_states:
+            if user_id == guild.me.id:
+                continue
 
-        if is_alone or is_idle:
+            if settings.mode == InactivityMode.ONLY_SELF:
+                is_active = True
+                break
+
+            if settings.mode == InactivityMode.IGNORED_USERS and user_id in whitelist:
+                is_active = True
+                break
+
+            if settings.mode == InactivityMode.ALL_BOTS:
+                member = guild.get_member(user_id)
+                if member and not member.bot:
+                    is_active = True
+                    break
+
+        if not is_active or is_idle:
             self._start_inactivity_timer()
         else:
             self._stop_inactivity_timer()
@@ -699,7 +861,7 @@ class Player(discord.VoiceProtocol):
         if node is None or self.guild_id in node._waiting_to_disconnect:
             return
 
-        timeout = node._inactive_player_timeout
+        timeout = node.inactivity_settings.timeout
         if timeout is None:
             return
 
@@ -708,7 +870,12 @@ class Player(discord.VoiceProtocol):
             lambda _: node._waiting_to_disconnect.pop(self.guild_id, None)
         )
         node._waiting_to_disconnect[self.guild_id] = task
-        _log.debug("Player %s: Started inactivity timer (%ds).", self.guild_id, timeout)
+        _log.debug(
+            "Player %s: Started inactivity timer for %ds, mode: %s.",
+            self.guild_id,
+            timeout,
+            node.inactivity_settings.mode,
+        )
 
     def _stop_inactivity_timer(self) -> None:
         if self._node is None:

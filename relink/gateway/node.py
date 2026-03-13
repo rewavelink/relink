@@ -43,6 +43,7 @@ from relink.models.responses import SearchResult
 from relink.models.track import Playable
 from relink.models.player_info import PlayerInfo
 from relink.models.server_info import ServerInfo
+from relink.models.settings import InactivitySettings
 
 from .cache import LFUCache
 from .enums import NodeStatus
@@ -87,7 +88,7 @@ class Node:
         retries: int | None = None,
         resume_timeout: float = 60,
         auto_reconnect: bool = True,
-        inactive_player_timeout: int | None = 300,
+        inactivity_settings: InactivitySettings,
         session: SessionType | None = None,
         cache_capacity: int = 1000,
     ) -> None:
@@ -99,14 +100,14 @@ class Node:
         self.resume_timeout = resume_timeout
         self.auto_reconnect = auto_reconnect
 
-        self._status: NodeStatus = NodeStatus.disconnected
+        self._status: NodeStatus = NodeStatus.DISCONNECTED
         self._resume_session = None
         self._ws = None
         self._keep_alive = None
         self._stats = None
 
         self._players: dict[int, Player] = {}
-        self._inactive_player_timeout = inactive_player_timeout
+        self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
         self._cache: LFUCache[str, Any] = LFUCache(capacity=cache_capacity)
 
@@ -157,12 +158,12 @@ class Node:
 
     @property
     def uri(self) -> str:
-        """The URI this node connects to. This can only be changed when :attr:`Node.status` is :attr:`NodeStatus.disconnected`"""
+        """The URI this node connects to. This can only be changed when :attr:`Node.status` is :attr:`NodeStatus.DISCONNECTED`"""
         return self._uri
 
     @uri.setter
     def uri(self, value: str) -> None:
-        if self._status is not NodeStatus.disconnected:
+        if self._status is not NodeStatus.DISCONNECTED:
             raise RuntimeError("Cannot update the node uri while it is connected.")
         self._uri = value
 
@@ -172,13 +173,18 @@ class Node:
         return self._client
 
     @property
+    def inactivity_settings(self) -> InactivitySettings:
+        """The inactivity configuration for all players on this node."""
+        return self._inactivity_settings
+
+    @property
     def stats(self) -> StatsResponse | None:
         """The latest stats received from the Lavalink node."""
         return self._stats
 
     def is_connected(self) -> bool:
         """:class:`bool`: Whether the Node is connected and Players can be attached to it."""
-        return self._status is NodeStatus.connected
+        return self._status is NodeStatus.CONNECTED
 
     def get_player(self, guild_id: int, /) -> Player | None:
         """Gets a player connected to this node."""
@@ -193,7 +199,8 @@ class Node:
         self._players.pop(guild_id, None)
 
     async def connect(self) -> None:
-        """Connects this node.
+        """
+        Connects this node.
 
         This can only be done when the node has been attached to a pool.
         """
@@ -201,7 +208,7 @@ class Node:
             raise RuntimeError("Cannot connect a node that is bound to a client.")
 
         await self._manager.setup()
-        self._status = NodeStatus.connecting
+        self._status = NodeStatus.CONNECTING
 
         if self._keep_alive is not None:
             raise RuntimeError("This node is already connected.")
@@ -209,7 +216,8 @@ class Node:
         await self._attempt_connect()
 
     async def close(self) -> None:
-        """Closes the connection to this node.
+        """
+        Closes the connection to this node.
 
         All Players connected to it will stop playing.
 
@@ -236,7 +244,7 @@ class Node:
         self._ws = None
         self._keep_alive = None
         self._resume_session = None
-        self._status = NodeStatus.disconnected
+        self._status = NodeStatus.DISCONNECTED
 
         self._client._dispatch("node_close", self)
         await self.cleanup()
@@ -270,7 +278,7 @@ class Node:
                     self,
                     retries,
                 )
-                self._status = NodeStatus.disconnected
+                self._status = NodeStatus.DISCONNECTED
                 await self.cleanup()
                 return
 
@@ -294,8 +302,8 @@ class Node:
                 self._client._dispatch("node_close", self)
 
                 if self.auto_reconnect and self._status not in (
-                    NodeStatus.connecting,
-                    NodeStatus.disconnected,
+                    NodeStatus.CONNECTING,
+                    NodeStatus.DISCONNECTED,
                 ):
                     _log.info("%r WS closed, attempting reconnect...", self)
                     asyncio.create_task(self.connect())
@@ -315,6 +323,8 @@ class Node:
                     await self._handle_player_update(data)
                 case "stats":
                     self._handle_stats(data)
+                case "event":
+                    await self._handle_event(data)
                 case _:
                     _log.debug(
                         "Received unhandled event type %r from Node %r",
@@ -322,12 +332,28 @@ class Node:
                         self,
                     )
 
+    async def _handle_event(self, data: dict[str, Any]) -> None:
+        assert self._client is not None
+
+        guild_id = int(data.get("guildId", 0))
+        player = self.get_player(guild_id)
+
+        if player is None:
+            _log.debug(
+                "Received event %r for unknown player in guild %s",
+                data.get("type"),
+                guild_id,
+            )
+            return
+
+        await player._dispatch_event(data)
+
     async def _handle_ready(self, data: dict[str, Any]) -> None:
         assert self._client is not None
 
         payload = ReadyPayload(**data)
         self._resume_session = payload.session_id
-        self._status = NodeStatus.connected
+        self._status = NodeStatus.CONNECTED
 
         try:
             update_data = UpdateSessionRequest(

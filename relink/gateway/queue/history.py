@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
+Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2025-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,40 +24,38 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections import deque
+from typing import TYPE_CHECKING, Self
 
-from relink.errors import ReLinkException
+from relink.models.settings import HistorySettings
+
+from .base import ReadableCollection
 
 if TYPE_CHECKING:
-    from .node import Node
+    from relink.models.track import Playable
 
 
-class NodeError(ReLinkException):
-    """Base class for all Node-related errors."""
+class History(ReadableCollection):
+    """
+    A specialized queue for tracking playback history.
 
+    This class is intended to be read-only for users. Mutation methods
+    will raise :exc:`AttributeError`.
+    """
 
-class InvalidNodePassword(NodeError):
-    """Exception raised when a Node attempts to connect with an invalid password."""
+    __slots__ = ("_settings",)
 
-    node: Node
-    """The node that failed connecting."""
+    def __init__(self, settings: HistorySettings | None = None) -> None:
+        super().__init__()
+        self._settings = settings or HistorySettings()
+        self._items: deque[Playable] = deque(maxlen=self._settings.max_items)
 
-    def __init__(self, node: Node) -> None:
-        self.node = node
+    def _push(self, track: Playable) -> None:
+        if not self._settings.enabled:
+            return
+        self._items.append(track)
 
-
-class NodeURINotFound(NodeError):
-    """Exception raised when a Node's uri is not found when connecting."""
-
-    node: Node
-    """The Node which URI is not found."""
-
-    def __init__(self, node: Node) -> None:
-        self.node = node
-
-
-class QueueEmpty(ReLinkException):
-    """Exception raised when trying to get a track from an empty queue."""
-
-class HistoryEmpty(ReLinkException):
-    """Exception raised when trying to get a track from an empty history."""
+    def _copy(self) -> Self:
+        new = self.__class__(settings=self._settings)
+        new._items = self._items.copy()
+        return new

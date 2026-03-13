@@ -30,56 +30,84 @@ from enum import Enum, StrEnum
 class NodeStatus(Enum):
     """Represents the connection status of a node.
 
-    :ivar disconnected: The node is not connected to Lavalink.
-    :ivar connected: The node is connected to Lavalink.
-    :ivar connecting: The node is in the process of connecting to Lavalink.
+    :ivar DISCONNECTED: The node is not connected to Lavalink.
+    :ivar CONNECTED: The node is connected to Lavalink.
+    :ivar CONNECTING: The node is in the process of connecting to Lavalink.
     """
 
-    disconnected = 1
-    connected = 2
-    connecting = 3
+    DISCONNECTED = 1
+    CONNECTED = 2
+    CONNECTING = 3
 
 
 class TrackEndReason(StrEnum):
     """Represents a TrackEndEvent's :attr:`TrackEndEvent.reason`.
 
-    :ivar finished: The track finished playing.
-    :ivar load_failed: The track failed to load.
-    :ivar stopped: The track was stopped.
-    :ivar replaced: The track was replaced.
-    :ivar cleanup: The track was cleaned up.
+    :ivar FINISHED: The track finished playing.
+    :ivar LOAD_FAILED: The track failed to load.
+    :ivar STOPPED: The track was stopped.
+    :ivar REPLACED: The track was replaced.
+    :ivar CLEANUP: The track was cleaned up.
     """
 
-    finished = "finished"
-    load_failed = "loadFailed"
-    stopped = "stopped"
-    replaced = "replaced"
-    cleanup = "cleanup"
+    FINISHED = "finished"
+    LOAD_FAILED = "loadFailed"
+    STOPPED = "stopped"
+    REPLACED = "replaced"
+    CLEANUP = "cleanup"
 
     @property
     def can_start_next(self) -> bool:
         """Whether the next track can start playing."""
         return self not in (
-            TrackEndReason.stopped,
-            TrackEndReason.replaced,
-            TrackEndReason.cleanup,
+            TrackEndReason.STOPPED,
+            TrackEndReason.REPLACED,
+            TrackEndReason.CLEANUP,
         )
 
 
 class TrackExceptionSeverity(StrEnum):
     """Represents a TrackException's error severity.
 
-    :ivar common: The cause is known and expected, indicates that there
+    :ivar COMMON: The cause is known and expected, indicates that there
         is nothing wrong with the library itself.
-    :ivar suspicious: The cause might not be exactly known, but is possibly
+    :ivar SUSPICIOUS: The cause might not be exactly known, but is possibly
         caused by outside factors. For example when an outside service responds
         in a format that we do not expect.
-    :ivar fault: The probable cause is an issue with the library or there is
+    :ivar FAULT: The probable cause is an issue with the library or there is
         no way to tell what the cause might be. This is the default level and
         other levels are used in cases where the thrower has more in-depth
         knowledge about the error.
     """
 
-    common = "common"
-    suspicious = "suspicious"
-    fault = "fault"
+    COMMON = "common"
+    SUSPICIOUS = "suspicious"
+    FAULT = "fault"
+
+
+class QueueMode(StrEnum):
+    """Enum representing the various modes on :class:`wavelink.Queue`
+
+    :ivar NORMAL: Normal queue mode. Tracks are played in the order they were added.
+    :ivar LOOP: Loop the current track indefinitely. The next track will not be played until the current track is stopped or replaced.
+    :ivar LOOP_ALL: Loop the entire queue indefinitely. Once the queue is empty, it will be refilled with the tracks in the
+        history (if enabled) and playback will continue. If history is not enabled, the queue will simply start over
+        with the original tracks.
+    """
+
+    NORMAL = "normal"
+    LOOP = "loop"
+    LOOP_ALL = "loop_all"
+
+
+class InactivityMode(Enum):
+    """Represents the mode used to determine if a player is inactive.
+
+    :ivar ALL_BOTS: The player is considered inactive if no non-bot members are in the voice channel.
+    :ivar ONLY_SELF: The player is considered inactive only if it is the only member in the voice channel.
+    :ivar IGNORED_USERS: The player is considered inactive if none of the specified "Keep Alive" user IDs are in the voice channel.
+    """
+
+    ALL_BOTS = 1
+    ONLY_SELF = 2
+    IGNORED_USERS = 3

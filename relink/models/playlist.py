@@ -42,14 +42,13 @@ class Playlist(BaseModel["PlaylistData"]):
     and implements the Sequence protocol to allow iteration over tracks.
     """
 
+    __slots__ = ("_tracks",)
+
     def __init__(self, *, client: Client, data: PlaylistData) -> None:
         super().__init__(client=client, data=data)
         self._tracks: list[Playable] = [
             Playable(client=client, data=track) for track in data.tracks
         ]
-
-    def __repr__(self) -> str:
-        return f"<relink.Playlist name={self.name!r} tracks={len(self._tracks)}>"
 
     def __str__(self) -> str:
         return self.name
