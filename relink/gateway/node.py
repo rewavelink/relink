@@ -37,6 +37,7 @@ from relink.network.message import MessageType
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
+from relink.models.settings import InactivitySettings
 
 from .cache import LFUCache
 from .enums import NodeStatus
@@ -81,7 +82,7 @@ class Node:
         retries: int | None = None,
         resume_timeout: float = 60,
         auto_reconnect: bool = True,
-        inactive_player_timeout: int | None = 300,
+        inactivity_settings: InactivitySettings,
         session: SessionType | None = None,
         cache_capacity: int = 1000,
     ) -> None:
@@ -100,7 +101,7 @@ class Node:
         self._stats = None
 
         self._players: dict[int, Player] = {}
-        self._inactive_player_timeout = inactive_player_timeout
+        self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
         self._cache: LFUCache[str, Any] = LFUCache(capacity=cache_capacity)
 
@@ -164,6 +165,11 @@ class Node:
     def client(self) -> Client | None:
         """The client this node is attached to."""
         return self._client
+
+    @property
+    def inactivity_settings(self) -> InactivitySettings:
+        """The inactivity configuration for all players on this node."""
+        return self._inactivity_settings
 
     @property
     def stats(self) -> StatsResponse | None:
@@ -333,7 +339,7 @@ class Node:
                 guild_id,
             )
             return
-        
+
         await player._dispatch_event(data)
 
     async def _handle_ready(self, data: dict[str, Any]) -> None:

@@ -31,6 +31,7 @@ from weakref import WeakKeyDictionary
 import discord
 
 from relink._version import __version__
+from relink.models.settings import InactivitySettings
 
 from .events.router import EventRouter
 from .node import Node
@@ -91,7 +92,7 @@ class Client:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
-        inactive_player_timeout: int | None = 300,
+        inactivity_settings: InactivitySettings | None = None
     ) -> Node:
         """
         Creates a :class:`Node` attached to this client.
@@ -112,14 +113,17 @@ class Client:
             Defaults to ``None``.
         resume_timeout: :class:`int`
             The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
-        inactive_player_timeout: :class:`int` | :data:`None`
-            The default :attr:`Player.inactive_timeout` for all players connected to this node. Defaults to ``300``.
+        inactivity_settings: :class:`InactivitySettings` | :data:`None`
+            The inactivity configuration for all players connected to this node. 
+            If ``None`` is passed, it uses :meth:`InactivitySettings.default`.
 
         Returns
         -------
         :class:`Node`
             The node that was created.
         """
+
+        settings = inactivity_settings or InactivitySettings.default()
 
         node = Node(
             client=self,
@@ -128,7 +132,7 @@ class Client:
             id=id,
             retries=retries,
             resume_timeout=resume_timeout,
-            inactive_player_timeout=inactive_player_timeout,
+            inactivity_settings=settings,
         )
         self._nodes[node.id] = node
         return node

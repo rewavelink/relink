@@ -41,7 +41,7 @@ from relink.rest.schemas.player import (
 )
 
 from ..models.track import Playable
-from .enums import QueueMode, TrackEndReason
+from .enums import InactivityMode, QueueMode, TrackEndReason
 from .queue.queue import Queue
 from .schemas.events import (
     TrackEndEvent,
@@ -813,21 +813,42 @@ class Player(discord.VoiceProtocol):
             )
 
     def _check_inactivity(self) -> None:
+        node = self._node
         guild = self.client.get_guild(self.guild_id)
 
-        if guild is None or guild.me.voice is None or guild.me.voice.channel is None:
+        if (
+            node is None
+            or guild is None
+            or guild.me.voice is None
+            or guild.me.voice.channel is None
+        ):
             return
 
-        members = sum(
-            1
-            for user_id in guild.me.voice.channel.voice_states
-            if not (member := guild.get_member(user_id)) or not member.bot
-        )
+        settings = node.inactivity_settings
+        whitelist = {u if isinstance(u, int) else u.id for u in settings.user_ids}
 
-        is_alone = members == 0
+        is_active = False
         is_idle = self.current is None
 
-        if is_alone or is_idle:
+        for user_id in guild.me.voice.channel.voice_states:
+            if user_id == guild.me.id:
+                continue
+
+            if settings.mode == InactivityMode.ONLY_SELF:
+                is_active = True
+                break
+
+            if settings.mode == InactivityMode.IGNORED_USERS and user_id in whitelist:
+                is_active = True
+                break
+
+            if settings.mode == InactivityMode.ALL_BOTS:
+                member = guild.get_member(user_id)
+                if member and not member.bot:
+                    is_active = True
+                    break
+
+        if not is_active or is_idle:
             self._start_inactivity_timer()
         else:
             self._stop_inactivity_timer()
@@ -838,7 +859,7 @@ class Player(discord.VoiceProtocol):
         if node is None or self.guild_id in node._waiting_to_disconnect:
             return
 
-        timeout = node._inactive_player_timeout
+        timeout = node.inactivity_settings.timeout
         if timeout is None:
             return
 
@@ -847,7 +868,12 @@ class Player(discord.VoiceProtocol):
             lambda _: node._waiting_to_disconnect.pop(self.guild_id, None)
         )
         node._waiting_to_disconnect[self.guild_id] = task
-        _log.debug("Player %s: Started inactivity timer (%ds).", self.guild_id, timeout)
+        _log.debug(
+            "Player %s: Started inactivity timer for %ds, mode: %s.",
+            self.guild_id,
+            timeout,
+            node.inactivity_settings.mode,
+        )
 
     def _stop_inactivity_timer(self) -> None:
         if self._node is None:
