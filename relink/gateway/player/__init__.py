@@ -78,9 +78,7 @@ class PlayerConnectionState:
         return all((self.token, self.endpoint, self.session_id, self.channel_id))
 
 
-class Player(
-    discord.VoiceProtocol,
-):
+class Player(discord.VoiceProtocol):
     """
     Represents a :class:`discord.VoiceProtocol` implementation for Lavalink.
 
@@ -150,15 +148,11 @@ class Player(
 
     guild_id: int
     _connection: PlayerConnectionState
-    _events_handler: EventsHandler
     _filters: PlayerFilters
-    _inactivity_handler: InactivityHandler
     _last_position: Annotated[int, "ms"]
     _last_update: Annotated[float, "time.monotonic"]
-    _lifecycle_handler: LifecycleHandler
     _node: Node | None
     _paused: bool
-    _playback_handler: PlaybackHandler
     _queue: Queue
     _ready: bool
     _volume: int
