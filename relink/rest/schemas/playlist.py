@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import msgspec
 
+__all__ = ("PlaylistInfo",)
+
 
 class PlaylistInfo(msgspec.Struct, kw_only=True):
     """

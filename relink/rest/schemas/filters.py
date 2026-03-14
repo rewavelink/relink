@@ -28,6 +28,19 @@ from typing import Any
 
 import msgspec
 
+__all__ = (
+    "PlayerFilters",
+    "EqualizerFilter",
+    "KaraokeFilter",
+    "TimescaleFilter",
+    "TremoloFilter",
+    "VibratoFilter",
+    "RotationFilter",
+    "DistortionFilter",
+    "ChannelMixFilter",
+    "LowPassFilter",
+)
+
 
 class PlayerFilters(msgspec.Struct, kw_only=True):
     """

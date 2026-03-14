@@ -26,6 +26,11 @@ from __future__ import annotations
 
 import msgspec
 
+__all__ = (
+    "UpdateSessionRequest",
+    "UpdateSessionResponse",
+)
+
 
 class UpdateSessionRequest(msgspec.Struct, kw_only=True):
     """

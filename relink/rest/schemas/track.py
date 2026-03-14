@@ -28,10 +28,17 @@ from typing import Any
 
 import msgspec
 
-from relink.gateway.schemas.events import TrackException
-
 from .playlist import PlaylistInfo
 from ..enums import TrackLoadResult
+
+__all__ = (
+    "Track",
+    "TrackInfo",
+    "TrackLoadingResponse",
+    "PlaylistData",
+    "TrackDecodeResponse",
+    "TracksDecodeResponse",
+)
 
 
 class Track(msgspec.Struct, kw_only=True):
@@ -93,8 +100,10 @@ class TrackLoadingResponse(msgspec.Struct, kw_only=True):
     load_type: TrackLoadResult = msgspec.field(name="loadType")
     """Type of load result (:class:`TrackLoadResult`)."""
 
-    data: PlaylistData | Track | list[Track] | TrackException
-    """Associated load result data (:class:`TrackLoadingData`)."""
+    data: dict[str, Any]
+    """Associated load result data, this is a dict that will be converted into a valid object
+    in the respective object.
+    """
 
 
 class PlaylistData(msgspec.Struct, kw_only=True):

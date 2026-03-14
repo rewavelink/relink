@@ -31,6 +31,18 @@ import msgspec
 from .filters import PlayerFilters
 from .track import Track
 
+__all__ = (
+    "Player",
+    "PlayerState",
+    "PlayerVoiceState",
+    "UpdatePlayerRequest",
+    "UpdatePlayerTrackRequest",
+    "GetPlayersResponse",
+    "GetPlayerResponse",
+    "UpdatePlayerResponse",
+    "DestroyPlayerResponse",
+)
+
 
 class Player(msgspec.Struct, kw_only=True):
     """
