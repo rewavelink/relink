@@ -105,6 +105,7 @@ class Client[N: Node]:
         resume_timeout: float = 60,
         cache_settings: CacheSettings | None = None,
         inactivity_settings: InactivitySettings | None = None,
+        session: SessionType | None = None,
     ) -> N:
         """
         Creates a :class:`Node` attached to this client.
@@ -131,6 +132,8 @@ class Client[N: Node]:
         inactivity_settings: :class:`InactivitySettings` | :data:`None`
             The inactivity configuration for all players connected to this node.
             If ``None`` is passed, it uses :meth:`InactivitySettings.default`.
+        session: :class:`aiohttp.ClientSession` | :class:`curl_cffi.AsyncSession` | :data:`None`
+            The session this node should use. If ``None`` is provided, creates one. Defaults to ``None``.
 
         Returns
         -------
@@ -150,6 +153,7 @@ class Client[N: Node]:
             resume_timeout=resume_timeout,
             cache_settings=c_settings,
             inactivity_settings=i_settings,
+            session=session,
         )
         self._nodes[node.id] = node
         return node
