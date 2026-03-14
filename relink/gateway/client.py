@@ -101,7 +101,7 @@ class Client[N: Node]:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
-        inactivity_settings: InactivitySettings | None = None
+        inactivity_settings: InactivitySettings | None = None,
     ) -> N:
         """
         Creates a :class:`Node` attached to this client.

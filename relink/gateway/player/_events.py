@@ -51,7 +51,7 @@ class EventsHandler(HandlerBase):
     """Internal handler responsible for processing Gateway and Lavalink events."""
 
     __slots__ = ()
-    
+
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         self._player._connection.token = data.get("token")
         self._player._connection.endpoint = data.get("endpoint")
