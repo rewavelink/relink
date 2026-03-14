@@ -33,6 +33,15 @@ from ..enums import TrackEndReason, TrackExceptionSeverity
 if TYPE_CHECKING:
     from relink.rest.schemas.track import Track
 
+__all__ = (
+    "TrackStartEvent",
+    "TrackEndEvent",
+    "TrackExceptionEvent",
+    "TrackException",
+    "TrackStuckEvent",
+    "WebSocketClosedEvent",
+)
+
 
 class TrackStartEvent(msgspec.Struct):
     """Represents a track start event dispatched whenever a new track starts playing."""
@@ -68,11 +77,3 @@ class TrackStuckEvent(msgspec.Struct):
 
     track: Track
     threshold: int = msgspec.field(name="thresholdMs")
-
-
-class WebSocketClosedEvent(msgspec.Struct):
-    """Represents an event dispatched when the gateway connection to the Discord Voice server is closed."""
-
-    code: int
-    reason: str
-    by_remote: bool = msgspec.field(name="byRemote")

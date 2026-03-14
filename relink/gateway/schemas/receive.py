@@ -30,6 +30,17 @@ import msgspec
 
 from relink.utils import cached_property
 
+__all__ = (
+    "ReadyEvent",
+    "PlayerUpdateEvent",
+    "PlayerState",
+    "StatsEvent",
+    "MemoryStats",
+    "CPUStats",
+    "FrameStats",
+    "WebSocketClosedEvent",
+)
+
 
 class ReadyEvent(msgspec.Struct):
     """Represents a Ready event received via the websocket."""
