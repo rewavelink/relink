@@ -24,9 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
-
-import discord
 
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
@@ -42,6 +41,45 @@ class LifecycleHandler(HandlerBase):
     """Internal handler responsible for the player's connection lifecycle."""
 
     __slots__ = ()
+
+    async def connect(
+        self,
+        *,
+        timeout: float = 10.0,
+        reconnect: bool = True,
+        self_deaf: bool = False,
+        self_mute: bool = False,
+    ) -> None:
+        """
+        Connects this player.
+
+        .. warning::
+
+            This method should not be manually called, but rather automatically called when passing a :class:`Player`
+            to the ``cls`` kwarg on :meth`discord.VoiceChannel.connect`.
+        """
+
+        channel = self._player.channel
+        guild = self._player._guild
+        node = self._player._node
+
+        if not guild or not channel:
+            raise RuntimeError("can not connect without a channel or guild set, make sure the player was set to the cls= parameter of Connectable.connect")
+
+        if not node:
+            node = self._player._ensure_node()
+
+        await guild.change_voice_state(
+            channel=channel,
+            self_mute=self_mute,
+            self_deaf=self_deaf,
+        )
+
+        try:
+            async with asyncio.timeout(timeout):
+                await self._player._connection._connected_flag.wait()
+        except (asyncio.TimeoutError, asyncio.CancelledError):
+            raise ConnectionError(f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout")
 
     async def disconnect(self, *, force: bool = False) -> None:
         try:
@@ -74,7 +112,6 @@ class LifecycleHandler(HandlerBase):
 
         finally:
             self._player._queue.reset()
-            await discord.VoiceProtocol.disconnect(self._player, force=force)
 
     async def move_to(self, node: Node, /) -> None:
         if self._player._node is node:

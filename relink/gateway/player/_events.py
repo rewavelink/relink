@@ -194,3 +194,5 @@ class EventsHandler(HandlerBase):
                 exc,
                 exc_info=True,
             )
+
+        self._player._connection._connected_flag.set()
