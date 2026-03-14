@@ -35,7 +35,7 @@ import msgspec
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
 from relink.models.server_info import ServerInfo
-from relink.models.settings import InactivitySettings
+from relink.models.settings import CacheSettings, InactivitySettings
 from relink.models.track import Playable
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
@@ -88,9 +88,9 @@ class Node:
         retries: int | None = None,
         resume_timeout: float = 60,
         auto_reconnect: bool = True,
+        cache_settings: CacheSettings | None = None,
         inactivity_settings: InactivitySettings,
         session: SessionType | None = None,
-        cache_capacity: int = 1000,
     ) -> None:
         self._client = client
         self._id = id or os.urandom(16).hex()
@@ -109,7 +109,7 @@ class Node:
         self._players: dict[int, Player] = {}
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
-        self._cache: LFUCache[str, Any] = LFUCache(capacity=cache_capacity)
+        self._cache: LFUCache[str, Any] = LFUCache(settings=cache_settings)
 
         self._uri = uri.removesuffix("/")
         self._manager: RESTClient = self._init_manager(session)

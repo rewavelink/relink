@@ -47,7 +47,7 @@ class History(ReadableCollection):
 
     def __init__(self, settings: HistorySettings | None = None) -> None:
         super().__init__()
-        self._settings = settings or HistorySettings()
+        self._settings = settings or HistorySettings.default()
         self._items: deque[Playable] = deque(maxlen=self._settings.max_items)
 
     def _push(self, track: Playable) -> None:

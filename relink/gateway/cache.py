@@ -29,6 +29,8 @@ from typing import Any, Final
 
 import discord
 
+from relink.models.settings import CacheSettings
+
 MISSING: Final = discord.utils.MISSING
 
 
@@ -49,10 +51,11 @@ class LFUCache[K, V]:
     LFU cache utilizing Circular Doubly Linked Lists.
     """
 
-    __slots__ = ("_capacity", "_cache", "_freq_map", "_min_freq")
+    __slots__ = ("_settings", "_cache", "_freq_map", "_min_freq")
 
-    def __init__(self, capacity: int) -> None:
-        self._capacity = capacity
+    def __init__(self, settings: CacheSettings | None = None) -> None:
+        self._settings = settings or CacheSettings.default()
+
         self._cache: dict[K, CacheNode[K, V]] = {}
         self._freq_map: dict[int, CacheNode[Any, Any]] = collections.defaultdict(
             lambda: CacheNode(None, None, 0)
@@ -60,7 +63,7 @@ class LFUCache[K, V]:
         self._min_freq: int = 0
 
     def __repr__(self) -> str:
-        return f"<LFUCache entries={len(self._cache)} capacity={self._capacity}>"
+        return f"<LFUCache entries={len(self._cache)} max_items={self._settings.max_items}>"
 
     def __len__(self) -> int:
         return len(self._cache)
@@ -78,7 +81,7 @@ class LFUCache[K, V]:
         sentinel.prev = node
 
     def get(self, key: K, default: Any = MISSING) -> V | Any:
-        if (node := self._cache.get(key)) is None:
+        if not self._settings.enabled or (node := self._cache.get(key)) is None:
             return default
 
         self._unlink(node)
@@ -95,7 +98,7 @@ class LFUCache[K, V]:
         return node.value
 
     def put(self, key: K, value: V) -> None:
-        if self._capacity <= 0:
+        if not self._settings.enabled or self._settings.max_items <= 0:
             return
 
         if key in self._cache:
@@ -104,7 +107,7 @@ class LFUCache[K, V]:
             self.get(key)
             return
 
-        if len(self._cache) >= self._capacity:
+        if len(self._cache) >= self._settings.max_items:
             # Evict the oldest node from the lowest freq. list
             sentinel = self._freq_map[self._min_freq]
             evicted = sentinel.next

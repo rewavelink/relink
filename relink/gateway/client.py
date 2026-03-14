@@ -31,16 +31,16 @@ from weakref import WeakKeyDictionary
 import discord
 
 from relink._version import __version__
-from relink.models.settings import InactivitySettings
+from relink.models.settings import CacheSettings, InactivitySettings
 
 from .events.router import EventRouter
 from .node import Node
 
 if TYPE_CHECKING:
+    from relink.models.responses import SearchResult
+    from relink.models.track import Playable
     from relink.network import SessionType
     from relink.rest.enums import TrackSourceType
-    from relink.models.track import Playable
-    from relink.models.responses import SearchResult
 
 __all__ = ("Client",)
 
@@ -101,6 +101,7 @@ class Client[N: Node]:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
+        cache_settings: CacheSettings | None = None,
         inactivity_settings: InactivitySettings | None = None,
     ) -> N:
         """
@@ -122,6 +123,9 @@ class Client[N: Node]:
             Defaults to ``None``.
         resume_timeout: :class:`int`
             The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
+        cache_settings: :class:`CacheSettings` | :data:`None`
+            The search result caching configuration.
+            Defaults to :meth:`CacheSettings.default`.
         inactivity_settings: :class:`InactivitySettings` | :data:`None`
             The inactivity configuration for all players connected to this node.
             If ``None`` is passed, it uses :meth:`InactivitySettings.default`.
@@ -132,7 +136,8 @@ class Client[N: Node]:
             The node that was created.
         """
 
-        settings = inactivity_settings or InactivitySettings.default()
+        i_settings = inactivity_settings or InactivitySettings.default()
+        c_settings = cache_settings or CacheSettings.default()
 
         node = self._node_cls(
             client=self,
@@ -141,7 +146,8 @@ class Client[N: Node]:
             id=id,
             retries=retries,
             resume_timeout=resume_timeout,
-            inactivity_settings=settings,
+            cache_settings=c_settings,
+            inactivity_settings=i_settings,
         )
         self._nodes[node.id] = node
         return node

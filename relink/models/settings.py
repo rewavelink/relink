@@ -72,7 +72,7 @@ class HistorySettings(BaseSettings):
     Attributes
     ----------
     enabled: :class:`bool`
-        Whether history tracking is enabled. Defaults to true.
+        Whether history tracking is enabled. Defaults to True.
     max_items: :class:`int` | :data:`None`
         The maximum number of items to keep in history.
     """
@@ -87,6 +87,34 @@ class HistorySettings(BaseSettings):
         *,
         enabled: bool = True,
         max_items: int | None = None,
+    ) -> None:
+        self.enabled = enabled
+        self.max_items = max_items
+
+
+class CacheSettings(BaseSettings):
+    """
+    Configuration for Node caching.
+
+    Attributes
+    ----------
+    enabled: :class:`bool`
+        Whether caching is enabled. Defaults to True.
+    max_items: :class:`int` | :data:`None`
+        The maximum number of items to store in the LFU cache.
+        Defaults to 1000.
+    """
+
+    __slots__ = (
+        "enabled",
+        "max_items",
+    )
+
+    def __init__(
+        self,
+        *,
+        enabled: bool = True,
+        max_items: int = 1000,
     ) -> None:
         self.enabled = enabled
         self.max_items = max_items
