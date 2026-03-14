@@ -24,7 +24,6 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import asyncio
 import time
 
 from relink.rest.schemas.filters import PlayerFilters
@@ -32,7 +31,6 @@ from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackReq
 
 from ...models.track import Playable
 from ..enums import AutoPlayMode, QueueMode
-from ..errors import QueueEmpty
 from ._base import HandlerBase, _log
 
 __all__ = ()
@@ -140,17 +138,16 @@ class PlaybackHandler(HandlerBase):
         await self.play(track)
 
     async def skip(self) -> None:
-        try:
-            next_track = self._player._queue.get()
+        if len(self._player.queue) > 0:
+            next_track = self._player.queue.get()
             await self.play(next_track)
-        except QueueEmpty:
-            handler = self._player._autoplay_handler
+            return
 
-            if handler._mode is not AutoPlayMode.DISABLED:
-                asyncio.create_task(handler.auto_play())
-            else:
-                await self.stop()
-                raise
+        handler = self._player._autoplay_handler
+        if handler._settings.mode != AutoPlayMode.DISABLED:
+            return await handler.auto_play()
+
+        await self.stop()
 
     async def seek(self, position: int, /) -> None:
         node = self._player.node

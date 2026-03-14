@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Self, overload
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
-from relink.models.settings import HistorySettings
+from relink.models.settings import AutoPlaySettings, HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
 
 from ...models.track import Playable
@@ -180,6 +180,7 @@ class Player(discord.VoiceProtocol):
         channel: discord.VoiceChannel | discord.StageChannel = MISSING,
         *,
         node: Node | None = None,
+        autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
     ) -> None:
         self.guild_id = 0
@@ -194,7 +195,7 @@ class Player(discord.VoiceProtocol):
         self._last_position = 0
         self._last_update = 0.0
 
-        self._autoplay_handler = AutoPlayHandler(self)
+        self._autoplay_handler = AutoPlayHandler(self, settings=autoplay_settings)
         self._events_handler = EventsHandler(self)
         self._inactivity_handler = InactivityHandler(self)
         self._lifecycle_handler = LifecycleHandler(self)
@@ -223,7 +224,7 @@ class Player(discord.VoiceProtocol):
     @property
     def autoplay(self) -> AutoPlayMode:
         """The current AutoPlay mode for this player."""
-        return self._autoplay_handler._mode
+        return self._autoplay_handler._settings.mode
 
     @autoplay.setter
     def autoplay(self, value: AutoPlayMode) -> None:
@@ -231,7 +232,7 @@ class Player(discord.VoiceProtocol):
             raise RuntimeError(
                 f"Player {self.guild_id} has disabled history, which is required for AutoPlay."
             )
-        self._autoplay_handler._mode = value
+        self._autoplay_handler._settings.mode = value
 
     @property
     def current(self) -> Playable | None:

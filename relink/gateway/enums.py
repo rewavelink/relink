@@ -125,3 +125,16 @@ class InactivityMode(Enum):
     ALL_BOTS = 1
     ONLY_SELF = 2
     IGNORED_USERS = 3
+
+
+class SearchProvider(StrEnum):
+    """Enum representing search providers for AutoPlay.
+
+    :ivar YOUTUBE: YouTube Radio (RD) mix based on a video identifier.
+    :ivar SPOTIFY: Spotify recommendations based on a track identifier.
+    :ivar DEEZER: Deezer track/artist radio based on an identifier.
+    """
+
+    YOUTUBE = "https://www.youtube.com/watch?v={identifier}&list=RD{identifier}"
+    SPOTIFY = "sprec:{identifier}"
+    DEEZER = "dzrec:{identifier}"

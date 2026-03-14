@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from relink.models.settings import AutoPlaySettings
 from relink.models.track import Playable, Playlist
 
 from ..enums import AutoPlayMode
@@ -37,20 +38,26 @@ if TYPE_CHECKING:
 
 
 class AutoPlayHandler(HandlerBase):
+    """Internal handler responsible for audio discovery and autonomous playback."""
+
     __slots__ = (
-        "_mode",
         "_seeds",
         "_lock",
+        "_settings",
     )
 
-    def __init__(self, player: Player) -> None:
+    def __init__(
+        self,
+        player: Player,
+        settings: AutoPlaySettings | None = None,
+    ) -> None:
         super().__init__(player)
-        self._mode: AutoPlayMode = AutoPlayMode.DISABLED
         self._seeds: set[str] = set()
         self._lock: asyncio.Lock = asyncio.Lock()
+        self._settings = settings or AutoPlaySettings.default()
 
     async def auto_play(self) -> None:
-        if self._mode == AutoPlayMode.DISABLED:
+        if self._settings.mode == AutoPlayMode.DISABLED:
             return
 
         if len(self._player.queue) > 0 or self._lock.locked():
@@ -60,58 +67,42 @@ class AutoPlayHandler(HandlerBase):
             await self._fill_auto_queue()
 
     async def _fill_auto_queue(self) -> None:
-        history_items = self._player.queue.history._items
         reference = self._player.current or (
-            history_items[-1] if history_items else None
+            self._player.queue.history[-1] if self._player.queue.history else None
         )
 
         if not reference or not reference.identifier:
-            _log.debug(
-                "Player %s: AutoPlay has no seed tracks available.",
-                self._player.guild_id,
-            )
+            _log.debug("Player %s: No valid seed for AutoPlay.", self._player.guild_id)
             return
 
-        if len(self._seeds) > 100:
+        if len(self._seeds) > self._settings.max_seeds:
             self._seeds.clear()
 
         self._seeds.add(reference.identifier)
-
-        # YouTube Radio Mix
-        query = f"https://www.youtube.com/watch?v={reference.identifier}&list=RD{reference.identifier}"
+        query = str(self._settings.provider).format(identifier=reference.identifier)
 
         try:
             search = await self._player.node.search_track(query)
 
-            if search.is_error() or search.is_empty():
+            if (
+                (result := search.result) is None
+                or search.is_error()
+                or search.is_empty()
+            ):
                 return
-
-            result = search.result
 
             if isinstance(result, Playlist):
-                tracks = result.tracks
+                raw_tracks = result.tracks
             elif isinstance(result, list):
-                tracks = result
-            elif isinstance(result, Playable):
-                tracks = [result]
+                raw_tracks = result
             else:
+                raw_tracks = [result]
+
+            discovery = [t for t in raw_tracks if t.identifier not in self._seeds]
+            if not discovery:
                 return
 
-            to_add = [track for track in tracks if track.identifier not in self._seeds]
-
-            if not to_add:
-                return
-
-            if self._mode == AutoPlayMode.ENABLED:
-                self._player.queue.put(to_add[:20])
-
-            if not self._player.current:
-                next_track = (
-                    to_add[0]
-                    if self._mode == AutoPlayMode.PARTIAL
-                    else self._player.queue.get()
-                )
-                await self._player.play(next_track)
+            await self._apply_discovery(discovery)
         except Exception as exc:
             _log.error(
                 "Player %s: AutoPlay failed: %s",
@@ -119,3 +110,19 @@ class AutoPlayHandler(HandlerBase):
                 exc,
                 exc_info=True,
             )
+
+    async def _apply_discovery(self, tracks: list[Playable]) -> None:
+        mode = self._settings.mode
+
+        if mode == AutoPlayMode.ENABLED:
+            self._player.queue.put(tracks[:20])
+
+        if self._player.current:
+            return
+
+        if mode is AutoPlayMode.ENABLED:
+            track = self._player.queue.get()
+        else:
+            track = tracks[0]
+
+        await self._player.play(track)

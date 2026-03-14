@@ -28,9 +28,38 @@ from typing import Iterable
 
 import discord
 
-from relink.gateway.enums import InactivityMode
+from relink.gateway.enums import AutoPlayMode, InactivityMode, SearchProvider
 
 from .base import BaseSettings
+
+
+class AutoPlaySettings(BaseSettings):
+    """
+    Configuration for the player's AutoPlay behavior.
+
+    Attributes
+    ----------
+    mode: :class:`AutoPlayMode`
+        The default discovery mode when the player starts. Defaults to DISABLED.
+    max_seeds: :class:`int`
+        The maximum number of track identifiers to store to prevent duplicates.
+        Defaults to 100.
+    provider: :class:`SearchProvider` | :class:`str`
+        The provider used for discovery. Defaults to SearchProvider.YOUTUBE.
+    """
+
+    __slots__ = ("mode", "max_seeds", "provider")
+
+    def __init__(
+        self,
+        *,
+        mode: AutoPlayMode = AutoPlayMode.DISABLED,
+        max_seeds: int = 100,
+        provider: SearchProvider = SearchProvider.YOUTUBE,
+    ) -> None:
+        self.mode = mode
+        self.max_seeds = max_seeds
+        self.provider = provider
 
 
 class InactivitySettings(BaseSettings):
