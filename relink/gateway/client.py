@@ -38,13 +38,16 @@ from .node import Node
 
 if TYPE_CHECKING:
     from relink.network import SessionType
+    from relink.rest.enums import TrackSourceType
+    from relink.models.track import Playable
+    from relink.models.responses import SearchResult
 
 __all__ = ("Client",)
 
-_ClientRegistry = WeakKeyDictionary[discord.Client, "Client"]
+_ClientRegistry = WeakKeyDictionary[discord.Client, "Client[Any]"]
 
 
-class Client:
+class Client[N: Node]:
     """
     Represents a ReLink client.
 
@@ -59,17 +62,23 @@ class Client:
     __clients__: ClassVar[_ClientRegistry] = WeakKeyDictionary()
 
     _client: discord.Client
-    _nodes: dict[str, Node]
+    _nodes: dict[str, N]
     _session: SessionType | None
     _event_router: EventRouter
     __node_tasks: dict[str, asyncio.Task[Any]]
 
-    def __init__(self, client: discord.Client) -> None:
+    def __init__(
+        self,
+        client: discord.Client,
+        *,
+        node_cls: type[N] = Node,
+    ) -> None:
         self._client = client
         self._nodes = {}
         self._session = None
         self._event_router = EventRouter(self)
         self.__node_tasks = {}
+        self._node_cls: type[N] = node_cls
 
         if client in Client.__clients__:
             raise RuntimeError("relink.Client already attached to this discord.Client")
@@ -80,7 +89,7 @@ class Client:
         return f"<relink.Client nodes={len(self._nodes)}>"
 
     @property
-    def nodes(self) -> list[Node]:
+    def nodes(self) -> list[N]:
         """The active nodes attached to this client."""
         return list(self._nodes.values())
 
@@ -92,8 +101,8 @@ class Client:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
-        inactivity_settings: InactivitySettings | None = None,
-    ) -> Node:
+        inactivity_settings: InactivitySettings | None = None
+    ) -> N:
         """
         Creates a :class:`Node` attached to this client.
 
@@ -125,7 +134,7 @@ class Client:
 
         settings = inactivity_settings or InactivitySettings.default()
 
-        node = Node(
+        node = self._node_cls(
             client=self,
             uri=uri,
             password=password,
@@ -179,7 +188,7 @@ class Client:
 
         This will stop all active players and close the underlying websocket and HTTP sessions.
         """
-        tasks = [node.close() for node in self.nodes if node.is_connected()]
+        tasks = [node.close() for node in self.nodes if node.is_connected]
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -200,7 +209,7 @@ class Client:
             No nodes are currently connected to handle the request.
         """
 
-        connected_nodes = [node for node in self.nodes if node.is_connected()]
+        connected_nodes = [node for node in self.nodes if node.is_connected]
         if not connected_nodes:
             raise RuntimeError("No nodes are currently connected.")
 
@@ -208,6 +217,69 @@ class Client:
             connected_nodes,
             key=lambda node: node.stats.penalty if node.stats else 0.0,
         )
+
+    async def search_track(
+        self,
+        query: str,
+        *,
+        source: TrackSourceType | str | None = None,
+    ) -> SearchResult:
+        """
+        Searches for ``query`` in the best Node available, obtained with :meth:`Client.get_best_node`.
+
+        Parameters
+        ----------
+        query: :class:`str`
+            The query to search. This can be a full URL, or headed by hosts specified by any plugin.
+        source: :class:`TrackSourceType` | :class:`str` | :data:`None`
+            The source to search from. This is, essentially, providing a host to ``query``. The library
+            provides default source types under :class:`TrackSourceType`, but custom ones can be passed
+            with a raw string.
+
+        Returns
+        -------
+        :class:`SearchResult`
+            The search result.
+        """
+        node = self.get_best_node()
+        return await node.search_track(query, source=source)
+
+    async def decode_track(self, encoded: str) -> Playable:
+        """
+        Decodes a track from its encoded data using the best Node available, obtained with
+        :meth:`Client.get_best_node`.
+
+        When a track is fetched, the encoded data can be found under :attr:`Track.encoded`.
+
+        Parameters
+        ----------
+        encoded: :class:`str`
+            The encoded data to resolve the track from.
+
+        Returns
+        -------
+        :class:`Playable`
+            The decoded resolved track.
+        """
+        node = self.get_best_node()
+        return await node.decode_track(encoded)
+
+    async def decode_tracks(self, *encoded: str) -> list[Playable]:
+        """
+        Bulk decode encoded tracks using the best Node available, obtained with :meth:`Client.get_best_node`.
+
+        Parameters
+        ----------
+        *encoded: :class:`str`
+            The encoded data for each track to be decoded.
+
+        Returns
+        -------
+        list[:class:`Playable`]
+            The decoded resolved tracks.
+        """
+        node = self.get_best_node()
+        return await node.decode_tracks(*encoded)
 
     def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
         if node.id in self.__node_tasks:

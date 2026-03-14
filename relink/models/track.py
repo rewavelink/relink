@@ -109,7 +109,7 @@ class Playable(BaseModel[Track]):
     def __init__(
         self,
         *,
-        client: Client,
+        client: Client[Any],
         data: Track,
         playlist: Playlist | None = None,
     ) -> None:

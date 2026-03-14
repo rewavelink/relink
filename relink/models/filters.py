@@ -351,7 +351,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
         "_low_pass",
     )
 
-    def __init__(self, *, client: Client, data: filters.PlayerFilters) -> None:
+    def __init__(self, *, client: Client[Any], data: filters.PlayerFilters) -> None:
         super().__init__(client=client, data=data)
 
         self._equalizer = [

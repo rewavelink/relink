@@ -73,7 +73,7 @@ class Node:
     _ws: BaseWebsocketManager[Any, Any] | None
     _uri: str
     _password: str
-    _client: Client | None
+    _client: Client[Any] | None
     _keep_alive: asyncio.Task[None] | None
     _resume_session: str | None
     _stats: StatsResponse | None
@@ -81,7 +81,7 @@ class Node:
     def __init__(
         self,
         *,
-        client: Client,
+        client: Client[Any],
         uri: str,
         password: str,
         id: str | None = None,
@@ -135,7 +135,7 @@ class Node:
 
         return headers
 
-    def _ensure_client(self) -> Client:
+    def _ensure_client(self) -> Client[Any]:
         if not self._client:
             raise RuntimeError(
                 "Cannot perform HTTP requests without an attached client."
@@ -143,7 +143,7 @@ class Node:
         return self._client
 
     @property
-    def client(self) -> Client | None:
+    def client(self) -> Client[Any] | None:
         """The client this node is attached to."""
         return self._client
 
@@ -263,7 +263,7 @@ class Node:
         Parameters
         ----------
         query: :class:`str`
-            The query to search. This can be a full URL, or headed by hosts specified by any plugins.
+            The query to search. This can be a full URL, or headed by hosts specified by any plugin.
         source: :class:`TrackSourceType` | :class:`str` | :data:`None`
             The source to search from. This is, essentially, providing a host to ``query``. The library
             provides default source types under :class:`TrackSourceType`, but custom ones can be passed

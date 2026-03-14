@@ -47,11 +47,11 @@ class EventRouter:
     on a :class:`relink.gateway.Player`.
     """
 
-    _client: Client
+    _client: Client[Any]
     _event_map: dict[str, list[EventCallback[..., Any]]]
     _task_set: set[asyncio.Task[Any]]
 
-    def __init__(self, client: Client) -> None:
+    def __init__(self, client: Client[Any]) -> None:
         self._client = client
         self._event_map = {}
         self._task_set = set()

@@ -44,7 +44,7 @@ class Playlist(BaseModel[PlaylistData]):
 
     __slots__ = ("_tracks",)
 
-    def __init__(self, *, client: Client, data: PlaylistData) -> None:
+    def __init__(self, *, client: Client[Any], data: PlaylistData) -> None:
         super().__init__(client=client, data=data)
         self._tracks: list[Playable] = [
             Playable(client=client, data=track) for track in data.tracks
