@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import TYPE_CHECKING, Any, ClassVar
 from weakref import WeakKeyDictionary
 
@@ -44,6 +45,7 @@ if TYPE_CHECKING:
 
 __all__ = ("Client",)
 
+_log = logging.getLogger(__name__)
 _ClientRegistry = WeakKeyDictionary[discord.Client, "Client[Any]"]
 
 
@@ -185,8 +187,15 @@ class Client[N: Node]:
         if not self._nodes:
             return
 
-        tasks = [node.connect() for node in self.nodes]
-        await asyncio.gather(*tasks, return_exceptions=True)
+        for node in self.nodes:
+            if node.is_connected:
+                continue
+
+            try:
+                await node.connect()
+            except Exception as exc:
+                _log.exception("Ignoring exception while connecting Node %r", node, exc_info=exc)
+                continue
 
     async def close(self) -> None:
         """
@@ -194,9 +203,16 @@ class Client[N: Node]:
 
         This will stop all active players and close the underlying websocket and HTTP sessions.
         """
-        tasks = [node.close() for node in self.nodes if node.is_connected]
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+
+        for node in self.nodes:
+            if not node.is_connected:
+                continue
+
+            try:
+                await node.close()
+            except Exception as exc:
+                _log.exception("Ignoring exception while closing Node %r", node, exc_info=exc)
+                continue
 
         self._nodes.clear()
 
