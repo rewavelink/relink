@@ -36,10 +36,10 @@ class HTTPFactory:
     @staticmethod
     def _select(curl_name: str, aiohttp_name: str) -> object:
         if HTTPFactory.HAS_CURL:
-            module = __import__("relink.http.curl_cffi", fromlist=[curl_name])
+            module = __import__("relink.network._curl_cffi", fromlist=[curl_name])
             return getattr(module, curl_name)
 
-        module = __import__("relink.http.aiohttp", fromlist=[aiohttp_name])
+        module = __import__("relink.network._aiohttp", fromlist=[aiohttp_name])
         return getattr(module, aiohttp_name)
 
     @classmethod
@@ -73,21 +73,21 @@ class HTTPFactory:
     @classmethod
     def from_http(cls, session: SessionType) -> BaseHTTPManager[Any]:
         if cls._is_aiohttp_session(session):
-            from .aiohttp import AioHTTPManager
+            from ._aiohttp import AioHTTPManager
 
             return AioHTTPManager(session=session)
 
-        from .curl_cffi import CurlHTTPManager
+        from ._curl_cffi import CurlHTTPManager
 
         return CurlHTTPManager(session=session)
 
     @classmethod
     def create_websocket(cls, session: SessionType) -> BaseWebsocketManager[Any, Any]:
         if cls._is_aiohttp_session(session):
-            from .aiohttp import AioWebsocketManager
+            from ._aiohttp import AioWebsocketManager
 
             return AioWebsocketManager(session)
 
-        from .curl_cffi import CurlWebsocketManager
+        from ._curl_cffi import CurlWebsocketManager
 
         return CurlWebsocketManager(session)
