@@ -37,6 +37,8 @@ if TYPE_CHECKING:
     from relink.gateway.schemas.events import TrackException
     from relink.rest.schemas.track import PlaylistData, Track, TrackLoadingResponse
 
+__all__ = ("SearchResult",)
+
 
 class SearchResult(BaseModel[TrackLoadingResponse]):
     """

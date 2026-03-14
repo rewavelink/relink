@@ -33,6 +33,12 @@ if TYPE_CHECKING:
     from ..rest.schemas.track import Track
     from .playlist import Playlist
 
+__all__ = (
+    "Album",
+    "Artist",
+    "Playable",
+)
+
 
 class Album:
     """

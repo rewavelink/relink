@@ -32,6 +32,19 @@ if TYPE_CHECKING:
     from ..gateway.client import Client
     from ..rest.schemas import filters
 
+__all__ = (
+    "Equalizer",
+    "Karaoke",
+    "Timescale",
+    "Tremolo",
+    "Vibrato",
+    "Rotation",
+    "Distortion",
+    "ChannelMix",
+    "LowPass",
+    "Filters",
+)
+
 
 class Equalizer(BaseModel[filters.EqualizerFilter]):
     """

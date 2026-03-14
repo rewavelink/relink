@@ -33,6 +33,8 @@ if TYPE_CHECKING:
     from ..gateway.client import Client
     from ..rest.schemas.track import PlaylistData
 
+__all__ = ("Playlist",)
+
 
 class Playlist(BaseModel[PlaylistData]):
     """

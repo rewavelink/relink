@@ -32,6 +32,13 @@ from relink.gateway.enums import AutoPlayMode, InactivityMode, SearchProvider
 
 from .base import BaseSettings
 
+__all__ = (
+    "AutoPlaySettings",
+    "InactivitySettings",
+    "HistorySettings",
+    "CacheSettings",
+)
+
 
 class AutoPlaySettings(BaseSettings):
     """

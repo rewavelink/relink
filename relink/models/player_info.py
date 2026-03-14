@@ -34,6 +34,8 @@ from .track import Playable
 if TYPE_CHECKING:
     from ..rest.schemas.player import Player as PlayerInfoPayload
 
+__all__ = ("PlayerInfo",)
+
 
 class PlayerInfo(BaseModel[PlayerInfoPayload]):
     """

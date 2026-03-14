@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     )
     from ..rest.schemas.info import InfoResponse as ServerInfoPayload
 
+__all__ = ("ServerInfo",)
 
 # TODO: maybe add Model-like classes for version, git, and plugins?
 
