@@ -24,18 +24,16 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+import msgspec
 
 from relink.rest.enums import TrackLoadResult
 from relink.utils import cached_property
+from relink.rest.schemas import Track, PlaylistData, TrackLoadingResponse
+from relink.gateway.schemas import TrackException
 
 from .base import BaseModel
 from .playlist import Playlist
 from .track import Playable
-
-if TYPE_CHECKING:
-    from relink.gateway.schemas.events import TrackException
-    from relink.rest.schemas.track import PlaylistData, Track, TrackLoadingResponse
 
 __all__ = ("SearchResult",)
 
@@ -45,7 +43,10 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
     The result of a track search.
     """
 
-    __slots__ = "_cs_data"
+    __slots__ = (
+        "_cs_data",
+        "_cs_exception",
+    )
 
     @property
     def type(self) -> TrackLoadResult:
@@ -76,24 +77,27 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
 
         match self.type:
             case TrackLoadResult.TRACK:
+                payload = msgspec.convert(self._data.data, Track)
                 return Playable(
                     client=self._client,
-                    data=cast("Track", self._data.data),
+                    data=payload,
                     playlist=None,
                 )
             case TrackLoadResult.PLAYLIST:
+                payload = msgspec.convert(self._data.data, PlaylistData)
                 return Playlist(
-                    client=self._client, data=cast("PlaylistData", self._data.data)
+                    client=self._client,
+                    data=payload,
                 )
             case TrackLoadResult.SEARCH:
-                tracks = cast("list[Track]", self._data.data)
+                tracks = msgspec.convert(self._data.data, list[Track])
                 return [
                     Playable(client=self._client, data=d, playlist=None) for d in tracks
                 ]
             case _:
                 return None
 
-    @property
+    @cached_property("_cs_exception")
     def exception(self) -> TrackException | None:
         """
         The raw exception data of this search result.
@@ -102,5 +106,4 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
         """
         if not self.is_error():
             return None
-
-        return cast("TrackException", self._data.data)
+        return msgspec.convert(self._data.data, TrackException)
