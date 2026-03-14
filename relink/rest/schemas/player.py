@@ -87,6 +87,9 @@ class PlayerVoiceState(msgspec.Struct, kw_only=True):
     session_id: str = msgspec.field(name="sessionId")
     """Session ID of the voice connection."""
 
+    channel_id: str | None = msgspec.field(name="channelId", default=None)
+    """The Discord voice channel ID the bot is connecting to."""
+
 
 class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     """

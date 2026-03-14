@@ -163,12 +163,14 @@ class EventsHandler(HandlerBase):
         assert self._player._connection.token is not None
         assert self._player._connection.endpoint is not None
         assert self._player._connection.session_id is not None
+        assert self._player._connection.channel_id is not None
         assert self._player._node._resume_session is not None
 
         voice_state = PlayerVoiceState(
             token=self._player._connection.token,
             endpoint=self._player._connection.endpoint,
             session_id=self._player._connection.session_id,
+            channel_id=self._player._connection.channel_id,
         )
 
         request_data = UpdatePlayerRequest(voice=voice_state)
