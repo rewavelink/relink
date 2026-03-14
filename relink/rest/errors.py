@@ -32,6 +32,11 @@ import msgspec
 from relink.errors import ReLinkException
 from relink.utils import cached_property
 
+__all__ = (
+    "ErrorResponseType",
+    "HTTPException",
+)
+
 
 class ErrorResponseType(msgspec.Struct, kw_only=True):
     """Represents the error response on a HTTP request."""
