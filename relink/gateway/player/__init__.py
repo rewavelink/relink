@@ -35,8 +35,10 @@ from relink.models.settings import HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
 
 from ...models.track import Playable
+from ..enums import AutoPlayMode
 from ..queue.queue import Queue
 from ..schemas.receive import PlayerState
+from ._autoplay import AutoPlayHandler
 from ._events import EventsHandler
 from ._inactivity import InactivityHandler
 from ._lifecycle import LifecycleHandler
@@ -130,6 +132,7 @@ class Player(discord.VoiceProtocol):
 
     __slots__ = (
         "guild_id",
+        "_autoplay_handler",
         "_connection",
         "_events_handler",
         "_filters",
@@ -191,8 +194,9 @@ class Player(discord.VoiceProtocol):
         self._last_position = 0
         self._last_update = 0.0
 
-        self._inactivity_handler = InactivityHandler(self)
+        self._autoplay_handler = AutoPlayHandler(self)
         self._events_handler = EventsHandler(self)
+        self._inactivity_handler = InactivityHandler(self)
         self._lifecycle_handler = LifecycleHandler(self)
         self._playback_handler = PlaybackHandler(self)
 
@@ -215,6 +219,19 @@ class Player(discord.VoiceProtocol):
             self._node._add_player(self)
 
         return self
+
+    @property
+    def autoplay(self) -> AutoPlayMode:
+        """The current AutoPlay mode for this player."""
+        return self._autoplay_handler._mode
+
+    @autoplay.setter
+    def autoplay(self, value: AutoPlayMode) -> None:
+        if not self._queue._history._settings.enabled:
+            raise RuntimeError(
+                f"Player {self.guild_id} has disabled history, which is required for AutoPlay."
+            )
+        self._autoplay_handler._mode = value
 
     @property
     def current(self) -> Playable | None:

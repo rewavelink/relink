@@ -29,8 +29,6 @@ __all__ = ("version_info", "__version__")
 
 
 class VersionInfo(NamedTuple):
-    __slots__ = ()
-
     major: int
     minor: int
     patch: int

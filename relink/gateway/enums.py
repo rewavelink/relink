@@ -100,6 +100,20 @@ class QueueMode(StrEnum):
     LOOP_ALL = "loop_all"
 
 
+class AutoPlayMode(StrEnum):
+    """Enum representing the autoplay behavior of the player.
+
+    :ivar ENABLED: AutoPlay works fully autonomously and fills the auto_queue with recommended tracks.
+        If a track is added to the player's standard queue, AutoPlay will treat it as a priority.
+    :ivar PARTIAL: AutoPlay works autonomously but does **not** fill the auto_queue with recommended tracks.
+    :ivar DISABLED: AutoPlay is completely disabled and will not perform any automatic actions.
+    """
+
+    ENABLED = "enabled"
+    PARTIAL = "partial"
+    DISABLED = "disabled"
+
+
 class InactivityMode(Enum):
     """Represents the mode used to determine if a player is inactive.
 
