@@ -37,7 +37,6 @@ from relink.rest.schemas.filters import PlayerFilters
 from ...models.track import Playable
 from ..queue.queue import Queue
 from ..schemas.receive import PlayerState
-
 from ._events import EventsHandler
 from ._inactivity import InactivityHandler
 from ._lifecycle import LifecycleHandler
@@ -192,7 +191,6 @@ class Player(discord.VoiceProtocol):
         self._last_position = 0
         self._last_update = 0.0
 
-        # Handlers
         self._inactivity_handler = InactivityHandler(self)
         self._events_handler = EventsHandler(self)
         self._lifecycle_handler = LifecycleHandler(self)

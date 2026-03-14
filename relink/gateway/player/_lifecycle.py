@@ -39,6 +39,10 @@ __all__ = ()
 
 
 class LifecycleHandler(HandlerBase):
+    """Internal handler responsible for the player's connection lifecycle."""
+
+    __slots__ = ()
+
     async def disconnect(self, *, force: bool = False) -> None:
         try:
             if self._player._node is None:

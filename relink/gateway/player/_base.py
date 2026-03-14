@@ -36,5 +36,9 @@ _log = logging.getLogger("relink.gateway.player")
 
 
 class HandlerBase:
+    """Base class for all internal player handlers."""
+
+    __slots__ = ("_player",)
+
     def __init__(self, player: Player, /) -> None:
         self._player: Player = player

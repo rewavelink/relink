@@ -25,13 +25,14 @@ SOFTWARE.
 import time
 from typing import Any
 
-from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 import msgspec
+from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink.rest.schemas.player import (
     PlayerVoiceState,
     UpdatePlayerRequest,
 )
+
 from ..enums import TrackEndReason
 from ..schemas.events import (
     TrackEndEvent,
@@ -47,6 +48,10 @@ __all__ = ()
 
 
 class EventsHandler(HandlerBase):
+    """Internal handler responsible for processing Gateway and Lavalink events."""
+
+    __slots__ = ()
+    
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         self._player._connection.token = data.get("token")
         self._player._connection.endpoint = data.get("endpoint")

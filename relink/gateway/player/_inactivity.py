@@ -31,6 +31,10 @@ __all__ = ()
 
 
 class InactivityHandler(HandlerBase):
+    """Internal handler responsible for monitoring player and voice channel activity."""
+
+    __slots__ = ()
+
     def _check_inactivity(self) -> None:
         node = self._player._node
         guild = self._player.client.get_guild(self._player.guild_id)

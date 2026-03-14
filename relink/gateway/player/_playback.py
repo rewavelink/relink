@@ -37,6 +37,10 @@ __all__ = ()
 
 
 class PlaybackHandler(HandlerBase):
+    """Internal handler responsible for audio playback control logic."""
+
+    __slots__ = ()
+
     async def play(
         self,
         track: Playable,
