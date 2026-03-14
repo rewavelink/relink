@@ -25,7 +25,9 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
+
+import discord
 
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
@@ -70,7 +72,7 @@ class LifecycleHandler(HandlerBase):
             node = self._player._ensure_node()
 
         await guild.change_voice_state(
-            channel=channel,
+            channel=cast(discord.abc.Snowflake, channel),
             self_mute=self_mute,
             self_deaf=self_deaf,
         )
