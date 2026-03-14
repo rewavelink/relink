@@ -24,40 +24,35 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Annotated, Any, Self, overload
 
 import discord
-import msgspec
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink.models.settings import HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
-from relink.rest.schemas.player import (
-    PlayerVoiceState,
-    UpdatePlayerRequest,
-    UpdatePlayerTrackRequest,
-)
 
-from ..models.track import Playable
-from .enums import InactivityMode, QueueMode, TrackEndReason
-from .queue.queue import Queue
-from .schemas.events import (
-    TrackEndEvent,
-    TrackExceptionEvent,
-    TrackStartEvent,
-    TrackStuckEvent,
-    WebSocketClosedEvent,
-)
-from .schemas.receive import PlayerState
+from ...models.track import Playable
+from ..queue.queue import Queue
+from ..schemas.receive import PlayerState
+from ._events import EventsHandler
+from ._inactivity import InactivityHandler
+from ._lifecycle import LifecycleHandler
+from ._playback import PlaybackHandler
 
 if TYPE_CHECKING:
-    from .node import Node
+    from ..node import Node
 
 _log = logging.getLogger(__name__)
 MISSING = discord.utils.MISSING
+
+
+__all__ = (
+    "Player",
+    "PlayerConnectionState",
+)
 
 
 class PlayerConnectionState:
@@ -136,11 +131,15 @@ class Player(discord.VoiceProtocol):
     __slots__ = (
         "guild_id",
         "_connection",
+        "_events_handler",
         "_filters",
+        "_inactivity_handler",
         "_last_position",
         "_last_update",
+        "_lifecycle_handler",
         "_node",
         "_paused",
+        "_playback_handler",
         "_queue",
         "_ready",
         "_volume",
@@ -191,6 +190,11 @@ class Player(discord.VoiceProtocol):
 
         self._last_position = 0
         self._last_update = 0.0
+
+        self._inactivity_handler = InactivityHandler(self)
+        self._events_handler = EventsHandler(self)
+        self._lifecycle_handler = LifecycleHandler(self)
+        self._playback_handler = PlaybackHandler(self)
 
         if client is not MISSING and channel is not MISSING:
             self.guild_id = channel.guild.id
@@ -288,36 +292,7 @@ class Player(discord.VoiceProtocol):
             Whether to force the disconnection even if the player is not currently connected.
             Defaults to ``False``.
         """
-        try:
-            if self._node is None:
-                return
-
-            self._node._remove_player(self.guild_id)
-
-            if self._node._resume_session is None:
-                return
-
-            await self._node._manager.destroy_player(
-                session_id=self._node._resume_session, guild_id=str(self.guild_id)
-            )
-
-            _log.info(
-                "Player %s: Disconnected and removed from Node %r.",
-                self.guild_id,
-                self._node.id,
-            )
-
-        except Exception as exc:
-            _log.warning(
-                "Player %s: Error during disconnect cleanup: %s",
-                self.guild_id,
-                exc,
-                exc_info=True,
-            )
-
-        finally:
-            self._queue.reset()
-            await super().disconnect(force=force)
+        await self._lifecycle_handler.disconnect(force=force)
 
     async def move_to(self, node: Node, /) -> None:
         """
@@ -332,56 +307,7 @@ class Player(discord.VoiceProtocol):
             The destination node to move this player to.
         """
 
-        if self._node is node:
-            return
-
-        old_node = self._node
-        self._node = node
-
-        if old_node:
-            old_node._remove_player(self.guild_id)
-        node._add_player(self)
-
-        await self._dispatch_voice_update()
-        assert node._resume_session is not None
-
-        track_payload = (
-            UpdatePlayerTrackRequest(encoded=self.current.encoded)
-            if self.current
-            else None
-        )
-        data = UpdatePlayerRequest(
-            track=track_payload,
-            position=self.position,
-            volume=self._volume,
-            paused=self._paused,
-            filters=self._filters,
-        )
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        if old_node and old_node._resume_session:
-            try:
-                await old_node._manager.destroy_player(
-                    session_id=old_node._resume_session, guild_id=str(self.guild_id)
-                )
-            except Exception as exc:
-                _log.warning(
-                    "Player %s: Failed to destroy player on old node during migration. Error: %s",
-                    self.guild_id,
-                    exc,
-                    exc_info=True,
-                )
-
-        _log.info(
-            "Player %s: Successfully migrated to Node %r.",
-            self.guild_id,
-            node.id,
-        )
+        await self._lifecycle_handler.move_to(node)
 
     async def play(
         self,
@@ -418,35 +344,13 @@ class Player(discord.VoiceProtocol):
         :class:`Playable`
             The track that was requested for playback.
         """
-        node = self.node
-        assert node._resume_session is not None
-
-        volume = volume if volume is not None else self._volume
-        paused = paused if paused is not None else self._paused
-
-        track_payload = UpdatePlayerTrackRequest(encoded=track.encoded)
-        data = UpdatePlayerRequest(
-            track=track_payload,
-            position=start,
-            endtime=end,
+        return await self._playback_handler.play(
+            track,
+            start=start,
+            end=end,
             volume=volume,
             paused=paused,
         )
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._volume = volume
-        self._paused = paused
-        self._last_position = start
-        self._last_update = time.monotonic()
-        self._queue.current_track = track
-
-        self._stop_inactivity_timer()
-        return track
 
     async def stop(
         self,
@@ -466,30 +370,10 @@ class Player(discord.VoiceProtocol):
         RuntimeError
             The player is not connected to a node or session.
         """
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(track=None)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
+        await self._playback_handler.stop(
+            clear_queue=clear_queue,
+            clear_history=clear_history,
         )
-
-        self._last_position = 0
-        self._last_update = 0.0
-        self._queue.current_track = None
-
-        if clear_queue:
-            self._queue.clear()
-            self._queue.mode = QueueMode.NORMAL
-
-        if clear_history:
-            self._queue.clear_history()
-
-        _log.debug("Player %s: Stopped playback and reset state.", self.guild_id)
-        self._check_inactivity()
 
     async def pause(self, value: bool = True, /) -> None:
         """
@@ -500,23 +384,11 @@ class Player(discord.VoiceProtocol):
         value: :class:`bool`
             Whether to pause (True) or resume (False) the player.
         """
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(paused=value)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._paused = value
-        _log.debug("Player %s: Set paused state to %s", self.guild_id, value)
+        await self._playback_handler.pause(value)
 
     async def resume(self) -> None:
         """Resumes the player if it is paused. Alias for ``pause(False)``."""
-        await self.pause(False)
+        await self._playback_handler.resume()
 
     async def previous(self) -> None:
         """
@@ -534,8 +406,7 @@ class Player(discord.VoiceProtocol):
             There is no previous track in the history to return to.
         """
 
-        track = self._queue.previous()
-        await self.play(track)
+        await self._playback_handler.previous()
 
     async def skip(self) -> None:
         """
@@ -548,8 +419,7 @@ class Player(discord.VoiceProtocol):
         QueueEmpty
             The queue is empty and there is no track to skip to.
         """
-        next_track = self._queue.get()
-        await self.play(next_track)
+        await self._playback_handler.skip()
 
     async def seek(self, position: int, /) -> None:
         """
@@ -566,21 +436,7 @@ class Player(discord.VoiceProtocol):
             The player is not connected to a node or session.
         """
 
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(position=position)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._last_position = position
-        self._last_update = time.monotonic()
-
-        _log.debug("Player %s: Seeked to %dms", self.guild_id, position)
+        await self._playback_handler.seek(position)
 
     async def set_volume(self, value: int, /) -> None:
         """
@@ -598,22 +454,7 @@ class Player(discord.VoiceProtocol):
         RuntimeError
             The player is not currently connected to a node or session.
         """
-        if not 0 <= value <= 1000:
-            raise ValueError("Volume must be between 0 and 1000.")
-
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(volume=value)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._volume = value
-        _log.debug("Player %s: Set volume to %d.", self.guild_id, value)
+        await self._playback_handler.set_volume(value)
 
     async def set_filters(
         self,
@@ -639,27 +480,7 @@ class Player(discord.VoiceProtocol):
             The player is not connected to a node or session.
         """
 
-        node = self.node
-        assert node._resume_session is not None
-
-        data = UpdatePlayerRequest(filters=filters)
-
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self.guild_id),
-            data=data,
-        )
-
-        self._filters = filters
-
-        if seek:
-            await self.seek(self.position)
-
-        _log.debug(
-            "Player %s: Successfully applied filters: %r",
-            self.guild_id,
-            filters,
-        )
+        await self._playback_handler.set_filters(filters, seek=seek)
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         """
@@ -673,91 +494,13 @@ class Player(discord.VoiceProtocol):
         data: :class:`discord.types.voice.VoiceServerUpdate`
             The raw payload data received from the Discord Gateway.
         """
-        self._connection.token = data.get("token")
-        self._connection.endpoint = data.get("endpoint")
-
-        # The endpoint might be None; Lavalink needs a string or it will fail.
-        # Thus we wait for a non-None endpoint before dispatching.
-        if self._connection.endpoint:
-            await self._dispatch_voice_update()
+        await self._events_handler.on_voice_server_update(data)
 
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
-        event_type = data.get("type")
-        _log.debug("Player %s receiving even type: %s", self.guild_id, event_type)
-
-        assert self._node is not None
-        assert self._node._client is not None
-
-        match event_type:
-            case "TrackStartEvent":
-                payload = msgspec.convert(data, TrackStartEvent)
-
-                self._paused = False
-                self._stop_inactivity_timer()
-
-                self._node._client._dispatch("track_start", self, payload)
-
-            case "TrackEndEvent":
-                payload = msgspec.convert(data, TrackEndEvent)
-
-                if payload.reason != TrackEndReason.REPLACED:
-                    self._last_position = 0
-                    self._last_update = 0.0
-
-                if payload.reason.can_start_next:
-                    await self.skip()
-
-                self._node._client._dispatch("track_end", self, payload)
-                self._check_inactivity()
-
-            case "TrackExceptionEvent":
-                payload = msgspec.convert(data, TrackExceptionEvent)
-                _log.error(
-                    "Track exception in guild %s: %s",
-                    self.guild_id,
-                    payload.exception.message,
-                )
-
-                self._node._client._dispatch("track_exception", self, payload)
-
-            case "TrackStuckEvent":
-                payload = msgspec.convert(data, TrackStuckEvent)
-                _log.warning(
-                    "Track stuck in guild %s at %dms", self.guild_id, payload.threshold
-                )
-
-                self._node._client._dispatch("track_stuck", self, payload)
-
-            case "WebSocketClosedEvent":
-                payload = msgspec.convert(data, WebSocketClosedEvent)
-
-                _log.warning(
-                    "Player %s: Lavalink voice WS closed. Code %s, Reason: %s",
-                    self.guild_id,
-                    payload.code,
-                    payload.reason,
-                )
-
-                if not payload.by_remote:
-                    await self._dispatch_voice_update()
-
-            case _:
-                _log.debug(
-                    "Player %s received unhandled event type: %s",
-                    self.guild_id,
-                    event_type,
-                )
+        await self._events_handler._dispatch_event(data)
 
     def _update_state(self, state: PlayerState, /) -> None:
-        self._last_position = state.position
-        self._last_update = time.monotonic()
-
-        _log.debug(
-            "Player %s: Synced position to %dms (connected %s)",
-            self.guild_id,
-            state.position,
-            state.connected,
-        )
+        self._events_handler._update_state(state)
 
     async def on_voice_state_update(self, data: GuildVoiceState) -> None:
         """
@@ -771,125 +514,19 @@ class Player(discord.VoiceProtocol):
         data: :class:`discord.types.voice.GuildVoiceState`
             The raw payload data received from the Discord Gateway.
         """
-        self._connection.session_id = data.get("session_id")
-        self._connection.channel_id = str(data.get("channel_id"))
-
-        await self._dispatch_voice_update()
-        self._check_inactivity()
+        await self._events_handler.on_voice_state_update(data)
 
     async def _dispatch_voice_update(self) -> None:
-        if not self._connection.is_complete or not self._node:
-            return
-
-        assert self._connection.token is not None
-        assert self._connection.endpoint is not None
-        assert self._connection.session_id is not None
-        assert self._node._resume_session is not None
-
-        voice_state = PlayerVoiceState(
-            token=self._connection.token,
-            endpoint=self._connection.endpoint,
-            session_id=self._connection.session_id,
-        )
-
-        request_data = UpdatePlayerRequest(voice=voice_state)
-
-        try:
-            await self._node._manager.update_player(
-                session_id=self._node._resume_session,
-                guild_id=str(self.guild_id),
-                data=request_data,
-            )
-            _log.debug(
-                "Player %s: Successfully dispatched voice update to Node %r.",
-                self.guild_id,
-                self._node.id,
-            )
-        except Exception as exc:
-            _log.error(
-                "Player %s: Failed to dispatch voice update to Node %r. Error: %s",
-                self.guild_id,
-                self._node.id,
-                exc,
-                exc_info=True,
-            )
+        await self._events_handler._dispatch_voice_update()
 
     def _check_inactivity(self) -> None:
-        node = self._node
-        guild = self.client.get_guild(self.guild_id)
-
-        if (
-            node is None
-            or guild is None
-            or guild.me.voice is None
-            or guild.me.voice.channel is None
-        ):
-            return
-
-        settings = node.inactivity_settings
-        whitelist = {u if isinstance(u, int) else u.id for u in settings.user_ids}
-
-        is_active = False
-        is_idle = self.current is None
-
-        for user_id in guild.me.voice.channel.voice_states:
-            if user_id == guild.me.id:
-                continue
-
-            if settings.mode == InactivityMode.ONLY_SELF:
-                is_active = True
-                break
-
-            if settings.mode == InactivityMode.IGNORED_USERS and user_id in whitelist:
-                is_active = True
-                break
-
-            if settings.mode == InactivityMode.ALL_BOTS:
-                member = guild.get_member(user_id)
-                if member and not member.bot:
-                    is_active = True
-                    break
-
-        if not is_active or is_idle:
-            self._start_inactivity_timer()
-        else:
-            self._stop_inactivity_timer()
+        self._inactivity_handler._check_inactivity()
 
     def _start_inactivity_timer(self) -> None:
-        node = self._node
-
-        if node is None or self.guild_id in node._waiting_to_disconnect:
-            return
-
-        timeout = node.inactivity_settings.timeout
-        if timeout is None:
-            return
-
-        task = asyncio.create_task(self._inactivity_timeout(timeout))
-        task.add_done_callback(
-            lambda _: node._waiting_to_disconnect.pop(self.guild_id, None)
-        )
-        node._waiting_to_disconnect[self.guild_id] = task
-        _log.debug(
-            "Player %s: Started inactivity timer for %ds, mode: %s.",
-            self.guild_id,
-            timeout,
-            node.inactivity_settings.mode,
-        )
+        self._inactivity_handler._start_inactivity_timer()
 
     def _stop_inactivity_timer(self) -> None:
-        if self._node is None:
-            return
-
-        task = self._node._waiting_to_disconnect.pop(self.guild_id, None)
-
-        if task is None:
-            return
-
-        task.cancel()
-        _log.debug("Player %s: Activity detected, cancelled timer.", self.guild_id)
+        self._inactivity_handler._stop_inactivity_timer()
 
     async def _inactivity_timeout(self, timeout: int) -> None:
-        await asyncio.sleep(timeout)
-        _log.info("Player %s: Disconnecting due to inactivity.", self.guild_id)
-        await self.disconnect()
+        await self._inactivity_handler._inactivity_timeout(timeout)

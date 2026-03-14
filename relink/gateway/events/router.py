@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -59,12 +60,18 @@ class EventRouter:
     def listen(self, func: EventCallback[P, T], /) -> EventCallback[P, T]: ...
 
     @overload
-    def listen(self, *, event: str) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
+    def listen(
+        self, *, event: str
+    ) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
 
     @overload
-    def listen(self, *, event: None = None) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
+    def listen(
+        self, *, event: None = None
+    ) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
 
-    def listen(self, func: EventCallback[P, T] | None = None, event: str | None = None) -> Any:
+    def listen(
+        self, func: EventCallback[P, T] | None = None, event: str | None = None
+    ) -> Any:
         """Registers a new event listener.
 
         This is a decorator that can be used in three different ways:
@@ -118,10 +125,13 @@ class EventRouter:
             except KeyError:
                 self._event_map[event_name] = [func]
             return func
+
         return inner
 
     def _inner_dispatch(self, event: str, coro: Coroutine[Any, Any, Any]) -> None:
-        task = asyncio.create_task(coro, name=f"relink-event-dispatcher:{event}-{id(coro):#x}")
+        task = asyncio.create_task(
+            coro, name=f"relink-event-dispatcher:{event}-{id(coro):#x}"
+        )
         self._task_set.add(task)
         task.add_done_callback(self._task_set.discard)
 

@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2025-present ReWaveLink Development Team.
+Copyright (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,43 +24,21 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
-from relink.utils import cached_property
-
-from .base import BaseModel
-from .track import Playable
-
 if TYPE_CHECKING:
-    from ..rest.schemas.player import Player as PlayerInfoPayload
+    from . import Player
+
+__all__ = ()
+
+_log = logging.getLogger("relink.gateway.player")
 
 
-class PlayerInfo(BaseModel[PlayerInfoPayload]):
-    """
-    Represents a player's info data.
+class HandlerBase:
+    """Base class for all internal player handlers."""
 
-    This class wraps the raw :class:`relink.rest.schemas.Player` schema and provides
-    a high-level interface for accessing player metadata and state.
-    """
+    __slots__ = ("_player",)
 
-    __slots__ = ("_cs_track",)
-
-    @property
-    def guild_id(self) -> int:
-        """The Discord guild ID the player belongs to."""
-        return self._data.guild_id
-
-    @cached_property("_cs_track")
-    def track(self) -> Playable | None:
-        """Current playing track, or ``None`` if no track is playing."""
-        track = self._data.track
-        if not track:
-            return None
-        return Playable(client=self._client, data=track)
-
-    @property
-    def volume(self) -> int:
-        """The player volume in a 0-1000 percent scale."""
-        return self._data.volume
-
-    # TODO: finish this model
+    def __init__(self, player: Player, /) -> None:
+        self._player: Player = player
