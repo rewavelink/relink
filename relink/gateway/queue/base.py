@@ -29,9 +29,10 @@ from collections.abc import Iterable, Iterator
 from itertools import islice
 from typing import TYPE_CHECKING, TypeGuard, overload
 
+from relink.models.track import Playable
+
 if TYPE_CHECKING:
     from relink.models.playlist import Playlist
-    from relink.models.track import Playable
 
 
 class ReadableCollection:

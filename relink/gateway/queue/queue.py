@@ -30,6 +30,7 @@ from collections import deque
 from typing import TYPE_CHECKING, Iterable
 
 from relink.models.settings import HistorySettings
+from relink.models.track import Playable
 
 from ..enums import QueueMode
 from ..errors import HistoryEmpty, QueueEmpty
@@ -38,7 +39,6 @@ from .history import History
 
 if TYPE_CHECKING:
     from relink.models.playlist import Playlist
-    from relink.models.track import Playable
 
 
 class Queue(MutableQueueBase):
