@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Annotated, Any, Self, overload
@@ -65,13 +66,14 @@ class PlayerConnectionState:
     extra metadata during the Discord handshake.
     """
 
-    __slots__ = ("token", "endpoint", "session_id", "channel_id")
+    __slots__ = ("token", "endpoint", "session_id", "channel_id", "_connected_flag")
 
     def __init__(self) -> None:
         self.token: str | None = None
         self.endpoint: str | None = None
         self.session_id: str | None = None
         self.channel_id: str | None = None
+        self._connected_flag: asyncio.Event = asyncio.Event()
 
     @property
     def is_complete(self) -> bool:
@@ -158,6 +160,7 @@ class Player(discord.VoiceProtocol):
     _queue: Queue
     _ready: bool
     _volume: int
+    _guild: discord.Guild | None
 
     def __repr__(self) -> str:
         return (
@@ -184,11 +187,12 @@ class Player(discord.VoiceProtocol):
         history_settings: HistorySettings | None = None,
     ) -> None:
         self.guild_id = 0
+        self._guild = None
         self._node = node
         self._connection = self.get_connection_state()
 
         self._filters = PlayerFilters()
-        self._queue: Queue = Queue(history_settings=history_settings)
+        self._queue = Queue(history_settings=history_settings)
         self._paused = False
         self._volume = 100
 
@@ -202,9 +206,13 @@ class Player(discord.VoiceProtocol):
         self._playback_handler = PlaybackHandler(self)
 
         if client is not MISSING and channel is not MISSING:
+            super().__init__(client=client, channel=channel)
             self.guild_id = channel.guild.id
+            self._guild = channel.guild
             self._ready = True
         else:
+            self.client = MISSING
+            self.channel = MISSING
             self._ready = False
 
     def __call__(
@@ -220,6 +228,23 @@ class Player(discord.VoiceProtocol):
             self._node._add_player(self)
 
         return self
+
+    def _ensure_node(self) -> Node:
+        if self._node:
+            return self._node
+
+        if self.client is MISSING:
+            raise RuntimeError("can not ensure node without a client")
+
+        from ..client import Client  # >circular import<
+
+        rlclient = Client.__clients__.get(self.client)
+
+        if rlclient is None:
+            raise RuntimeError(f"no relink.gateway.Client bound to {self.client}")
+
+        self._node = rlclient.get_best_node()
+        return self._node
 
     @property
     def autoplay(self) -> AutoPlayMode:
