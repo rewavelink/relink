@@ -60,6 +60,10 @@ if TYPE_CHECKING:
 
 _log = logging.getLogger(__name__)
 
+__all__ = (
+    "Node",
+)
+
 
 class Node:
     """Represents a connectable Node."""

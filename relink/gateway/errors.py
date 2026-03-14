@@ -31,6 +31,14 @@ from relink.errors import ReLinkException
 if TYPE_CHECKING:
     from .node import Node
 
+__all__ = (
+    "NodeError",
+    "InvalidNodePassword",
+    "NodeURINotFound",
+    "QueueEmpty",
+    "HistoryEmpty",
+)
+
 
 class NodeError(ReLinkException):
     """Base class for all Node-related errors."""
