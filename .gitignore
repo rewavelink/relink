@@ -172,3 +172,6 @@ __marimo__/
 # Lock files
 uv.lock*
 pylock*.toml
+
+# Private/Test files
+*.private.*

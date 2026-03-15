@@ -43,7 +43,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 speed = ["curl-cffi>=0.14.0,<1", "orjson>=3.11.7,<4"]
 docs = [
     "sphinx>=9.0.0",

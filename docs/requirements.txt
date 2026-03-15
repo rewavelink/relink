@@ -1,6 +1,1 @@
--e .
-sphinx>=9.0.0
-furo
-sphinx-copybutton
-sphinx-autobuild>=2024.10.3
-typing_extensions>=4.0.0
+-e .[docs]
