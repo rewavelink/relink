@@ -30,7 +30,12 @@ intersphinx_mapping = {
 }
 
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "api/network.rst", "api/rest.http.rst", "api/gateway.events.rst"]
+exclude_patterns = [
+    "_build",
+    "api/network.rst",
+    "api/rest.http.rst",
+    "api/gateway.events.rst",
+]
 add_module_names = False
 nitpick_ignore_regex = [
     ("py:class", r"discord(\..+)?"),
