@@ -39,9 +39,8 @@ from ..schemas.events import (
     TrackExceptionEvent,
     TrackStartEvent,
     TrackStuckEvent,
-    WebSocketClosedEvent,
 )
-from ..schemas.receive import PlayerState
+from ..schemas.receive import PlayerState, WebSocketClosedEvent
 from ._base import HandlerBase, _log
 
 __all__ = ()
@@ -64,7 +63,7 @@ class EventsHandler(HandlerBase):
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
         event_type = data.get("type")
         _log.debug(
-            "Player %s receiving even type: %s", self._player.guild_id, event_type
+            "Player %s receiving even type: %s", self._player.guild.id, event_type
         )
 
         assert self._player._node is not None
@@ -98,7 +97,7 @@ class EventsHandler(HandlerBase):
                 payload = msgspec.convert(data, TrackExceptionEvent)
                 _log.error(
                     "Track exception in guild %s: %s",
-                    self._player.guild_id,
+                    self._player.guild.id,
                     payload.exception.message,
                 )
 
@@ -110,7 +109,7 @@ class EventsHandler(HandlerBase):
                 payload = msgspec.convert(data, TrackStuckEvent)
                 _log.warning(
                     "Track stuck in guild %s at %dms",
-                    self._player.guild_id,
+                    self._player.guild.id,
                     payload.threshold,
                 )
 
@@ -123,7 +122,7 @@ class EventsHandler(HandlerBase):
 
                 _log.warning(
                     "Player %s: Lavalink voice WS closed. Code %s, Reason: %s",
-                    self._player.guild_id,
+                    self._player.guild.id,
                     payload.code,
                     payload.reason,
                 )
@@ -134,7 +133,7 @@ class EventsHandler(HandlerBase):
             case _:
                 _log.debug(
                     "Player %s received unhandled event type: %s",
-                    self._player.guild_id,
+                    self._player.guild.id,
                     event_type,
                 )
 
@@ -144,7 +143,7 @@ class EventsHandler(HandlerBase):
 
         _log.debug(
             "Player %s: Synced position to %dms (connected %s)",
-            self._player.guild_id,
+            self._player.guild.id,
             state.position,
             state.connected,
         )

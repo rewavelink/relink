@@ -28,7 +28,8 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from relink.models.settings import AutoPlaySettings
-from relink.models.track import Playable, Playlist
+from relink.models.track import Playable
+from relink.models.playlist import Playlist
 
 from ..enums import AutoPlayMode
 from ._base import HandlerBase, _log

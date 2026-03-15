@@ -26,11 +26,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..rest.schemas import filters
 from .base import BaseModel
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
-    from ..rest.schemas import filters
+
 
 __all__ = (
     "Equalizer",

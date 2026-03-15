@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING, Any, cast
 import aiohttp
 from typing_extensions import TypeIs
 
+from .base import BaseHTTPManager, BaseWebsocketManager
+
 if TYPE_CHECKING:
     import curl_cffi
     # curl_cffi is only available with the [speed] extra
-
-    from .base import BaseHTTPManager, BaseWebsocketManager
 
     SessionType = curl_cffi.AsyncSession[curl_cffi.Response] | aiohttp.ClientSession
     WebsocketType = curl_cffi.AsyncWebSocket | aiohttp.ClientWebSocketResponse

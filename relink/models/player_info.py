@@ -24,15 +24,11 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from relink.utils import cached_property
 
+from ..rest.schemas.player import Player as PlayerInfoPayload
 from .base import BaseModel
 from .track import Playable
-
-if TYPE_CHECKING:
-    from ..rest.schemas.player import Player as PlayerInfoPayload
 
 __all__ = ("PlayerInfo",)
 

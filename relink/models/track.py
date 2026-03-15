@@ -26,11 +26,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..rest.schemas.track import Track
 from .base import BaseModel
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
-    from ..rest.schemas.track import Track
     from .playlist import Playlist
 
 __all__ = (

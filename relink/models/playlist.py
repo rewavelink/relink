@@ -26,12 +26,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Iterator, overload
 
+from ..rest.schemas.track import PlaylistData
 from .base import BaseModel
 from .track import Playable
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
-    from ..rest.schemas.track import PlaylistData
 
 __all__ = ("Playlist",)
 

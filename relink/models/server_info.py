@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING
 
 from relink.utils import cached_property
 
+from ..rest.schemas.info import InfoResponse as ServerInfoPayload
 from .base import BaseModel
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
         PluginObject,
         VersionObject,
     )
-    from ..rest.schemas.info import InfoResponse as ServerInfoPayload
+
 
 __all__ = ("ServerInfo",)
 
