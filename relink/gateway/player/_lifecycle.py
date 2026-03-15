@@ -119,6 +119,7 @@ class LifecycleHandler(HandlerBase):
 
         finally:
             self._player._queue.reset()
+            self._player._connection._connected_flag.clear()
 
     async def move_to(self, node: Node, /) -> None:
         if self._player._node is node:
