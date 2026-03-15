@@ -72,7 +72,7 @@ class AutoPlayHandler(HandlerBase):
         )
 
         if not reference or not reference.identifier:
-            _log.debug("Player %s: No valid seed for AutoPlay.", self._player.guild_id)
+            _log.debug("Player %s: No valid seed for AutoPlay.", self._player.guild.id)
             return
 
         if len(self._seeds) > self._settings.max_seeds:
@@ -106,7 +106,7 @@ class AutoPlayHandler(HandlerBase):
         except Exception as exc:
             _log.error(
                 "Player %s: AutoPlay failed: %s",
-                self._player.guild_id,
+                self._player.guild.id,
                 exc,
                 exc_info=True,
             )

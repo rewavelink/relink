@@ -37,7 +37,7 @@ class InactivityHandler(HandlerBase):
 
     def _check_inactivity(self) -> None:
         node = self._player._node
-        guild = self._player.client.get_guild(self._player.guild_id)
+        guild = self._player.client.get_guild(self._player.guild.id)
 
         if (
             node is None
@@ -79,7 +79,7 @@ class InactivityHandler(HandlerBase):
     def _start_inactivity_timer(self) -> None:
         node = self._player._node
 
-        if node is None or self._player.guild_id in node._waiting_to_disconnect:
+        if node is None or self._player.guild.id in node._waiting_to_disconnect:
             return
 
         timeout = node.inactivity_settings.timeout
@@ -88,12 +88,12 @@ class InactivityHandler(HandlerBase):
 
         task = asyncio.create_task(self._inactivity_timeout(timeout))
         task.add_done_callback(
-            lambda _: node._waiting_to_disconnect.pop(self._player.guild_id, None)
+            lambda _: node._waiting_to_disconnect.pop(self._player.guild.id, None)
         )
-        node._waiting_to_disconnect[self._player.guild_id] = task
+        node._waiting_to_disconnect[self._player.guild.id] = task
         _log.debug(
             "Player %s: Started inactivity timer for %ds, mode: %s.",
-            self._player.guild_id,
+            self._player.guild.id,
             timeout,
             node.inactivity_settings.mode,
         )
@@ -103,7 +103,7 @@ class InactivityHandler(HandlerBase):
             return
 
         task = self._player._node._waiting_to_disconnect.pop(
-            self._player.guild_id, None
+            self._player.guild.id, None
         )
 
         if task is None:
@@ -111,10 +111,10 @@ class InactivityHandler(HandlerBase):
 
         task.cancel()
         _log.debug(
-            "Player %s: Activity detected, cancelled timer.", self._player.guild_id
+            "Player %s: Activity detected, cancelled timer.", self._player.guild.id
         )
 
     async def _inactivity_timeout(self, timeout: int) -> None:
         await asyncio.sleep(timeout)
-        _log.info("Player %s: Disconnecting due to inactivity.", self._player.guild_id)
+        _log.info("Player %s: Disconnecting due to inactivity.", self._player.guild.id)
         await self._player.disconnect()

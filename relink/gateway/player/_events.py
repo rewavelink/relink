@@ -178,18 +178,18 @@ class EventsHandler(HandlerBase):
         try:
             await self._player._node._manager.update_player(
                 session_id=self._player._node._resume_session,
-                guild_id=str(self._player.guild_id),
+                guild_id=str(self._player.guild.id),
                 data=request_data,
             )
             _log.debug(
                 "Player %s: Successfully dispatched voice update to Node %r.",
-                self._player.guild_id,
+                self._player.guild.id,
                 self._player._node.id,
             )
         except Exception as exc:
             _log.error(
                 "Player %s: Failed to dispatch voice update to Node %r. Error: %s",
-                self._player.guild_id,
+                self._player.guild.id,
                 self._player._node.id,
                 exc,
                 exc_info=True,

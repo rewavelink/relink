@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Self, overload
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
+from relink import _registry
 from relink.models.settings import AutoPlaySettings, HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
 
@@ -66,7 +67,13 @@ class PlayerConnectionState:
     extra metadata during the Discord handshake.
     """
 
-    __slots__ = ("token", "endpoint", "session_id", "channel_id", "_connected_flag")
+    __slots__ = (
+        "token",
+        "endpoint",
+        "session_id",
+        "channel_id",
+        "_connected_flag",
+    )
 
     def __init__(self) -> None:
         self.token: str | None = None
@@ -113,8 +120,8 @@ class Player(discord.VoiceProtocol):
 
     Attributes
     ----------
-    guild_id: :class:`int`
-        The ID of the guild this player is connected to.
+    guild: :class:`discord.Guild`
+        The guild this player is attached to.
     filters: :class:`PlayerFilters`
         The currently applied filters for this player.
     paused: :class:`bool`
@@ -133,11 +140,11 @@ class Player(discord.VoiceProtocol):
     """
 
     __slots__ = (
-        "guild_id",
         "_autoplay_handler",
         "_connection",
         "_events_handler",
         "_filters",
+        "_guild",
         "_inactivity_handler",
         "_last_position",
         "_last_update",
@@ -150,9 +157,9 @@ class Player(discord.VoiceProtocol):
         "_volume",
     )
 
-    guild_id: int
     _connection: PlayerConnectionState
     _filters: PlayerFilters
+    _guild: discord.Guild | None
     _last_position: Annotated[int, "ms"]
     _last_update: Annotated[float, "time.monotonic"]
     _node: Node | None
@@ -160,11 +167,10 @@ class Player(discord.VoiceProtocol):
     _queue: Queue
     _ready: bool
     _volume: int
-    _guild: discord.Guild | None
 
     def __repr__(self) -> str:
         return (
-            f"<Player guild_id={self.guild_id} ready={self._ready} node={self._node!r}>"
+            f"<Player guild_id={self.guild.id} ready={self._ready} node={self._node!r}>"
         )
 
     @overload
@@ -186,7 +192,6 @@ class Player(discord.VoiceProtocol):
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
     ) -> None:
-        self.guild_id = 0
         self._guild = None
         self._node = node
         self._connection = self.get_connection_state()
@@ -207,7 +212,6 @@ class Player(discord.VoiceProtocol):
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client=client, channel=channel)
-            self.guild_id = channel.guild.id
             self._guild = channel.guild
             self._ready = True
         else:
@@ -221,30 +225,12 @@ class Player(discord.VoiceProtocol):
         channel: discord.VoiceChannel | discord.StageChannel,
     ) -> Self:
         super().__init__(client, channel)
-
-        self.guild_id = channel.guild.id
+        self._guild = channel.guild
 
         if self._node:
             self._node._add_player(self)
 
         return self
-
-    def _ensure_node(self) -> Node:
-        if self._node:
-            return self._node
-
-        if self.client is MISSING:
-            raise RuntimeError("can not ensure node without a client")
-
-        from ..client import Client  # >circular import<
-
-        rlclient = Client.__clients__.get(self.client)
-
-        if rlclient is None:
-            raise RuntimeError(f"no relink.gateway.Client bound to {self.client}")
-
-        self._node = rlclient.get_best_node()
-        return self._node
 
     @property
     def autoplay(self) -> AutoPlayMode:
@@ -255,7 +241,7 @@ class Player(discord.VoiceProtocol):
     def autoplay(self, value: AutoPlayMode) -> None:
         if not self._queue._history._settings.enabled:
             raise RuntimeError(
-                f"Player {self.guild_id} has disabled history, which is required for AutoPlay."
+                f"Player {self.guild.id} has disabled history, which is required for AutoPlay."
             )
         self._autoplay_handler._settings.mode = value
 
@@ -270,6 +256,13 @@ class Player(discord.VoiceProtocol):
         return self._filters
 
     @property
+    def guild(self) -> discord.Guild:
+        """The :class:`discord.Guild` this player is associated with."""
+        if self._guild is None:
+            raise RuntimeError("Player is not yet attached to a guild.")
+        return self._guild
+
+    @property
     def node(self) -> Node:
         """
         The :class:`Node` this player is currently attached to.
@@ -281,7 +274,7 @@ class Player(discord.VoiceProtocol):
         """
 
         if self._node is None:
-            raise RuntimeError(f"Player {self.guild_id} is not attached to a node.")
+            raise RuntimeError(f"Player {self.guild.id} is not attached to a node.")
         return self._node
 
     @property
@@ -539,12 +532,6 @@ class Player(discord.VoiceProtocol):
         """
         await self._events_handler.on_voice_server_update(data)
 
-    async def _dispatch_event(self, data: dict[str, Any]) -> None:
-        await self._events_handler._dispatch_event(data)
-
-    def _update_state(self, state: PlayerState, /) -> None:
-        self._events_handler._update_state(state)
-
     async def on_voice_state_update(self, data: GuildVoiceState) -> None:
         """
         Processes the ``VOICE_STATE_UPDATE`` payload from Discord.
@@ -558,6 +545,27 @@ class Player(discord.VoiceProtocol):
             The raw payload data received from the Discord Gateway.
         """
         await self._events_handler.on_voice_state_update(data)
+
+    def _ensure_node(self) -> Node:
+        if self._node:
+            return self._node
+
+        if self.client is MISSING:
+            raise RuntimeError("Cannot ensure Node without a Client.")
+
+        rl_client = _registry.clients.get(self.client)
+
+        if rl_client is None:
+            raise RuntimeError(f"No relink.Client is associated with {self.client!r}.")
+
+        self._node = rl_client.get_best_node()
+        return self._node
+
+    async def _dispatch_event(self, data: dict[str, Any]) -> None:
+        await self._events_handler._dispatch_event(data)
+
+    def _update_state(self, state: PlayerState, /) -> None:
+        self._events_handler._update_state(state)
 
     async def _dispatch_voice_update(self) -> None:
         await self._events_handler._dispatch_voice_update()

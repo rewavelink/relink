@@ -68,7 +68,7 @@ class PlaybackHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
@@ -95,7 +95,7 @@ class PlaybackHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
@@ -111,7 +111,7 @@ class PlaybackHandler(HandlerBase):
             self._player._queue.clear_history()
 
         _log.debug(
-            "Player %s: Stopped playback and reset state.", self._player.guild_id
+            "Player %s: Stopped playback and reset state.", self._player.guild.id
         )
         self._player._check_inactivity()
 
@@ -123,12 +123,12 @@ class PlaybackHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
         self._player._paused = value
-        _log.debug("Player %s: Set paused state to %s", self._player.guild_id, value)
+        _log.debug("Player %s: Set paused state to %s", self._player.guild.id, value)
 
     async def resume(self) -> None:
         await self.pause(False)
@@ -157,14 +157,14 @@ class PlaybackHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
         self._player._last_position = position
         self._player._last_update = time.monotonic()
 
-        _log.debug("Player %s: Seeked to %dms", self._player.guild_id, position)
+        _log.debug("Player %s: Seeked to %dms", self._player.guild.id, position)
 
     async def set_volume(self, value: int, /) -> None:
         if not 0 <= value <= 1000:
@@ -177,12 +177,12 @@ class PlaybackHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
         self._player._volume = value
-        _log.debug("Player %s: Set volume to %d.", self._player.guild_id, value)
+        _log.debug("Player %s: Set volume to %d.", self._player.guild.id, value)
 
     async def set_filters(
         self,
@@ -198,7 +198,7 @@ class PlaybackHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
@@ -209,6 +209,6 @@ class PlaybackHandler(HandlerBase):
 
         _log.debug(
             "Player %s: Successfully applied filters: %r",
-            self._player.guild_id,
+            self._player.guild.id,
             filters,
         )

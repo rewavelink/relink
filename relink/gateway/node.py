@@ -408,7 +408,7 @@ class Node:
 
     def _add_player(self, player: Player) -> None:
         """Internal helper to register a player to this node."""
-        self._players[player.guild_id] = player
+        self._players[player.guild.id] = player
 
     def _remove_player(self, guild_id: int) -> None:
         """Internal helper to unregister a player from this node."""

@@ -66,7 +66,10 @@ class LifecycleHandler(HandlerBase):
         node = self._player._node
 
         if not guild or not channel:
-            raise RuntimeError("can not connect without a channel or guild set, make sure the player was set to the cls= parameter of Connectable.connect")
+            raise RuntimeError(
+                "Cannot connect without a channel or guild set. \
+                Make sure the player was set to the cls= parameter of Connectable.connect"
+            )
 
         if not node:
             node = self._player._ensure_node()
@@ -81,33 +84,35 @@ class LifecycleHandler(HandlerBase):
             async with asyncio.timeout(timeout):
                 await self._player._connection._connected_flag.wait()
         except (asyncio.TimeoutError, asyncio.CancelledError):
-            raise ConnectionError(f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout")
+            raise ConnectionError(
+                f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
+            )
 
     async def disconnect(self, *, force: bool = False) -> None:
         try:
             if self._player._node is None:
                 return
 
-            self._player._node._remove_player(self._player.guild_id)
+            self._player._node._remove_player(self._player.guild.id)
 
             if self._player._node._resume_session is None:
                 return
 
             await self._player._node._manager.destroy_player(
                 session_id=self._player._node._resume_session,
-                guild_id=str(self._player.guild_id),
+                guild_id=str(self._player.guild.id),
             )
 
             _log.info(
                 "Player %s: Disconnected and removed from Node %r.",
-                self._player.guild_id,
+                self._player.guild.id,
                 self._player._node.id,
             )
 
         except Exception as exc:
             _log.warning(
                 "Player %s: Error during disconnect cleanup: %s",
-                self._player.guild_id,
+                self._player.guild.id,
                 exc,
                 exc_info=True,
             )
@@ -123,7 +128,7 @@ class LifecycleHandler(HandlerBase):
         self._player._node = node
 
         if old_node:
-            old_node._remove_player(self._player.guild_id)
+            old_node._remove_player(self._player.guild.id)
         node._add_player(self._player)
 
         await self._player._dispatch_voice_update()
@@ -144,7 +149,7 @@ class LifecycleHandler(HandlerBase):
 
         await node._manager.update_player(
             session_id=node._resume_session,
-            guild_id=str(self._player.guild_id),
+            guild_id=str(self._player.guild.id),
             data=data,
         )
 
@@ -152,18 +157,18 @@ class LifecycleHandler(HandlerBase):
             try:
                 await old_node._manager.destroy_player(
                     session_id=old_node._resume_session,
-                    guild_id=str(self._player.guild_id),
+                    guild_id=str(self._player.guild.id),
                 )
             except Exception as exc:
                 _log.warning(
                     "Player %s: Failed to destroy player on old node during migration. Error: %s",
-                    self._player.guild_id,
+                    self._player.guild.id,
                     exc,
                     exc_info=True,
                 )
 
         _log.info(
             "Player %s: Successfully migrated to Node %r.",
-            self._player.guild_id,
+            self._player.guild.id,
             node.id,
         )

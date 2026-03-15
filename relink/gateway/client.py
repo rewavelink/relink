@@ -26,11 +26,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, ClassVar
-from weakref import WeakKeyDictionary
+from typing import TYPE_CHECKING, Any
 
 import discord
 
+from relink import _registry
 from relink._version import __version__
 from relink.models.settings import CacheSettings, InactivitySettings
 
@@ -46,7 +46,6 @@ if TYPE_CHECKING:
 __all__ = ("Client",)
 
 _log = logging.getLogger(__name__)
-_ClientRegistry = WeakKeyDictionary[discord.Client, "Client[Any]"]
 
 
 class Client[N: Node]:
@@ -59,9 +58,9 @@ class Client[N: Node]:
     ----------
     client: :class:`discord.Client`
         The discord.py's client this ReLink client is attached to.
+    node_cls: type[N]
+        The class to use when creating new nodes. Defaults to :class:`Node`.
     """
-
-    __clients__: ClassVar[_ClientRegistry] = WeakKeyDictionary()
 
     _client: discord.Client
     _nodes: dict[str, N]
@@ -82,10 +81,10 @@ class Client[N: Node]:
         self.__node_tasks = {}
         self._node_cls: type[N] = node_cls
 
-        if client in Client.__clients__:
+        if client in _registry.clients:
             raise RuntimeError("relink.Client already attached to this discord.Client")
 
-        Client.__clients__[client] = self
+        _registry.clients[client] = self
 
     def __repr__(self) -> str:
         return f"<relink.Client nodes={len(self._nodes)}>"
@@ -198,7 +197,9 @@ class Client[N: Node]:
             try:
                 await node.connect()
             except Exception as exc:
-                _log.exception("Ignoring exception while connecting Node %r", node, exc_info=exc)
+                _log.exception(
+                    "Ignoring exception while connecting Node %r", node, exc_info=exc
+                )
                 continue
 
     async def close(self) -> None:
@@ -215,7 +216,9 @@ class Client[N: Node]:
             try:
                 await node.close()
             except Exception as exc:
-                _log.exception("Ignoring exception while closing Node %r", node, exc_info=exc)
+                _log.exception(
+                    "Ignoring exception while closing Node %r", node, exc_info=exc
+                )
                 continue
 
         self._nodes.clear()
