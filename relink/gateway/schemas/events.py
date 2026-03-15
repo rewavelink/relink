@@ -24,14 +24,11 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import msgspec
 
-from ..enums import TrackEndReason, TrackExceptionSeverity
+from relink.rest.schemas.track import Track
 
-if TYPE_CHECKING:
-    from relink.rest.schemas.track import Track
+from ..enums import TrackEndReason, TrackExceptionSeverity
 
 __all__ = (
     "TrackStartEvent",

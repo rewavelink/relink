@@ -54,7 +54,7 @@ class TrackLoadResult(StrEnum):
     Result type returned when loading tracks.
 
     Each value represents the type of result returned in
-    :attr:`TrackLoadingResult.load_type`.
+    :attr:`relink.rest.schemas.TrackLoadingResponse.load_type`.
 
     :ivar TRACK: A single track was loaded
     :ivar PLAYLIST: A playlist was loaded
@@ -72,8 +72,8 @@ class TrackLoadResult(StrEnum):
 
 class TrackSourceType(StrEnum):
     """
-    A track source type. This can be used when searching using :meth:`Node.search_tracks`
-    or :meth:`Client.search_tracks`.
+    A track source type. This can be used when searching using
+    :meth:`relink.Node.search_track` or :meth:`relink.Client.search_track`.
 
     This provides the default track sources by Lavalink.
     """

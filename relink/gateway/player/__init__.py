@@ -109,34 +109,15 @@ class Player(discord.VoiceProtocol):
 
         .. code-block:: python3
 
-            # This will use the default NodePool to find an available node
+            # This will resolve a node from the attached relink.Client
             await voice_channel.connect(cls=relink.Player)
 
     Parameters
     ----------
-    node: :class:`Node` | :data:`None`
+    node: :class:`relink.Node` | :data:`None`
         The node to associate this player with. If ``None``, the player will attempt
-        to fetch an available node from the :class:`NodePool` during the connection process.
-
-    Attributes
-    ----------
-    guild: :class:`discord.Guild`
-        The guild this player is attached to.
-    filters: :class:`PlayerFilters`
-        The currently applied filters for this player.
-    paused: :class:`bool`
-        Whether the player is currently paused.
-    position: :class:`int`
-        The current position of the player in milliseconds.
-    volume: :class:`int`
-        The current volume of the player (0-1000).
-    queue: :class:`Queue`
-        The track queue associated with this player. This handles both upcoming
-        tracks and playback history.
-    current: :class:`Playable` | :data:`None`
-        The currently playing track, or ``None`` if nothing is playing.
-    node: :class:`Node`
-        The node this player is currently attached to.
+        to resolve an available node from the attached :class:`relink.Client` during
+        the connection process.
     """
 
     __slots__ = (
@@ -360,7 +341,7 @@ class Player(discord.VoiceProtocol):
 
         Parameters
         ----------
-        playable: :class:`Playable` | :class:`str`
+        playable: :class:`relink.models.Playable` | :class:`str`
             The track to play. Can be a Playable object or a base64 encoded track string.
         start: :class:`int`
             The position in milliseconds to start playback at. Defaults to 0.
@@ -377,7 +358,7 @@ class Player(discord.VoiceProtocol):
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The track that was requested for playback.
         """
         return await self._playback_handler.play(

@@ -44,7 +44,7 @@ EventCallback = Callable[P, Coroutine[Any, Any, T]]
 
 class EventRouter:
     """Represents an event router that handles receiving and dispatching events
-    on a :class:`relink.gateway.Player`.
+    on a :class:`relink.Player`.
     """
 
     _client: Client[Any]

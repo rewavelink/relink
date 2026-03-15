@@ -116,7 +116,7 @@ class MutableQueueBase(ReadableCollection):
 
         Parameters
         ----------
-        tracks: :class:`Playable` | :class:`Playlist` | Iterable[:class:`Playable`]
+        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iterable[:class:`relink.models.Playable`]
             The track(s) or playlist to add to the queue.
         atomic: :class:`bool`
             Whether to insert the items atomically. If ``True``, all items must be

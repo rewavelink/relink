@@ -33,7 +33,7 @@ class PlaylistInfo(msgspec.Struct, kw_only=True):
     """
     Represents metadata for a loaded playlist.
 
-    This object is returned under :attr:`Playlist.info` when tracks are loaded.
+    This object is embedded in playlist load responses.
     """
 
     name: str

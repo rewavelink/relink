@@ -13,7 +13,7 @@ dependencies = [
 ]
 requires-python = ">=3.12"
 authors = [
-    { name = "PythonistaGuild, EvieePy", email="evieepy@gmail.com" },  # the original author of wavelink
+    { name = "PythonistaGuild, EvieePy", email = "evieepy@gmail.com" }, # the original author of wavelink
     { name = "vmphase" },
     { name = "Soheab" },
     { name = "DA-344 (aka Developer Anonymous)" },
@@ -45,7 +45,12 @@ classifiers = [
 
 [dependency-groups]
 speed = ["curl-cffi>=0.14.0,<1", "orjson>=3.11.7,<4"]
-docs = ["relink[speed]", "sphinx>=9.0.0", "furo", "sphinx-copybutton"]
+docs = [
+    "sphinx>=9.0.0",
+    "furo",
+    "sphinx-copybutton",
+    "sphinx-autobuild>=2024.10.3",
+]
 
 [project.urls]
 Repository = "https://github.com/rewavelink/relink.git"
@@ -54,3 +59,6 @@ Repository = "https://github.com/rewavelink/relink.git"
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportPrivateUsage = false
+
+[tool.ruff.lint]
+ignore = ["F405", "F403"]
