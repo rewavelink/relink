@@ -36,6 +36,7 @@ __all__ = (
     "SearchProvider",
 )
 
+
 class NodeStatus(Enum):
     """Represents the connection status of a node.
 

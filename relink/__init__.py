@@ -8,6 +8,14 @@ An async-prepared, high performance, Lavalink wrapper for discord.py.
 :license: MIT
 """
 
-from . import gateway, rest, models
-from .errors import *
-from ._version import *
+from ._version import __version__
+from .gateway.client import Client
+from .gateway.node import Node
+from .gateway.player import Player
+
+__all__ = (
+    "__version__",
+    "Client",
+    "Node",
+    "Player",
+)

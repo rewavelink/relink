@@ -8,5 +8,5 @@ Module that handles rest-related objects.
 :license: MIT
 """
 
-from .enums import *
-from .errors import *
+from .enums import *  # noqa: F403
+from .errors import *  # noqa: F403

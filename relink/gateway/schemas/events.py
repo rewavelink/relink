@@ -39,7 +39,6 @@ __all__ = (
     "TrackExceptionEvent",
     "TrackException",
     "TrackStuckEvent",
-    "WebSocketClosedEvent",
 )
 
 

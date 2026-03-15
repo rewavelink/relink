@@ -8,10 +8,10 @@ Submodule containing all the schemas used in the rest module.
 :license: MIT
 """
 
-from .filters import *
-from .info import *
-from .planner import *
-from .player import *
-from .playlist import *
-from .session import *
-from .track import *
+from .filters import *  # noqa: F403
+from .info import *  # noqa: F403
+from .planner import *  # noqa: F403
+from .player import *  # noqa: F403
+from .playlist import *  # noqa: F403
+from .session import *  # noqa: F403
+from .track import *  # noqa: F403
