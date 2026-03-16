@@ -79,10 +79,11 @@ napoleon_preprocess_types = True
 html_theme = "furo"
 html_static_path = ["_static"]
 html_title = f"{project} {release} documentation"
+html_favicon = "_static/logo.svg"
 
 html_theme_options = {
-    "light_logo": "logo.svg",
-    "dark_logo": "logo.svg",
+    "light_logo": "light-banner.svg",
+    "dark_logo": "dark-banner.svg",
     "sidebar_hide_name": True,
 }
 

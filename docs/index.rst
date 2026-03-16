@@ -1,37 +1,44 @@
 ReLink Documentation
 ====================
 
-**ReLink** is a Lavalink wrapper for ``discord.py`` with a typed, async-first API.
-The library is organized around three public building blocks:
+**ReLink** is a modern, typed, and async-first Lavalink wrapper designed specifically for ``discord.py``.
+
+Core Building Blocks
+--------------------
+To keep things simple, ReLink is built around three primary components:
 
 * :class:`relink.Client` manages Lavalink nodes for your Discord client.
-* :class:`relink.Node` handles one Lavalink connection plus REST operations.
+* :class:`relink.Node` handles a single Lavalink connection and all REST operations.
 * :class:`relink.Player` integrates with Discord voice and controls playback.
 
-What you can do with ReLink
----------------------------
+Features at a Glance
+--------------------
 
-* Connect to one or more Lavalink v4+ nodes.
-* Search tracks and playlists through Lavalink.
-* Join voice channels using a native ``discord.py`` voice protocol.
-* Manage queues, history, volume, filters, and autoplay settings.
-* Use optional ``curl_cffi`` networking for faster HTTP and websocket handling.
+* Lavalink v4+, giving you access to the latest stability fixes and features.
+* Native ``discord.py`` Voice Protocol support. 
+* Customizable history, autoplay, and queue for better experience.
+* Full control over audio, from volume to complex audio filters.
+* Optional ``curl_cffi`` and ``orjson`` support for extra-speed.
 
-Start here
-----------
+Getting Started
+---------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   overview
    installation
    quickstart
    concepts
-   guides/index
    api/index
+   guides/migrating-from-wavelink
+   
+License
+-------
+ReLink is made available under the `MIT License <https://github.com/rewavelink/relink/blob/main/LICENSE>`_.
 
-Project links
--------------
+Resources
+---------
 
 * `GitHub repository <https://github.com/rewavelink/relink>`_
-* `PyPI package <https://pypi.org/project/relink/>`_
+* `PyPI package <https://pypi.org/project/rewavelink/>`_
+* `Discord Community <https://discord.gg/tPHVWBPedt>`_

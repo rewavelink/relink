@@ -7,7 +7,7 @@ Requirements
 ReLink currently targets:
 
 * Python 3.12+
-* ``discord.py`` 2.6+
+* discord.py 2.6+
 * Lavalink v4+
 
 Install the package
@@ -17,13 +17,13 @@ Install the base package:
 
 .. code-block:: bash
 
-   pip install relink
+   pip install rewavelink
 
 Install with the optional speed extras:
 
 .. code-block:: bash
 
-   pip install "relink[speed]"
+   pip install "rewavelink[speed]"
 
 The ``speed`` extra adds ``curl_cffi`` and ``orjson``. ReLink will prefer
 ``curl_cffi`` automatically when it is available.
