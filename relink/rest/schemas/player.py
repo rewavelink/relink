@@ -49,7 +49,7 @@ class Player(msgspec.Struct, kw_only=True):
     Represents a Lavalink Player.
     """
 
-    guild_id: int = msgspec.field(name="guildId")
+    guild_id: str = msgspec.field(name="guildId")
     """The Discord guild ID the player belongs to."""
 
     track: Track | None = None
@@ -110,25 +110,25 @@ class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     This object is sent to `/players/{guildId}` to modify player state.
     """
 
-    track: UpdatePlayerTrackRequest | None = None
+    track: UpdatePlayerTrackRequest | msgspec.UnsetType = msgspec.UNSET
     """Track to play or update (:class:`UpdatePlayerTrackRequest`), optional."""
 
-    position: int | None = None
+    position: int | msgspec.UnsetType = msgspec.UNSET
     """Seek position in milliseconds, optional."""
 
-    endtime: int | None = msgspec.field(name="endTime", default=None)
+    endtime: int | msgspec.UnsetType = msgspec.field(name="endTime", default=msgspec.UNSET)
     """Track end time in milliseconds, optional."""
 
-    volume: int | None = None
+    volume: int | msgspec.UnsetType = msgspec.UNSET
     """Volume to set (0-1000 percent scale), optional."""
 
-    paused: bool | None = None
+    paused: bool | msgspec.UnsetType = msgspec.UNSET
     """Whether to pause the player, optional."""
 
-    filters: PlayerFilters | None = None
+    filters: PlayerFilters | msgspec.UnsetType = msgspec.UNSET
     """Audio filters to apply (:class:`PlayerFilters`), optional."""
 
-    voice: PlayerVoiceState | None = None
+    voice: PlayerVoiceState | msgspec.UnsetType = msgspec.UNSET
     """Voice state updates (:class:`PlayerVoiceState`), optional."""
 
 
@@ -139,13 +139,13 @@ class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     Used within :class:`UpdatePlayerRequest` to play or modify a track.
     """
 
-    encoded: str | None = None
+    encoded: str | msgspec.UnsetType = msgspec.UNSET
     """Base64-encoded track string, optional."""
 
-    identifier: str | None = None
+    identifier: str | msgspec.UnsetType = msgspec.UNSET
     """Unique track identifier, optional."""
 
-    user_data: dict[str, Any] | None = msgspec.field(name="userData", default=None)
+    user_data: dict[str, Any] | msgspec.UnsetType = msgspec.field(name="userData", default=msgspec.UNSET)
     """Optional user data previously provided when updating the player."""
 
 
