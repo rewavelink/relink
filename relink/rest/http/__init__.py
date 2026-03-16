@@ -6,6 +6,7 @@ relink.rest.http
 from __future__ import annotations
 
 from collections.abc import Mapping
+import logging
 from typing import Any
 
 from relink.network import HTTPFactory
@@ -16,6 +17,8 @@ from .planner import RoutePlannerHTTPMixin
 from .player import PlayerHTTPMixin
 from .session import SessionHTTPMixin
 from .track import TrackHTTPMixin
+
+_log = logging.getLogger(__name__)
 
 __all__ = ("RESTClient",)
 
@@ -60,8 +63,8 @@ class RESTClient(
     ) -> Any:
         merged_headers = {**self._default_headers, **(headers or {})}
         full_url = self._build_full_url(url)
-
-        return await self._manager.request(
+        _log.debug("HTTP send %s %s (params=%s) %s with data json=%s ; data=%s", method, url, params, headers, json, data)
+        ret = await self._manager.request(
             method,
             full_url,
             headers=merged_headers or None,
@@ -69,6 +72,8 @@ class RESTClient(
             json=json,
             data=data,
         )
+        _log.debug("HTTP receive %s %s with response %r", method, url, ret)
+        return ret
 
     async def connect_ws(
         self,
@@ -86,7 +91,7 @@ class RESTClient(
         return ws
 
     def _build_full_url(self, url: str) -> str:
-        return self._base_url + url if url.startswith("/") else url
+        return self._base_url + "/v4" + url if url.startswith("/") else url
 
     def _build_ws_url(self, url: str) -> str:
         is_secure = self._base_url.startswith("https://")
