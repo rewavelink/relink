@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Core Concepts
 =============
+
 
 Client
 ------

@@ -1,3 +1,6 @@
+
+.. currentmodule:: relink
+
 API Reference
 =============
 
@@ -7,9 +10,13 @@ surface in more detail.
 Private implementation modules are intentionally excluded from this section.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    core
+   exceptions
+   enums
    gateway
-   models
    rest
+   models
+   advanced
+

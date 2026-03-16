@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Filters And Playback State
 ==========================
+
 
 Applying filters
 ----------------

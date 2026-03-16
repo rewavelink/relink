@@ -1,18 +1,13 @@
 import datetime
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from relink import __version__
 
-if TYPE_CHECKING:
-    from docutils import nodes
-    from sphinx.addnodes import pending_xref
-    from sphinx.application import Sphinx
-    from sphinx.environment import BuildEnvironment
-
 ROOT = Path(__file__).resolve().parents[1]
+DOCS_PATH = ROOT / "docs"
 sys.path.insert(0, str(ROOT))
+sys.path.append(str(DOCS_PATH / "extensions"))
 
 
 # -- Project information --
@@ -24,34 +19,32 @@ release = __version__
 # -- General configuration --
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.extlinks",
     "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
+    "sphinx.ext.viewcode",
+    "attributetable",
+    "navigationhome",
+    "pythonref",
 ]
 
 # Intersphinx link to standard Python docs
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "discord": ("https://discordpy.readthedocs.io/en/stable/", None),
+    "aiohttp": ("https://docs.aiohttp.org/en/stable/", None),
+    "curl_cffi": ("https://curl-cffi.readthedocs.io/en/stable/", None),
+    "msgspec": ("https://jcristharif.com/msgspec/", None),
 }
 
-templates_path = ["_templates"]
 exclude_patterns = [
     "_build",
-    "api/network.rst",
-    "api/rest.http.rst",
-    "api/gateway.events.rst",
-    "api/utils.rst",
 ]
-add_module_names = False
 nitpick_ignore_regex = [
-    ("py:class", r"discord(\..+)?"),
-    ("py:meth", r"discord\.abc\.Connectable\.connect"),
-    ("py:class", r"aiohttp\.ClientSession"),
-    ("py:class", r"curl_cffi\.AsyncSession"),
-    ("py:class", r"msgspec\.Struct"),
     ("py:class", r"(N|D|P|T|T_co|~P|SessionType|WSErrorType|type\[N\])"),
     ("py:class", r"dict\[str"),
     ("py:class", r"relink\.errors\.ReLinkException"),
@@ -68,7 +61,7 @@ nitpick_ignore_regex = [
 autodoc_default_options = {
     "members": True,
     "member-order": "groupwise",
-    "undoc-members": True,
+    "undoc-members": False,
 }
 autodoc_typehints = "both"
 autodoc_class_signature = "mixed"
@@ -78,67 +71,105 @@ napoleon_preprocess_types = True
 # -- Options for HTML output --
 html_theme = "furo"
 html_static_path = ["_static"]
+html_css_files = [
+    f"css/{path.name}" for path in sorted((DOCS_PATH / "_static" / "css").iterdir())
+]
+html_js_files = [
+    f"js/{path.name}" for path in sorted((DOCS_PATH / "_static" / "js").iterdir())
+]
 html_title = f"{project} {release} documentation"
-html_favicon = "_static/logo.svg"
+html_favicon = "_static/images/logo.svg"
+templates_path = ["_templates"]
 
 html_theme_options = {
-    "light_logo": "light-banner.svg",
-    "dark_logo": "dark-banner.svg",
+    "light_logo": "images/light-banner.svg",
+    "dark_logo": "images/dark-banner.svg",
     "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-brand-primary": "#d8ad37",
+        "color-brand-content": "#2f6c95",
+        "color-brand-visited": "#7f5ba6",
+        "color-api-name": "#2f6c95",
+        "color-api-pre-name": "#2f6c95",
+        "color-topic-title": "#d8ad37",
+        "color-topic-title-background": "rgba(216, 173, 55, 0.16)",
+        "color-admonition-title": "#d8ad37",
+        "color-admonition-title-background": "rgba(216, 173, 55, 0.14)",
+        "color-sidebar-background": "#f4f7fb",
+        "color-sidebar-background-border": "#d9e1ec",
+        "color-sidebar-brand-text": "#102131",
+        "color-sidebar-link-text": "#40576c",
+        "color-sidebar-link-text--top-level": "#2f6c95",
+        "color-sidebar-item-background--current": "rgba(47, 108, 149, 0.10)",
+        "color-sidebar-item-expander-background--hover": "rgba(47, 108, 149, 0.10)",
+        "color-sidebar-search-background": "#edf2f8",
+        "color-sidebar-search-background--focus": "#ffffff",
+        "color-sidebar-search-border": "#d0dae6",
+        "color-link": "#2f6c95",
+        "color-link--hover": "#255577",
+        "color-link--visited": "#7f5ba6",
+        "color-toc-item-text--active": "#2f6c95",
+        "color-foreground-primary": "#162432",
+        "color-foreground-secondary": "#4f6273",
+        "color-foreground-muted": "#69798a",
+        "color-background-primary": "#fcfcfa",
+        "color-background-secondary": "#f6f8fb",
+        "color-background-hover": "#e8eef5",
+        "color-background-border": "#dde4ec",
+        "color-card-border": "#e1e7ef",
+        "color-card-background": "rgba(255, 255, 255, 0.86)",
+        "color-admonition-background": "rgba(255, 255, 255, 0.84)",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#d8ad37",
+        "color-brand-content": "#69a7d1",
+        "color-brand-visited": "#c29df2",
+        "color-api-name": "#8ec5ea",
+        "color-api-pre-name": "#8ec5ea",
+        "color-topic-title": "#d8ad37",
+        "color-topic-title-background": "rgba(216, 173, 55, 0.18)",
+        "color-admonition-title": "#d8ad37",
+        "color-admonition-title-background": "rgba(216, 173, 55, 0.16)",
+        "color-sidebar-background": "#0f1720",
+        "color-sidebar-background-border": "#1f2e3d",
+        "color-sidebar-brand-text": "#f1f4f7",
+        "color-sidebar-caption-text": "#7b92a6",
+        "color-sidebar-link-text": "#afbcc8",
+        "color-sidebar-link-text--top-level": "#8ec5ea",
+        "color-sidebar-item-background--current": "rgba(105, 167, 209, 0.14)",
+        "color-sidebar-item-expander-background--hover": "rgba(105, 167, 209, 0.12)",
+        "color-sidebar-search-background": "#13202c",
+        "color-sidebar-search-background--focus": "#1a2a38",
+        "color-sidebar-search-border": "#24384a",
+        "color-link": "#7fb8dd",
+        "color-link--hover": "#a4d0ec",
+        "color-link--visited": "#c29df2",
+        "color-toc-item-text--active": "#8ec5ea",
+        "color-foreground-primary": "#dbe4eb",
+        "color-foreground-secondary": "#a8b5c0",
+        "color-foreground-muted": "#7f8d99",
+        "color-foreground-border": "#566675",
+        "color-background-primary": "#13181f",
+        "color-background-secondary": "#192028",
+        "color-background-hover": "#1d2731",
+        "color-background-border": "#273342",
+        "color-card-border": "#202a33",
+        "color-card-background": "rgba(22, 27, 34, 0.88)",
+        "color-admonition-background": "rgba(20, 25, 31, 0.90)",
+        "color-problematic": "#f07c6b",
+        "color-highlighted-background": "#14314a",
+    },
 }
 
-
-def _resolve_unqualified_python_reference(
-    app: Sphinx,
-    env: BuildEnvironment,
-    node: pending_xref,
-    contnode: nodes.TextElement,
-) -> nodes.reference | None:
-    """
-    Attempts to resolve an unqualified Python reference to a full name.
-    """
-    if node.get("refdomain") != "py":
-        return None
-
-    target: str | None = node.get("reftarget")
-    if not target or "." in target:
-        return None
-
-    py_domain = env.domains.get("py")
-    if py_domain is None:
-        return None
-
-    matches = [
-        obj[0]
-        for obj in py_domain.get_objects()
-        if obj[0] == target or obj[0].endswith(f".{target}")
+html_sidebars = {
+    "**": [
+        "sidebar/brand.html",
+        "sidebar/search.html",
+        "sidebar/scroll-start.html",
+        "sidebar/navigation.html",
+        "sidebar/ethical-ads.html",
+        "sidebar/width-selector.html",
+        "sidebar/scroll-end.html",
+        "sidebar/variant-selector.html",
     ]
-
-    matches = list(dict.fromkeys(matches))
-
-    if not matches:
-        return None
-
-    public_matches = sorted(matches, key=lambda name: (name.count("."), len(name)))
-    shortest_depth = public_matches[0].count(".")
-
-    best_matches = [
-        name for name in public_matches if name.count(".") == shortest_depth
-    ]
-
-    if len(best_matches) != 1:
-        return None
-
-    return py_domain.resolve_xref(
-        env,
-        node["refdoc"],
-        app.builder,
-        node["reftype"],
-        best_matches[0],
-        node,
-        contnode,
-    )
-
-
-def setup(app: Sphinx) -> None:
-    app.connect("missing-reference", _resolve_unqualified_python_reference)
+}

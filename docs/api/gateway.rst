@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Gateway API
 ===========
+
 
 The gateway layer contains the queue, enum, error, and event-related runtime types.
 The top-level :class:`relink.Client`, :class:`relink.Node`, and :class:`relink.Player`
@@ -12,60 +15,93 @@ Voice state
    :members:
    
 
-Queue
------
 
-.. autoclass:: relink.History
+   
+
+Playback event payloads
+-----------------------
+
+.. autoclass:: relink.gateway.schemas.TrackStartEvent
    :members:
    
 
-.. autoclass:: relink.Queue
+.. autoclass:: relink.gateway.schemas.TrackEndEvent
    :members:
    
 
-Enums
------
-
-.. autoclass:: relink.NodeStatus()
+.. autoclass:: relink.gateway.schemas.TrackException
    :members:
+   
 
-.. autoclass:: relink.TrackEndReason()
+.. autoclass:: relink.gateway.schemas.TrackExceptionEvent
    :members:
+   
 
-.. autoclass:: relink.TrackExceptionSeverity()
+.. autoclass:: relink.gateway.schemas.TrackStuckEvent
    :members:
+   
 
-.. autoclass:: relink.QueueMode()
-   :members:
-
-.. autoclass:: relink.AutoPlayMode()
-   :members:
-
-.. autoclass:: relink.InactivityMode()
-   :members:
-
-.. autoclass:: relink.SearchProvider()
-   :members:
-
-Errors
-------
-
-.. autoexception:: relink.InvalidNodePassword
-   :members:
-
-.. autoexception:: relink.NodeURINotFound
-   :members:
-
-.. autoexception:: relink.QueueEmpty
-   :members:
-
-.. autoexception:: relink.HistoryEmpty
-   :members:
-
-More gateway types
+Websocket payloads
 ------------------
 
-.. toctree::
-   :maxdepth: 1
+.. autoclass:: relink.gateway.schemas.ReadyEvent
+   :members:
+   
 
-   gateway.schemas
+.. autoclass:: relink.gateway.schemas.PlayerState
+   :members:
+   
+
+.. autoclass:: relink.gateway.schemas.PlayerUpdateEvent
+   :members:
+   
+
+.. autoclass:: relink.gateway.schemas.MemoryStats
+   :members:
+   
+
+.. autoclass:: relink.gateway.schemas.CPUStats
+   :members:
+   
+
+.. autoclass:: relink.gateway.schemas.FrameStats
+   :members:
+   
+
+.. autoclass:: relink.gateway.schemas.StatsEvent
+   :members:
+   
+
+.. autoclass:: relink.gateway.schemas.WebSocketClosedEvent
+   :members:
+   
+
+
+
+Gateway Events API
+------------------
+
+Router
+++++++
+
+.. autoclass:: relink.gateway.events.router.EventRouter
+   :members:
+   
+Event wrappers
+++++++++++++++++
+
+.. autoclass:: relink.gateway.events.raw_models.ReadyEvent
+   :members:
+   
+
+.. autoclass:: relink.gateway.events.raw_models.PlayerUpdateEvent
+   :members:
+   
+
+.. autoclass:: relink.gateway.events.raw_models.StatsEvent
+   :members:
+   
+
+.. autoclass:: relink.gateway.events.raw_models.WSCloseEvent
+   :members:
+   

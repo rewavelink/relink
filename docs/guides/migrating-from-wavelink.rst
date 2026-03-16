@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Migrating From Wavelink
 =======================
+
 
 This guide is for users coming from `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_.
 ReLink is a fork in lineage and overall design direction, but it is a rewrite rather than a

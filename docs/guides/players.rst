@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Working With Players
 ====================
+
 
 Connecting a player
 -------------------

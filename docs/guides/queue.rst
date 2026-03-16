@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Queue Management
 ================
+
 
 Queue basics
 ------------

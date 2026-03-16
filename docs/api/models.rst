@@ -1,5 +1,22 @@
-Models API
+.. currentmodule:: relink
+
+Models
 ==========
+Settings
+--------
+
+.. autoclass:: relink.models.AutoPlaySettings
+   :no-members:
+
+.. autoclass:: relink.models.InactivitySettings
+   :no-members:
+
+.. autoclass:: relink.models.HistorySettings
+   :no-members:
+
+.. autoclass:: relink.models.CacheSettings
+   :no-members:
+
 
 Tracks and playlists
 --------------------
@@ -78,17 +95,3 @@ Filter wrapper models
    :members:
    
 
-Settings
---------
-
-.. autoclass:: relink.models.AutoPlaySettings
-   :no-members:
-
-.. autoclass:: relink.models.InactivitySettings
-   :no-members:
-
-.. autoclass:: relink.models.HistorySettings
-   :no-members:
-
-.. autoclass:: relink.models.CacheSettings
-   :no-members:

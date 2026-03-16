@@ -1,5 +1,8 @@
+.. currentmodule:: relink
+
 Searching Tracks
 ================
+
 
 Basic search
 ------------

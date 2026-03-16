@@ -25,12 +25,32 @@ if errorlevel 9009 (
 )
 
 if "%1" == "" goto help
+if "%1" == "livehtml" goto livehtml
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% -c %CONFIGDIR% %SPHINXOPTS% %O%
 goto end
 
 :help
 %SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% -c %CONFIGDIR% %SPHINXOPTS% %O%
+goto end
+
+:livehtml
+sphinx-autobuild >NUL 2>NUL
+if errorlevel 9009 (
+	echo.
+	echo.The 'sphinx-autobuild' command was not found. Install docs extras first:
+	echo.  pip install -e .[docs]
+	echo.
+	exit /b 1
+)
+
+%SPHINXBUILD% -M clean %SOURCEDIR% %BUILDDIR% -c %CONFIGDIR% %SPHINXOPTS% %O%
+if errorlevel 1 exit /b 1
+
+%SPHINXBUILD% -b html -E -a %SOURCEDIR% %BUILDDIR%\html -c %CONFIGDIR% %SPHINXOPTS% %O%
+if errorlevel 1 exit /b 1
+
+sphinx-autobuild %SOURCEDIR% %BUILDDIR%\html -c %CONFIGDIR% %SPHINXOPTS% %O%
 
 :end
 popd
