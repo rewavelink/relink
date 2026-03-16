@@ -56,47 +56,9 @@ class EventRouter:
         self._event_map = {}
         self._task_set = set()
 
-    @overload
-    def listen(self, func: EventCallback[P, T], /) -> EventCallback[P, T]: ...
-
-    @overload
-    def listen(
-        self, *, event: str
-    ) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
-
-    @overload
-    def listen(
-        self, *, event: None = None
-    ) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
-
     def listen(
         self, func: EventCallback[P, T] | None = None, event: str | None = None
     ) -> Any:
-        """Registers a new event listener.
-
-        This is a decorator that can be used in three different ways:
-
-            .. code-block:: python3
-
-                @router.listen
-                async def on_event():
-                    ...
-
-                @router.listen()
-                async def on_event():
-                    ...
-
-                @router.listen("event")
-                async def function():
-                    ...
-
-        Parameters
-        ----------
-        event: :class:`str` | :data:`None`
-            The event to listen to. If this is ``None`` or not set, it extracts the event
-            name from the decorated function.
-        """
-
         # case 1 -> func is not None: invoked without parenthesis
         if func is not None:
             event_name = func.__name__.removeprefix("on_")

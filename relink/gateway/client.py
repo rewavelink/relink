@@ -25,8 +25,10 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
 from typing import TYPE_CHECKING, Any
+from typing_extensions import overload
 
 import discord
 
@@ -34,7 +36,7 @@ from relink import _registry
 from relink._version import __version__
 from relink.models.settings import CacheSettings, InactivitySettings
 
-from .events.router import EventRouter
+from .events.router import P, T, EventCallback, EventRouter
 from .node import Node
 
 if TYPE_CHECKING:
@@ -309,6 +311,49 @@ class Client[N: Node]:
         """
         node = self.get_best_node()
         return await node.decode_tracks(*encoded)
+
+    @overload
+    def listen(self, func: EventCallback[P, T], /) -> EventCallback[P, T]: ...
+
+    @overload
+    def listen(
+        self, *, event: str
+    ) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
+
+    @overload
+    def listen(
+        self, *, event: None = None
+    ) -> Callable[[EventCallback[P, T]], EventCallback[P, T]]: ...
+
+    def listen(
+        self, func: EventCallback[P, T] | None = None, event: str | None = None
+    ) -> Any:
+        """
+        Registers a new event listener.
+
+        This is a decorator that can be used in three different ways:
+
+            .. code-block:: python3
+
+                @client.listen
+                async def on_event():
+                    ...
+
+                @client.listen()
+                async def on_event():
+                    ...
+
+                @client.listen("event")
+                async def function():
+                    ...
+
+        Parameters
+        ----------
+        event: :class:`str` | :data:`None`
+            The event to listen to. If this is ``None`` or not set, it extracts the event
+            name from the decorated function.
+        """
+        return self._event_router.listen(func, event)
 
     def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
         if node.id in self.__node_tasks:
