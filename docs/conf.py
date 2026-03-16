@@ -1,19 +1,27 @@
 import datetime
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+from relink import __version__
+
+if TYPE_CHECKING:
+    from docutils import nodes
+    from sphinx.addnodes import pending_xref
+    from sphinx.application import Sphinx
+    from sphinx.environment import BuildEnvironment
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from relink import __version__
 
-# -- Project information -----------------------------------------------------
+# -- Project information --
 project = "relink"
 author = "vmphase, Soheab, DA-344"
 copyright = f"{datetime.date.today().year}, {author}"
 release = __version__
 
-# -- General configuration ---------------------------------------------------
+# -- General configuration --
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
@@ -35,7 +43,7 @@ exclude_patterns = [
     "api/network.rst",
     "api/rest.http.rst",
     "api/gateway.events.rst",
-    "api/utils.rst"
+    "api/utils.rst",
 ]
 add_module_names = False
 nitpick_ignore_regex = [
@@ -56,7 +64,7 @@ nitpick_ignore_regex = [
     ("py:class", r"relink\.utils\.properties\.(T|T_co|_cached_property)"),
 ]
 
-# -- Options for autodoc ----------------------------------------------------
+# -- Options for autodoc --
 autodoc_default_options = {
     "members": True,
     "member-order": "groupwise",
@@ -67,17 +75,25 @@ autodoc_class_signature = "mixed"
 napoleon_preprocess_types = True
 
 
-# -- Options for HTML output -------------------------------------------------
+# -- Options for HTML output --
 html_theme = "furo"
 html_static_path = ["_static"]
 html_title = f"{project} {release} documentation"
 
 
-def _resolve_unqualified_python_reference(app, env, node, contnode):
+def _resolve_unqualified_python_reference(
+    app: Sphinx,
+    env: BuildEnvironment,
+    node: pending_xref,
+    contnode: nodes.TextElement,
+) -> nodes.reference | None:
+    """
+    Attempts to resolve an unqualified Python reference to a full name.
+    """
     if node.get("refdomain") != "py":
         return None
 
-    target = node.get("reftarget")
+    target: str | None = node.get("reftarget")
     if not target or "." in target:
         return None
 
@@ -86,10 +102,11 @@ def _resolve_unqualified_python_reference(app, env, node, contnode):
         return None
 
     matches = [
-        fullname
-        for fullname in py_domain.objects
-        if fullname == target or fullname.endswith(f".{target}")
+        obj[0]
+        for obj in py_domain.get_objects()
+        if obj[0] == target or obj[0].endswith(f".{target}")
     ]
+
     matches = list(dict.fromkeys(matches))
 
     if not matches:
@@ -97,6 +114,7 @@ def _resolve_unqualified_python_reference(app, env, node, contnode):
 
     public_matches = sorted(matches, key=lambda name: (name.count("."), len(name)))
     shortest_depth = public_matches[0].count(".")
+
     best_matches = [
         name for name in public_matches if name.count(".") == shortest_depth
     ]
@@ -115,5 +133,5 @@ def _resolve_unqualified_python_reference(app, env, node, contnode):
     )
 
 
-def setup(app):
+def setup(app: Sphinx) -> None:
     app.connect("missing-reference", _resolve_unqualified_python_reference)
