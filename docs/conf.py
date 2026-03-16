@@ -35,6 +35,7 @@ exclude_patterns = [
     "api/network.rst",
     "api/rest.http.rst",
     "api/gateway.events.rst",
+    "api/utils.rst"
 ]
 add_module_names = False
 nitpick_ignore_regex = [

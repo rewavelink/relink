@@ -13,4 +13,3 @@ Private implementation modules are intentionally excluded from this section.
    gateway
    models
    rest
-   utils
