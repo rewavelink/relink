@@ -80,6 +80,12 @@ html_theme = "furo"
 html_static_path = ["_static"]
 html_title = f"{project} {release} documentation"
 
+html_theme_options = {
+    "light_logo": "logo.svg",
+    "dark_logo": "logo.svg",
+    "sidebar_hide_name": True,
+}
+
 
 def _resolve_unqualified_python_reference(
     app: Sphinx,
