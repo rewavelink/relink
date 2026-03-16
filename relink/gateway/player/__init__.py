@@ -296,6 +296,52 @@ class Player(discord.VoiceProtocol):
         """
         return PlayerConnectionState()
 
+    async def connect(
+        self,
+        *,
+        timeout: float = 10.0,
+        reconnect: bool = True,
+        self_deaf: bool = False,
+        self_mute: bool = False,
+    ) -> None:
+        """
+        Connects this player to a voice channel.
+
+        This method initiates the voice connection handshake between the Discord Gateway
+        and the associated Lavalink :class:`Node`.
+
+        .. warning::
+
+            This method should not be manually called. It is automatically triggered
+            when passing this class or instance to :meth:`discord.abc.Connectable.connect`.
+
+        Parameters
+        ----------
+        timeout: :class:`float`
+            The amount of time in seconds to wait for the connection to be established
+            before raising an error. Defaults to ``10.0``.
+        reconnect: :class:`bool`
+            Whether to automatically attempt to reconnect to the voice channel
+            if the connection is lost. Defaults to ``True``.
+        self_deaf: :class:`bool`
+            Whether to connect with the bot self-deafened. Defaults to ``False``.
+        self_mute: :class:`bool`
+            Whether to connect with the bot self-muted. Defaults to ``False``.
+
+        Raises
+        ------
+        RuntimeError
+            The player is not associated with a client or node.
+        asyncio.TimeoutError
+            The connection handshake failed to complete within the specified timeout.
+        """
+        await self._lifecycle_handler.connect(
+            timeout=timeout,
+            reconnect=reconnect,
+            self_deaf=self_deaf,
+            self_mute=self_mute,
+        )
+
     async def disconnect(self, *, force: bool = False) -> None:
         """
         Disconnects the player, destroys it on the Lavalink node, and cleans up state.
