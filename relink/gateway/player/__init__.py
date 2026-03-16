@@ -315,6 +315,26 @@ class Player(discord.VoiceProtocol):
         """
         return PlayerConnectionState()
 
+    async def connect(
+        self,
+        *,
+        timeout: float = 10,
+        reconnect: bool = False,
+        self_deaf: bool = False,
+        self_mute: bool = False,
+    ) -> None:
+        """
+        Connects this player to the voice channel.
+
+        This method is usually not called manually, but automatically called by ``discord.py``.
+        """
+        await self._lifecycle_handler.connect(
+            timeout=timeout,
+            reconnect=reconnect,
+            self_deaf=self_deaf,
+            self_mute=self_mute,
+        )
+
     async def disconnect(self, *, force: bool = False) -> None:
         """
         Disconnects the player, destroys it on the Lavalink node, and cleans up state.

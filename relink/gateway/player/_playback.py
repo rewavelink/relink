@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import time
 
+import msgspec
+
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
@@ -61,7 +63,7 @@ class PlaybackHandler(HandlerBase):
         data = UpdatePlayerRequest(
             track=track_payload,
             position=start,
-            endtime=end,
+            endtime=end if end is not None else msgspec.UNSET,
             volume=volume,
             paused=paused,
         )

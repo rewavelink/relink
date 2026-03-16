@@ -87,6 +87,11 @@ class LifecycleHandler(HandlerBase):
             raise ConnectionError(
                 f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
             )
+        finally:
+            try:
+                await self.disconnect(force=True)
+            except:
+                pass
 
     async def disconnect(self, *, force: bool = False) -> None:
         try:
