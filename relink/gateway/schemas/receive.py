@@ -79,7 +79,7 @@ class PlayerState(msgspec.Struct):
     If this is ``-1``, it has not been yet connected.
     """
 
-    @cached_property("_cs_time")
+    @property
     def time(self) -> datetime.datetime:
         """The timestamp of when this state is from."""
         return datetime.datetime.fromtimestamp(self._time)
