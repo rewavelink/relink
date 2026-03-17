@@ -78,9 +78,10 @@ class TrackSourceType(StrEnum):
     This provides the default track sources by Lavalink.
     """
 
-    YouTube = "ytsearch"
-    YouTubeMusic = "ytmsearch"
-    SoundCloud = "scsearch"
+    YOUTUBE = "ytsearch"
+    YOUTUBE_MUSIC = "ytmsearch"
+    SOUND_CLOUD = "scsearch"
+    SPOTIFY = "spsearch"
 
 
 class RoutePlannerType(StrEnum):

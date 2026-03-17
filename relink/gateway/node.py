@@ -294,7 +294,7 @@ class Node:
         if isinstance(cached_result, SearchResult):
             return cached_result
 
-        data = await self._manager.load_track(query)
+        data = await self._manager.load_track(formatted)
         result = SearchResult(client=client, data=data)
         self._cache.put(encoded, result)
         return result
