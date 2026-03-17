@@ -180,13 +180,13 @@ class Player(discord.VoiceProtocol):
     def __init__(
         self,
         client: discord.Client,
-        channel: discord.VoiceChannel | discord.StageChannel,
+        channel: discord.abc.Connectable,
     ) -> None: ...
 
     def __init__(
         self,
         client: discord.Client = MISSING,
-        channel: discord.VoiceChannel | discord.StageChannel = MISSING,
+        channel: discord.abc.Connectable = MISSING,
         *,
         node: Node | None = None,
         autoplay_settings: AutoPlaySettings | None = None,
@@ -212,7 +212,8 @@ class Player(discord.VoiceProtocol):
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client=client, channel=channel)
-            self._guild = channel.guild
+            if isinstance(channel, discord.abc.GuildChannel):
+                self._guild = channel.guild
             self._ready = True
         else:
             self.client = MISSING
@@ -222,10 +223,12 @@ class Player(discord.VoiceProtocol):
     def __call__(
         self,
         client: discord.Client,
-        channel: discord.VoiceChannel | discord.StageChannel,
+        channel: discord.abc.Connectable,
     ) -> Self:
         super().__init__(client, channel)
-        self._guild = channel.guild
+
+        if isinstance(channel, (discord.VoiceChannel, discord.StageChannel)):
+            self._guild = channel.guild
 
         if self._node:
             self._node._add_player(self)
