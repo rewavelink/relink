@@ -139,7 +139,7 @@ class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     Used within :class:`UpdatePlayerRequest` to play or modify a track.
     """
 
-    encoded: str | msgspec.UnsetType = msgspec.UNSET
+    encoded: str | msgspec.UnsetType | None = msgspec.UNSET
     """Base64-encoded track string, optional."""
 
     identifier: str | msgspec.UnsetType = msgspec.UNSET

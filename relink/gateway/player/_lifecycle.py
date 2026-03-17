@@ -28,6 +28,7 @@ import asyncio
 from typing import TYPE_CHECKING, cast
 
 import discord
+import msgspec
 
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
@@ -139,7 +140,7 @@ class LifecycleHandler(HandlerBase):
         track_payload = (
             UpdatePlayerTrackRequest(encoded=self._player.current.encoded)
             if self._player.current
-            else None
+            else msgspec.UNSET 
         )
         data = UpdatePlayerRequest(
             track=track_payload,

@@ -93,7 +93,7 @@ class PlaybackHandler(HandlerBase):
         node = self._player.node
         assert node._resume_session is not None
 
-        data = UpdatePlayerRequest(track=None)
+        data = UpdatePlayerRequest(track=UpdatePlayerTrackRequest(encoded=None))
 
         await node._manager.update_player(
             session_id=node._resume_session,
