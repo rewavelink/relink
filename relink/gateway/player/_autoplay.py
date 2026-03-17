@@ -114,18 +114,13 @@ class AutoPlayHandler(HandlerBase):
             return None
 
     async def _apply_discovery(self, tracks: list[Playable]) -> Playable | None:
-        mode = self._settings.mode
-
-        if mode == AutoPlayMode.ENABLED:
-            self._player.queue.put(tracks[:20])
-
-        if self._player.current:
+        if not tracks:
             return None
 
-        if mode is AutoPlayMode.ENABLED:
-            track = self._player.queue.get()
-        else:
-            track = tracks[0]
+        track = tracks.pop(0)
+
+        if self._settings.mode == AutoPlayMode.ENABLED:
+            self._player.queue.put(tracks[:19])
 
         await self._player.play(track)
         return track
