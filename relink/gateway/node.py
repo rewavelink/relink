@@ -402,12 +402,6 @@ class Node:
         guild_id: :class:`int`
             The guild ID to disconnect the player from.
         """
-        import traceback
-        _log.debug(
-            "disconnect_player called for guild %s:\n%s",
-            guild_id,
-            "".join(traceback.format_stack())
-        )
         _ = self._ensure_client()
         await self._manager.destroy_player(
             session_id=self.session_id,
@@ -469,14 +463,9 @@ class Node:
     async def _connect_ws(self, headers: dict[str, str]) -> bool:
         self._ws = await self._manager.connect_ws("/v4/websocket", headers=headers)
         self._keep_alive = asyncio.create_task(self._keep_alive_coro())
-        self._keep_alive.add_done_callback(
-            lambda t: _log.error("keep_alive task ended: %r", t.exception()) if not t.cancelled() and t.exception() else None
-        )
-        _log.debug("keep_alive task created: %r", self._keep_alive)
         return True
 
     async def _keep_alive_coro(self) -> None:
-        _log.debug("_keep_alive_coro started for node %r", self._id)
         assert self._ws is not None
         assert self._client
 
