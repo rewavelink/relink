@@ -468,7 +468,12 @@ class Node:
 
             try:
                 if await self._connect_ws(headers):
-                    _log.info("Successfully connected node %r (attempt %d/%d)", self, attempt, retries)
+                    _log.info(
+                        "Successfully connected node %r (attempt %d/%d)",
+                        self,
+                        attempt,
+                        retries,
+                    )
                     break
             except WebSocketError as exc:
                 await self._handle_connection_error(exc)
