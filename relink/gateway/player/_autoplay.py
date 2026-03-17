@@ -57,24 +57,24 @@ class AutoPlayHandler(HandlerBase):
         self._lock: asyncio.Lock = asyncio.Lock()
         self._settings = settings or AutoPlaySettings.default()
 
-    async def auto_play(self) -> None:
+    async def auto_play(self) -> Playable | None:
         if self._settings.mode == AutoPlayMode.DISABLED:
-            return
+            return None
 
         if len(self._player.queue) > 0 or self._lock.locked():
-            return
+            return None
 
         async with self._lock:
-            await self._fill_auto_queue()
+            return await self._fill_auto_queue()
 
-    async def _fill_auto_queue(self) -> None:
+    async def _fill_auto_queue(self) -> Playable | None:
         reference = self._player.current or (
             self._player.queue.history[-1] if self._player.queue.history else None
         )
 
         if not reference or not reference.identifier:
             _log.debug("Player %s: No valid seed for AutoPlay.", self._player.guild.id)
-            return
+            return None
 
         if len(self._seeds) > self._settings.max_seeds:
             self._seeds.clear()
@@ -90,7 +90,7 @@ class AutoPlayHandler(HandlerBase):
                 or search.is_error()
                 or search.is_empty()
             ):
-                return
+                return None
 
             if isinstance(result, Playlist):
                 raw_tracks = result.tracks
@@ -101,9 +101,9 @@ class AutoPlayHandler(HandlerBase):
 
             discovery = [t for t in raw_tracks if t.identifier not in self._seeds]
             if not discovery:
-                return
+                return None
 
-            await self._apply_discovery(discovery)
+            return await self._apply_discovery(discovery)
         except Exception as exc:
             _log.error(
                 "Player %s: AutoPlay failed: %s",
@@ -111,15 +111,16 @@ class AutoPlayHandler(HandlerBase):
                 exc,
                 exc_info=True,
             )
+            return None
 
-    async def _apply_discovery(self, tracks: list[Playable]) -> None:
+    async def _apply_discovery(self, tracks: list[Playable]) -> Playable | None:
         mode = self._settings.mode
 
         if mode == AutoPlayMode.ENABLED:
             self._player.queue.put(tracks[:20])
 
         if self._player.current:
-            return
+            return None
 
         if mode is AutoPlayMode.ENABLED:
             track = self._player.queue.get()
@@ -127,3 +128,4 @@ class AutoPlayHandler(HandlerBase):
             track = tracks[0]
 
         await self._player.play(track)
+        return track

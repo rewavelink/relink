@@ -469,9 +469,15 @@ class Player(discord.VoiceProtocol):
 
         return await self._playback_handler.previous()
 
-    async def skip(self) -> None:
+    async def skip(self) -> Playable | None:
         """
         Skips to the next track in the queue.
+
+        Returns
+        -------
+        :class:`Playable` | None
+            The next track from the queue or history which is now playing,
+            or None if the player stopped and autoplay is empty.
 
         Raises
         ------
@@ -480,7 +486,7 @@ class Player(discord.VoiceProtocol):
         QueueEmpty
             The queue is empty and there is no track to skip to.
         """
-        await self._playback_handler.skip()
+        return await self._playback_handler.skip()
 
     async def seek(self, position: int, /) -> None:
         """

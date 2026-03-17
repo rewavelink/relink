@@ -140,15 +140,17 @@ class PlaybackHandler(HandlerBase):
         await self.play(track)
         return track
 
-    async def skip(self) -> None:
+    async def skip(self) -> Playable | None:
         if len(self._player.queue) > 0:
             next_track = self._player.queue.get()
             await self.play(next_track)
-            return
+            return next_track
 
         handler = self._player._autoplay_handler
         if handler._settings.mode != AutoPlayMode.DISABLED:
-            return await handler.auto_play()
+            if autoplay_track := await handler.auto_play():
+                return autoplay_track
+            return None
 
         await self.stop()
 
