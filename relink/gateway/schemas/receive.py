@@ -60,7 +60,7 @@ class PlayerUpdateEvent(msgspec.Struct):
     state: PlayerState
     """The state of the player."""
 
-    @cached_property("_cs_guild_id")
+    @property
     def guild_id(self) -> int:
         """The guild ID of the player."""
         return int(self._guild_id)
@@ -79,7 +79,7 @@ class PlayerState(msgspec.Struct):
     If this is ``-1``, it has not been yet connected.
     """
 
-    @cached_property("_cs_time")
+    @property
     def time(self) -> datetime.datetime:
         """The timestamp of when this state is from."""
         return datetime.datetime.fromtimestamp(self._time)

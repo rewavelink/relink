@@ -28,6 +28,11 @@ from typing import Any
 
 import msgspec
 
+try:
+    from orjson import loads
+except ImportError:
+    from json import loads
+
 __all__ = (
     "PlayerFilters",
     "EqualizerFilter",
@@ -51,37 +56,37 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
     allowing partial filter updates without resetting other filters.
     """
 
-    volume: float | None = None
+    volume: float | msgspec.UnsetType = msgspec.UNSET
     """Linear volume multiplier from ``0.0`` to ``5.0``. ``1.0`` is 100% volume. Values above ``1.0`` may clip."""
 
-    equalizer: list[EqualizerFilter] | None = None
+    equalizer: list[EqualizerFilter] | msgspec.UnsetType = msgspec.UNSET
     """List of :class:`EqualizerFilter` entries for bands ``0..14``."""
 
-    karaoke: KaraokeFilter | None = None
+    karaoke: KaraokeFilter | msgspec.UnsetType = msgspec.UNSET
     """Karaoke configuration (:class:`KaraokeFilter`)."""
 
-    timescale: TimescaleFilter | None = None
+    timescale: TimescaleFilter | msgspec.UnsetType = msgspec.UNSET
     """Time-domain transform configuration (:class:`TimescaleFilter`)."""
 
-    tremolo: TremoloFilter | None = None
+    tremolo: TremoloFilter | msgspec.UnsetType = msgspec.UNSET
     """Volume oscillation configuration (:class:`TremoloFilter`)."""
 
-    vibrato: VibratoFilter | None = None
+    vibrato: VibratoFilter | msgspec.UnsetType = msgspec.UNSET
     """Pitch oscillation configuration (:class:`VibratoFilter`)."""
 
-    rotation: RotationFilter | None = None
+    rotation: RotationFilter | msgspec.UnsetType = msgspec.UNSET
     """Stereo rotation configuration (:class:`RotationFilter`)."""
 
-    distortion: DistortionFilter | None = None
+    distortion: DistortionFilter | msgspec.UnsetType = msgspec.UNSET
     """Wave-shaping configuration (:class:`DistortionFilter`)."""
 
-    channel_mix: ChannelMixFilter | None = msgspec.field(
+    channel_mix: ChannelMixFilter | msgspec.UnsetType = msgspec.field(
         name="channelMix",
-        default=None,
+        default=msgspec.UNSET,
     )
     """Cross-channel matrix configuration (:class:`ChannelMixFilter`)."""
 
-    low_pass: LowPassFilter | None = msgspec.field(name="lowPass", default=None)
+    low_pass: LowPassFilter | msgspec.UnsetType = msgspec.field(name="lowPass", default=msgspec.UNSET)
     """Low-pass configuration (:class:`LowPassFilter`)."""
 
     plugin_filters: dict[str, Any] = msgspec.field(

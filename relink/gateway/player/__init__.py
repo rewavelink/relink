@@ -109,15 +109,34 @@ class Player(discord.VoiceProtocol):
 
         .. code-block:: python3
 
-            # This will resolve a node from the attached relink.Client
+            # This will use the default NodePool to find an available node
             await voice_channel.connect(cls=relink.Player)
 
     Parameters
     ----------
-    node: :class:`relink.Node` | :data:`None`
+    node: :class:`Node` | :data:`None`
         The node to associate this player with. If ``None``, the player will attempt
-        to resolve an available node from the attached :class:`relink.Client` during
-        the connection process.
+        to fetch an available node from the :class:`NodePool` during the connection process.
+
+    Attributes
+    ----------
+    guild: :class:`discord.Guild`
+        The guild this player is attached to.
+    filters: :class:`PlayerFilters`
+        The currently applied filters for this player.
+    paused: :class:`bool`
+        Whether the player is currently paused.
+    position: :class:`int`
+        The current position of the player in milliseconds.
+    volume: :class:`int`
+        The current volume of the player (0-1000).
+    queue: :class:`Queue`
+        The track queue associated with this player. This handles both upcoming
+        tracks and playback history.
+    current: :class:`Playable` | :data:`None`
+        The currently playing track, or ``None`` if nothing is playing.
+    node: :class:`Node`
+        The node this player is currently attached to.
     """
 
     __slots__ = (
@@ -299,41 +318,15 @@ class Player(discord.VoiceProtocol):
     async def connect(
         self,
         *,
-        timeout: float = 10.0,
-        reconnect: bool = True,
+        timeout: float = 10,
+        reconnect: bool = False,
         self_deaf: bool = False,
         self_mute: bool = False,
     ) -> None:
         """
-        Connects this player to a voice channel.
+        Connects this player to the voice channel.
 
-        This method initiates the voice connection handshake between the Discord Gateway
-        and the associated Lavalink :class:`Node`.
-
-        .. warning::
-
-            This method should not be manually called. It is automatically triggered
-            when passing this class or instance to :meth:`discord.abc.Connectable.connect`.
-
-        Parameters
-        ----------
-        timeout: :class:`float`
-            The amount of time in seconds to wait for the connection to be established
-            before raising an error. Defaults to ``10.0``.
-        reconnect: :class:`bool`
-            Whether to automatically attempt to reconnect to the voice channel
-            if the connection is lost. Defaults to ``True``.
-        self_deaf: :class:`bool`
-            Whether to connect with the bot self-deafened. Defaults to ``False``.
-        self_mute: :class:`bool`
-            Whether to connect with the bot self-muted. Defaults to ``False``.
-
-        Raises
-        ------
-        RuntimeError
-            The player is not associated with a client or node.
-        asyncio.TimeoutError
-            The connection handshake failed to complete within the specified timeout.
+        This method is usually not called manually, but automatically called by ``discord.py``.
         """
         await self._lifecycle_handler.connect(
             timeout=timeout,
@@ -387,7 +380,7 @@ class Player(discord.VoiceProtocol):
 
         Parameters
         ----------
-        playable: :class:`relink.models.Playable` | :class:`str`
+        playable: :class:`Playable` | :class:`str`
             The track to play. Can be a Playable object or a base64 encoded track string.
         start: :class:`int`
             The position in milliseconds to start playback at. Defaults to 0.
@@ -404,7 +397,7 @@ class Player(discord.VoiceProtocol):
 
         Returns
         -------
-        :class:`relink.models.Playable`
+        :class:`Playable`
             The track that was requested for playback.
         """
         return await self._playback_handler.play(
@@ -586,6 +579,7 @@ class Player(discord.VoiceProtocol):
             raise RuntimeError(f"No relink.Client is associated with {self.client!r}.")
 
         self._node = rl_client.get_best_node()
+        self._node._add_player(self)
         return self._node
 
     async def _dispatch_event(self, data: dict[str, Any]) -> None:

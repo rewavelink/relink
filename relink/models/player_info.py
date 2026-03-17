@@ -46,7 +46,7 @@ class PlayerInfo(BaseModel[PlayerInfoPayload]):
     @property
     def guild_id(self) -> int:
         """The Discord guild ID the player belongs to."""
-        return self._data.guild_id
+        return int(self._data.guild_id)
 
     @cached_property("_cs_track")
     def track(self) -> Playable | None:

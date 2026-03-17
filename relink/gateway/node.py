@@ -134,6 +134,7 @@ class Node:
 
         self._status: NodeStatus = NodeStatus.DISCONNECTED
         self._resume_session = None
+        self._has_resume_session = asyncio.Event()
         self._ws = None
         self._keep_alive = None
         self._stats = None
@@ -173,6 +174,12 @@ class Node:
                 "Cannot perform HTTP requests without an attached client."
             )
         return self._client
+
+    async def _wait_session(self) -> bool:
+        try:
+            return await asyncio.wait_for(self._has_resume_session.wait(), timeout=10.0)
+        except asyncio.TimeoutError:
+            raise RuntimeError("Timed out waiting for node READY payload.")
 
     @property
     def client(self) -> Client[Any] | None:
@@ -424,7 +431,6 @@ class Node:
         guild_id: :class:`int`
             The guild ID to disconnect the player from.
         """
-
         _ = self._ensure_client()
         await self._manager.destroy_player(
             session_id=self.session_id,
@@ -462,11 +468,12 @@ class Node:
 
             try:
                 if await self._connect_ws(headers):
-                    return
+                    _log.info("Successfully connected node %r (attempt %d/%d)", self, attempt, retries)
+                    break
             except WebSocketError as exc:
                 await self._handle_connection_error(exc)
 
-            if attempt >= retries:
+            if (attempt - 1) >= retries:
                 _log.warning(
                     "%r exhausted %d connection attempts. Node will remain disconnected.",
                     self,
@@ -479,6 +486,8 @@ class Node:
             delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
             _log.debug("Retrying %r in %.2f seconds...", self, delay)
             await asyncio.sleep(delay)
+
+        self._status = NodeStatus.CONNECTED
 
     async def _connect_ws(self, headers: dict[str, str]) -> bool:
         self._ws = await self._manager.connect_ws("/v4/websocket", headers=headers)
@@ -507,8 +516,13 @@ class Node:
                 _log.debug("Received a None message from the websocket. Ignoring.")
                 continue
 
-            data = msg.json()
-            event_type = data.get("op")
+            raw = msg.data
+            if isinstance(raw, str):
+                raw = raw.encode("utf-8")
+            data = msgspec.json.decode(raw)
+
+            event_type = data.pop("op", None)
+            _log.debug("Received event OP=%s ; D=%r", event_type, data)
 
             match event_type:
                 case "ready":
@@ -529,7 +543,7 @@ class Node:
     async def _handle_ready(self, data: dict[str, Any]) -> None:
         assert self._client is not None
 
-        payload = ReadyPayload(**data)
+        payload = msgspec.convert(data, ReadyPayload)
         self._resume_session = payload.session_id
         self._status = NodeStatus.CONNECTED
 
@@ -555,11 +569,12 @@ class Node:
 
         event = ReadyEvent(payload)
         self._client._dispatch("node_ready", event)
+        self._has_resume_session.set()
 
     async def _handle_player_update(self, data: dict[str, Any]) -> None:
         assert self._client is not None
 
-        payload = PlayerUpdatePayload(**data)
+        payload = msgspec.convert(data, PlayerUpdatePayload)
 
         guild_id = int(payload.guild_id)
         player = self.get_player(guild_id)

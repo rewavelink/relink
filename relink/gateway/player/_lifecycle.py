@@ -28,6 +28,7 @@ import asyncio
 from typing import TYPE_CHECKING, cast
 
 import discord
+import msgspec
 
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
@@ -75,6 +76,7 @@ class LifecycleHandler(HandlerBase):
             async with asyncio.timeout(timeout):
                 await self._player._connection._connected_flag.wait()
         except (asyncio.TimeoutError, asyncio.CancelledError):
+            await self.disconnect(force=True)
             raise ConnectionError(
                 f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
             )
@@ -129,7 +131,7 @@ class LifecycleHandler(HandlerBase):
         track_payload = (
             UpdatePlayerTrackRequest(encoded=self._player.current.encoded)
             if self._player.current
-            else None
+            else msgspec.UNSET 
         )
         data = UpdatePlayerRequest(
             track=track_payload,

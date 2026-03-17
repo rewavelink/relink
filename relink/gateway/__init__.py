@@ -12,26 +12,26 @@ from .client import *
 from .enums import *
 from .errors import *
 from .node import *
-from .queue import *
 from .player import *
+from .queue import *
 
 __all__ = (
-    "Client",
-    "NodeStatus",
-    "TrackEndReason",
-    "TrackExceptionSeverity",
-    "QueueMode",
     "AutoPlayMode",
-    "InactivityMode",
-    "SearchProvider",
-    "NodeError",
-    "InvalidNodePassword",
-    "NodeURINotFound",
-    "QueueEmpty",
-    "HistoryEmpty",
-    "Node",
-    "Queue",
+    "Client",
     "History",
+    "HistoryEmpty",
+    "InactivityMode",
+    "InvalidNodePassword",
+    "Node",
+    "NodeError",
+    "NodeStatus",
+    "NodeURINotFound",
     "Player",
     "PlayerConnectionState",
+    "Queue",
+    "QueueEmpty",
+    "QueueMode",
+    "SearchProvider",
+    "TrackEndReason",
+    "TrackExceptionSeverity",
 )

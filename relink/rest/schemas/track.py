@@ -100,7 +100,7 @@ class TrackLoadingResponse(msgspec.Struct, kw_only=True):
     load_type: TrackLoadResult = msgspec.field(name="loadType")
     """Type of load result (:class:`TrackLoadResult`)."""
 
-    data: dict[str, Any]
+    data: dict[str, Any] | list[dict[str, Any]] | None
     """Associated load result data, this is a dict that will be converted into a valid object
     in the respective object.
     """
