@@ -151,8 +151,10 @@ class EventsHandler(HandlerBase):
 
     async def on_voice_state_update(self, data: GuildVoiceState) -> None:
         _log.debug("Received VOICE_STATE_UPDATE event")
+
+        channel_id = data.get("channel_id")
         self._player._connection.session_id = data.get("session_id")
-        self._player._connection.channel_id = str(data.get("channel_id"))
+        self._player._connection.channel_id = str(channel_id) if channel_id else None
 
         await self._dispatch_voice_update()
         self._player._check_inactivity()
@@ -170,7 +172,6 @@ class EventsHandler(HandlerBase):
             _log.debug("No session ID found, waiting...")
             await self._player._node._wait_session()
             assert self._player._node._resume_session is not None
-            
 
         voice_state = PlayerVoiceState(
             token=self._player._connection.token,
