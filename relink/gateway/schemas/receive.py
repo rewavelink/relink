@@ -60,7 +60,7 @@ class PlayerUpdateEvent(msgspec.Struct):
     state: PlayerState
     """The state of the player."""
 
-    @cached_property("_cs_guild_id")
+    @property
     def guild_id(self) -> int:
         """The guild ID of the player."""
         return int(self._guild_id)

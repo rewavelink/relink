@@ -579,6 +579,7 @@ class Player(discord.VoiceProtocol):
             raise RuntimeError(f"No relink.Client is associated with {self.client!r}.")
 
         self._node = rl_client.get_best_node()
+        self._node._add_player(self)
         return self._node
 
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
