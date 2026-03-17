@@ -446,13 +446,18 @@ class Player(discord.VoiceProtocol):
         """Resumes the player if it is paused. Alias for ``pause(False)``."""
         await self._playback_handler.resume()
 
-    async def previous(self) -> None:
+    async def previous(self) -> Playable:
         """
         Returns to the previous track in the history.
 
         This retrieves the most recently played track from the history,
         pushes the current track back to the front of the queue,
         and begins playback of the historical track.
+
+        Returns
+        -------
+        :class:`Playable`
+            The previous track from history which is now playing.
 
         Raises
         ------
@@ -462,7 +467,7 @@ class Player(discord.VoiceProtocol):
             There is no previous track in the history to return to.
         """
 
-        await self._playback_handler.previous()
+        return await self._playback_handler.previous()
 
     async def skip(self) -> None:
         """

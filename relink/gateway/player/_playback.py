@@ -135,9 +135,10 @@ class PlaybackHandler(HandlerBase):
     async def resume(self) -> None:
         await self.pause(False)
 
-    async def previous(self) -> None:
+    async def previous(self) -> Playable:
         track = self._player._queue.previous()
         await self.play(track)
+        return track
 
     async def skip(self) -> None:
         if len(self._player.queue) > 0:
