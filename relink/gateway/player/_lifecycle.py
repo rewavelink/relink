@@ -141,7 +141,7 @@ class LifecycleHandler(HandlerBase):
         track_payload = (
             UpdatePlayerTrackRequest(encoded=self._player.current.encoded)
             if self._player.current
-            else msgspec.UNSET 
+            else msgspec.UNSET
         )
         data = UpdatePlayerRequest(
             track=track_payload,

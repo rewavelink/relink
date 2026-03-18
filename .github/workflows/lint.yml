@@ -1,45 +1,44 @@
 name: Autoformat with Ruff
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-  workflow_dispatch:
+    pull_request:
+        types: [opened, synchronize]
+    workflow_dispatch:
 
 permissions:
-  contents: write
-
+    contents: write
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
+    format:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  ref: ${{ github.head_ref }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.13"
 
-      - name: Install ruff
-        run: pip install ruff
+            - name: Install ruff
+              run: pip install ruff
 
-      - name: Run ruff
-        run: |
-          ruff format .
+            - name: Run ruff
+              run: |
+                  ruff format .
 
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git add -A
 
-          if ! git diff --cached --quiet; then
-            git commit -m "format(ruff) [ci skip]"
-            git show HEAD
-            git push
-          else
-            echo "No changes required"
-          fi
+                  if ! git diff --cached --quiet; then
+                    git commit -m "format(ruff) [ci skip]"
+                    git show HEAD
+                    git push
+                  else
+                    echo "No changes required"
+                  fi

@@ -63,7 +63,15 @@ class RESTClient(
     ) -> Any:
         merged_headers = {**self._default_headers, **(headers or {})}
         full_url = self._build_full_url(url)
-        _log.debug("HTTP send %s %s (params=%s) %s with data json=%s ; data=%s", method, url, params, headers, json, data)
+        _log.debug(
+            "HTTP send %s %s (params=%s) %s with data json=%s ; data=%s",
+            method,
+            url,
+            params,
+            headers,
+            json,
+            data,
+        )
         ret = await self._manager.request(
             method,
             full_url,
