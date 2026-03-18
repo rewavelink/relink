@@ -117,26 +117,6 @@ class Player(discord.VoiceProtocol):
     node: :class:`Node` | :data:`None`
         The node to associate this player with. If ``None``, the player will attempt
         to fetch an available node from the :class:`NodePool` during the connection process.
-
-    Attributes
-    ----------
-    guild: :class:`discord.Guild`
-        The guild this player is attached to.
-    filters: :class:`PlayerFilters`
-        The currently applied filters for this player.
-    paused: :class:`bool`
-        Whether the player is currently paused.
-    position: :class:`int`
-        The current position of the player in milliseconds.
-    volume: :class:`int`
-        The current volume of the player (0-1000).
-    queue: :class:`Queue`
-        The track queue associated with this player. This handles both upcoming
-        tracks and playback history.
-    current: :class:`Playable` | :data:`None`
-        The currently playing track, or ``None`` if nothing is playing.
-    node: :class:`Node`
-        The node this player is currently attached to.
     """
 
     __slots__ = (
