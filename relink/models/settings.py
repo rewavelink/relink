@@ -53,9 +53,17 @@ class AutoPlaySettings(BaseSettings):
         Defaults to 100.
     provider: :class:`SearchProvider` | :class:`str`
         The provider used for discovery. Defaults to SearchProvider.YOUTUBE.
+    discovery_count: :class:`int`
+        The maximum number of discovered tracks to add to the queue at once.
+        Defaults to 10.
     """
 
-    __slots__ = ("mode", "max_seeds", "provider")
+    __slots__ = (
+        "mode",
+        "max_seeds",
+        "provider",
+        "discovery_count",
+    )
 
     def __init__(
         self,
@@ -63,10 +71,12 @@ class AutoPlaySettings(BaseSettings):
         mode: AutoPlayMode = AutoPlayMode.DISABLED,
         max_seeds: int = 100,
         provider: SearchProvider = SearchProvider.YOUTUBE,
+        discovery_count: int = 10,
     ) -> None:
         self.mode = mode
         self.max_seeds = max_seeds
         self.provider = provider
+        self.discovery_count = discovery_count
 
 
 class InactivitySettings(BaseSettings):
