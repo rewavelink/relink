@@ -60,9 +60,7 @@ if TYPE_CHECKING:
 
 _log = logging.getLogger(__name__)
 
-__all__ = (
-    "Node",
-)
+__all__ = ("Node",)
 
 
 class Node:
@@ -286,7 +284,11 @@ class Node:
             The search result.
         """
         client = self._ensure_client()
-        formatted = f"{source.removesuffix(':')}:{query}" if source else query
+
+        is_url = query.startswith(("http://", "https://"))
+        formatted = (
+            query if is_url or source is None else f"{source.removesuffix(':')}:{query}"
+        )
 
         encoded = urllib.parse.quote(formatted)
         cached_result = self._cache.get(encoded)
@@ -294,7 +296,7 @@ class Node:
         if isinstance(cached_result, SearchResult):
             return cached_result
 
-        data = await self._manager.load_track(query)
+        data = await self._manager.load_track(formatted)
         result = SearchResult(client=client, data=data)
         self._cache.put(encoded, result)
         return result
@@ -439,7 +441,12 @@ class Node:
 
             try:
                 if await self._connect_ws(headers):
-                    _log.info("Successfully connected node %r (attempt %d/%d)", self, attempt, retries)
+                    _log.info(
+                        "Successfully connected node %r (attempt %d/%d)",
+                        self,
+                        attempt,
+                        retries,
+                    )
                     break
             except WebSocketError as exc:
                 await self._handle_connection_error(exc)

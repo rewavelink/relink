@@ -89,7 +89,7 @@ class Artist:
         self._data = data
 
     def __repr__(self) -> str:
-        return f"<relink.Album name={self.name!r}>"
+        return f"<relink.Artist name={self.name!r}>"
 
     @property
     def name(self) -> str | None:

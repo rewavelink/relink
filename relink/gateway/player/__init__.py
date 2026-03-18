@@ -180,13 +180,13 @@ class Player(discord.VoiceProtocol):
     def __init__(
         self,
         client: discord.Client,
-        channel: discord.VoiceChannel | discord.StageChannel,
+        channel: discord.abc.Connectable,
     ) -> None: ...
 
     def __init__(
         self,
         client: discord.Client = MISSING,
-        channel: discord.VoiceChannel | discord.StageChannel = MISSING,
+        channel: discord.abc.Connectable = MISSING,
         *,
         node: Node | None = None,
         autoplay_settings: AutoPlaySettings | None = None,
@@ -212,7 +212,8 @@ class Player(discord.VoiceProtocol):
 
         if client is not MISSING and channel is not MISSING:
             super().__init__(client=client, channel=channel)
-            self._guild = channel.guild
+            if isinstance(channel, discord.abc.GuildChannel):
+                self._guild = channel.guild
             self._ready = True
         else:
             self.client = MISSING
@@ -222,10 +223,12 @@ class Player(discord.VoiceProtocol):
     def __call__(
         self,
         client: discord.Client,
-        channel: discord.VoiceChannel | discord.StageChannel,
+        channel: discord.abc.Connectable,
     ) -> Self:
         super().__init__(client, channel)
-        self._guild = channel.guild
+
+        if isinstance(channel, (discord.VoiceChannel, discord.StageChannel)):
+            self._guild = channel.guild
 
         if self._node:
             self._node._add_player(self)
@@ -446,13 +449,18 @@ class Player(discord.VoiceProtocol):
         """Resumes the player if it is paused. Alias for ``pause(False)``."""
         await self._playback_handler.resume()
 
-    async def previous(self) -> None:
+    async def previous(self) -> Playable:
         """
         Returns to the previous track in the history.
 
         This retrieves the most recently played track from the history,
         pushes the current track back to the front of the queue,
         and begins playback of the historical track.
+
+        Returns
+        -------
+        :class:`Playable`
+            The previous track from history which is now playing.
 
         Raises
         ------
@@ -462,11 +470,17 @@ class Player(discord.VoiceProtocol):
             There is no previous track in the history to return to.
         """
 
-        await self._playback_handler.previous()
+        return await self._playback_handler.previous()
 
-    async def skip(self) -> None:
+    async def skip(self) -> Playable | None:
         """
         Skips to the next track in the queue.
+
+        Returns
+        -------
+        :class:`Playable` | None
+            The next track from the queue or history which is now playing,
+            or None if the player stopped and autoplay is empty.
 
         Raises
         ------
@@ -475,7 +489,7 @@ class Player(discord.VoiceProtocol):
         QueueEmpty
             The queue is empty and there is no track to skip to.
         """
-        await self._playback_handler.skip()
+        return await self._playback_handler.skip()
 
     async def seek(self, position: int, /) -> None:
         """
