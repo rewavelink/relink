@@ -116,7 +116,9 @@ class UpdatePlayerRequest(msgspec.Struct, kw_only=True):
     position: int | msgspec.UnsetType = msgspec.UNSET
     """Seek position in milliseconds, optional."""
 
-    endtime: int | msgspec.UnsetType = msgspec.field(name="endTime", default=msgspec.UNSET)
+    endtime: int | msgspec.UnsetType = msgspec.field(
+        name="endTime", default=msgspec.UNSET
+    )
     """Track end time in milliseconds, optional."""
 
     volume: int | msgspec.UnsetType = msgspec.UNSET
@@ -145,7 +147,9 @@ class UpdatePlayerTrackRequest(msgspec.Struct, kw_only=True):
     identifier: str | msgspec.UnsetType = msgspec.UNSET
     """Unique track identifier, optional."""
 
-    user_data: dict[str, Any] | msgspec.UnsetType = msgspec.field(name="userData", default=msgspec.UNSET)
+    user_data: dict[str, Any] | msgspec.UnsetType = msgspec.field(
+        name="userData", default=msgspec.UNSET
+    )
     """Optional user data previously provided when updating the player."""
 
 
