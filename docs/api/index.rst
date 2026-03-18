@@ -18,5 +18,6 @@ Private implementation modules are intentionally excluded from this section.
    gateway
    rest
    models
+   events
    advanced
 
