@@ -137,6 +137,9 @@ class EventsHandler(HandlerBase):
                     self._player.guild.id,
                     event_type,
                 )
+                self._player._node._client._dispatch(
+                    "unknown_event", self._player._node, data,
+                )
 
     def _update_state(self, state: PlayerState, /) -> None:
         self._player._last_position = state.position
