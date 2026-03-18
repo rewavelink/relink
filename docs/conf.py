@@ -60,13 +60,13 @@ nitpick_ignore_regex = [
 # -- Options for autodoc --
 autodoc_default_options = {
     "members": True,
-    "member-order": "groupwise",
     "undoc-members": False,
 }
 autodoc_typehints = "both"
 autodoc_class_signature = "mixed"
 napoleon_preprocess_types = True
-
+autodoc_member_order = "groupwise"
+autodoc_typehints_description_target = "documented"
 
 # -- Options for HTML output --
 html_theme = "furo"

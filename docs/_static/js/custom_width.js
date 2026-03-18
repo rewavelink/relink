@@ -1,5 +1,5 @@
 // Content Width Toggle Functionality
-const CONTENT_WIDTH_KEY = "pycord-docs-content-width";
+const CONTENT_WIDTH_KEY = "relink-docs-content-width";
 
 (() => {
     const savedWidth = localStorage.getItem(CONTENT_WIDTH_KEY);
