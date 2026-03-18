@@ -31,6 +31,7 @@ import msgspec
 
 if TYPE_CHECKING:
     from ..schemas import receive
+    from ..node import Node
 
 T = TypeVar("T", bound=msgspec.Struct, covariant=True)
 
@@ -44,8 +45,14 @@ class EventModel(abc.ABC, Generic[T]):
     __repr_attrs__: tuple[str, ...]
     _underlying: T
 
-    def __init__(self, underlying: T) -> None:
+    def __init__(self, underlying: T, node: Node) -> None:
         self._underlying = underlying
+        self._node: Node = node
+
+    @property
+    def node(self) -> Node:
+        """The node that received the event."""
+        return self._node
 
     def __getattr__(self, name: str) -> Any:
         try:
@@ -125,6 +132,3 @@ class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
     """The reason why the connection was closed."""
     by_remote: bool
     """Whether the closure was made by Discord."""
-
-
-# TODO: implement schemas/events.py models when rest models are made
