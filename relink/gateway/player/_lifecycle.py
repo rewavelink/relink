@@ -111,6 +111,7 @@ class LifecycleHandler(HandlerBase):
             )
 
         finally:
+            await self._player.guild.change_voice_state(channel=None)
             self._player._queue.reset()
             self._player._connection._connected_flag.clear()
 

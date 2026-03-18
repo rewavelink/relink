@@ -123,6 +123,22 @@ class Queue(MutableQueueBase):
     def mode(self, value: QueueMode) -> None:
         self._mode = value
 
+    @property
+    def tracks(self) -> list[Playable]:
+        """
+        The list of tracks currently in the queue.
+
+        This does not include the :attr:`current_track`. Modifying this list
+        will not affect the actual queue; use methods like :meth:`put` or
+        :meth:`pop_at` for modifications.
+
+        Returns
+        -------
+        list[:class:`Playable`]
+            A list of tracks in the queue.
+        """
+        return list(self._items)
+
     def get(self) -> Playable:
         """
         Get the next track from the queue, respecting the current queue mode.
