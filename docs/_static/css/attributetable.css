@@ -43,7 +43,6 @@
 .py-attribute-table-entry .compact-paragraph {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
     min-width: 0;
     margin: 0;
     padding: 0.18rem 0;
@@ -82,6 +81,7 @@
     flex: 0 0 auto;
     min-width: 3.1rem;
     padding: 0.28rem 0.56rem;
+    margin-right: 0.75rem;
     border: 1px solid color-mix(in srgb, var(--color-background-border) 78%, transparent);
     border-radius: 999px;
     background: color-mix(in srgb, var(--color-background-secondary) 82%, var(--color-background-primary));
@@ -153,5 +153,6 @@
         min-width: 2.8rem;
         padding-inline: 0.45rem;
         font-size: 0.6rem;
+        margin-right: 0.75rem;
     }
 }
