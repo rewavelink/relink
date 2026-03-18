@@ -538,7 +538,7 @@ class Node:
                 exc,
             )
 
-        event = ReadyEvent(payload)
+        event = ReadyEvent(payload, self)
         self._client._dispatch("node_ready", event)
         self._has_resume_session.set()
 
@@ -553,7 +553,7 @@ class Node:
         if player:
             player._update_state(payload.state)
 
-        event = PlayerUpdateEvent(payload)
+        event = PlayerUpdateEvent(payload, self)
         self._client._dispatch("player_update", event)
 
     def _handle_stats(self, data: dict[str, Any]) -> None:
