@@ -144,7 +144,9 @@ class EventsHandler(HandlerBase):
                     event_type,
                 )
                 self._player._node._client._dispatch(
-                    "unknown_event", self._player, data,
+                    "unknown_event",
+                    self._player,
+                    data,
                 )
 
     def _update_state(self, state: PlayerState, /) -> None:

@@ -86,7 +86,9 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
     )
     """Cross-channel matrix configuration (:class:`ChannelMixFilter`)."""
 
-    low_pass: LowPassFilter | msgspec.UnsetType = msgspec.field(name="lowPass", default=msgspec.UNSET)
+    low_pass: LowPassFilter | msgspec.UnsetType = msgspec.field(
+        name="lowPass", default=msgspec.UNSET
+    )
     """Low-pass configuration (:class:`LowPassFilter`)."""
 
     plugin_filters: dict[str, Any] = msgspec.field(
