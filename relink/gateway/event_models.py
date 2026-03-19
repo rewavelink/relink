@@ -33,9 +33,9 @@ from relink.models.track import Playable
 from relink.utils import cached_property
 
 if TYPE_CHECKING:
-    from .schemas import receive, events
-    from .node import Node
     from .enums import TrackEndReason
+    from .node import Node
+    from .schemas import events, receive
 
 T = TypeVar("T", bound=msgspec.Struct, covariant=True)
 
@@ -89,9 +89,11 @@ class ReadyEvent(EventModel["receive.ReadyEvent"]):
     __repr_attrs__ = ("resumed", "session_id")
 
     resumed: bool
-    """Whether the session was resumed, if this is ``False`` it implies a new connection
-    was created.
     """
+    Whether the session was resumed, 
+    if this is ``False`` it implies a new connection was created.
+    """
+
     session_id: str
     """The secret session ID."""
 
@@ -103,6 +105,7 @@ class PlayerUpdateEvent(EventModel["receive.PlayerUpdateEvent"]):
 
     state: receive.PlayerState
     """The state of the player."""
+
     guild_id: int
     """The guild ID of the player."""
 
@@ -121,14 +124,19 @@ class StatsEvent(EventModel["receive.StatsEvent"]):
 
     players: int
     """The players count attached to the node."""
+
     playing_players: int
     """The players count attached to the node that are playing a track."""
+
     uptime: int
     """The node uptime in milliseconds."""
+
     memory: receive.MemoryStats
     """The memory stats of the node."""
+
     cpu: receive.CPUStats
     """The CPU stats of the node."""
+
     frame_stats: receive.FrameStats | None
     """The frame stats of the node."""
 
@@ -144,8 +152,10 @@ class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
 
     code: int
     """The Discord close event code."""
+
     reason: str
     """The reason why the connection was closed."""
+
     by_remote: bool
     """Whether the closure was made by Discord."""
 
@@ -153,15 +163,15 @@ class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
 class TrackStartEvent(EventModel["events.TrackStartEvent"]):
     """Represents a track start event."""
 
-    __repr_attrs__ = (
-        "track",
-    )
+    __repr_attrs__ = ("track",)
 
     @cached_property("_cs_track")
     def track(self) -> Playable:
         """The track that started playing."""
         assert self.node.client
-        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+        return Playable(
+            client=self.node.client, data=self._underlying.track, playlist=None
+        )
 
 
 class TrackEndEvent(EventModel["events.TrackEndEvent"]):
@@ -179,7 +189,9 @@ class TrackEndEvent(EventModel["events.TrackEndEvent"]):
     def track(self) -> Playable:
         """The track that ended playing."""
         assert self.node.client
-        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+        return Playable(
+            client=self.node.client, data=self._underlying.track, playlist=None
+        )
 
 
 class TrackExceptionEvent(EventModel["events.TrackExceptionEvent"]):
@@ -197,7 +209,9 @@ class TrackExceptionEvent(EventModel["events.TrackExceptionEvent"]):
     def track(self) -> Playable:
         """The track that thew the exception."""
         assert self.node.client
-        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+        return Playable(
+            client=self.node.client, data=self._underlying.track, playlist=None
+        )
 
 
 class TrackStuckEvent(EventModel["events.TrackStuckEvent"]):
@@ -215,4 +229,6 @@ class TrackStuckEvent(EventModel["events.TrackStuckEvent"]):
     def track(self) -> Playable:
         """The track that got stuck."""
         assert self.node.client
-        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+        return Playable(
+            client=self.node.client, data=self._underlying.track, playlist=None
+        )
