@@ -175,4 +175,3 @@ pylock*.toml
 
 # Private/Test files
 *.private.*
-*.config
