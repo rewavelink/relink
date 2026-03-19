@@ -28,11 +28,6 @@ from typing import Any
 
 import msgspec
 
-try:
-    from orjson import loads
-except ImportError:
-    from json import loads
-
 __all__ = (
     "PlayerFilters",
     "EqualizerFilter",
