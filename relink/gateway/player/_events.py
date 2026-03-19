@@ -35,12 +35,18 @@ from relink.rest.schemas.player import (
 
 from ..enums import TrackEndReason
 from ..schemas.events import (
+    TrackEndEvent as TrackEndEventPayload,
+    TrackExceptionEvent as TrackExceptionEventPayload,
+    TrackStartEvent as TrackStartEventPayload,
+    TrackStuckEvent as TrackStuckEventPayload,
+)
+from ..schemas.receive import PlayerState, WebSocketClosedEvent
+from ..event_models import (
     TrackEndEvent,
     TrackExceptionEvent,
     TrackStartEvent,
     TrackStuckEvent,
 )
-from ..schemas.receive import PlayerState, WebSocketClosedEvent
 from ._base import HandlerBase, _log
 
 __all__ = ()
@@ -72,17 +78,17 @@ class EventsHandler(HandlerBase):
 
         match event_type:
             case "TrackStartEvent":
-                payload = msgspec.convert(data, TrackStartEvent)
+                payload = msgspec.convert(data, TrackStartEventPayload)
 
                 self._player._paused = False
                 self._player._stop_inactivity_timer()
 
                 self._player._node._client._dispatch(
-                    "track_start", self._player, payload
+                    "track_start", self._player, TrackStartEvent(payload, self._player._node),
                 )
 
             case "TrackEndEvent":
-                payload = msgspec.convert(data, TrackEndEvent)
+                payload = msgspec.convert(data, TrackEndEventPayload)
 
                 if payload.reason != TrackEndReason.REPLACED:
                     self._player._last_position = 0
@@ -91,11 +97,11 @@ class EventsHandler(HandlerBase):
                 if payload.reason.can_start_next:
                     await self._player.skip()
 
-                self._player._node._client._dispatch("track_end", self._player, payload)
+                self._player._node._client._dispatch("track_end", self._player, TrackEndEvent(payload, self._player._node))
                 self._player._check_inactivity()
 
             case "TrackExceptionEvent":
-                payload = msgspec.convert(data, TrackExceptionEvent)
+                payload = msgspec.convert(data, TrackExceptionEventPayload)
                 _log.error(
                     "Track exception in guild %s: %s",
                     self._player.guild.id,
@@ -103,11 +109,11 @@ class EventsHandler(HandlerBase):
                 )
 
                 self._player._node._client._dispatch(
-                    "track_exception", self._player, payload
+                    "track_exception", self._player, TrackExceptionEvent(payload, self._player._node),
                 )
 
             case "TrackStuckEvent":
-                payload = msgspec.convert(data, TrackStuckEvent)
+                payload = msgspec.convert(data, TrackStuckEventPayload)
                 _log.warning(
                     "Track stuck in guild %s at %dms",
                     self._player.guild.id,
@@ -115,7 +121,7 @@ class EventsHandler(HandlerBase):
                 )
 
                 self._player._node._client._dispatch(
-                    "track_stuck", self._player, payload
+                    "track_stuck", self._player, TrackStuckEvent(payload, self._player._node),
                 )
 
             case "WebSocketClosedEvent":

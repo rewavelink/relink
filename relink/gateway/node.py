@@ -48,7 +48,7 @@ from relink.rest.schemas.session import UpdateSessionRequest
 from .cache import LFUCache
 from .enums import NodeStatus
 from .errors import InvalidNodePassword, NodeURINotFound
-from .events.raw_models import PlayerUpdateEvent, ReadyEvent
+from .event_models import PlayerUpdateEvent, ReadyEvent
 from .player import Player
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload

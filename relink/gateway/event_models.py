@@ -29,11 +29,27 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import msgspec
 
+from relink.models.track import Playable
+from relink.utils import cached_property
+
 if TYPE_CHECKING:
-    from ..schemas import receive
-    from ..node import Node
+    from .schemas import receive, events
+    from .node import Node
+    from .enums import TrackEndReason
 
 T = TypeVar("T", bound=msgspec.Struct, covariant=True)
+
+__all__ = (
+    "EventModel",
+    "ReadyEvent",
+    "PlayerUpdateEvent",
+    "StatsEvent",
+    "WSCloseEvent",
+    "TrackStartEvent",
+    "TrackEndEvent",
+    "TrackExceptionEvent",
+    "TrackStuckEvent",
+)
 
 
 class EventModel(abc.ABC, Generic[T]):
@@ -132,3 +148,71 @@ class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
     """The reason why the connection was closed."""
     by_remote: bool
     """Whether the closure was made by Discord."""
+
+
+class TrackStartEvent(EventModel["events.TrackStartEvent"]):
+    """Represents a track start event."""
+
+    __repr_attrs__ = (
+        "track",
+    )
+
+    @cached_property("_cs_track")
+    def track(self) -> Playable:
+        """The track that started playing."""
+        assert self.node.client
+        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+
+
+class TrackEndEvent(EventModel["events.TrackEndEvent"]):
+    """Represents a track end event."""
+
+    __repr_attrs__ = (
+        "reason",
+        "track",
+    )
+
+    reason: TrackEndReason
+    """The reason the track ended."""
+
+    @cached_property("_cs_track")
+    def track(self) -> Playable:
+        """The track that ended playing."""
+        assert self.node.client
+        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+
+
+class TrackExceptionEvent(EventModel["events.TrackExceptionEvent"]):
+    """Represents a track exception event."""
+
+    __repr_attrs__ = (
+        "track",
+        "exception",
+    )
+
+    exception: events.TrackException
+    """The occurred exception."""
+
+    @cached_property("_cs_track")
+    def track(self) -> Playable:
+        """The track that thew the exception."""
+        assert self.node.client
+        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
+
+
+class TrackStuckEvent(EventModel["events.TrackStuckEvent"]):
+    """Represents a track stuck event."""
+
+    __repr_attrs__ = (
+        "track",
+        "threshold",
+    )
+
+    threshold: int
+    """The threshold in milliseconds that was exceeded."""
+
+    @cached_property("_cs_track")
+    def track(self) -> Playable:
+        """The track that got stuck."""
+        assert self.node.client
+        return Playable(client=self.node.client, data=self._underlying.track, playlist=None)
