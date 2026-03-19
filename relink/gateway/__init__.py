@@ -14,3 +14,4 @@ from .errors import *  # noqa: F403
 from .node import *  # noqa: F403
 from .queue import *  # noqa: F403
 from .player import *  # noqa: F403
+from .event_models import * # noqa: F403
