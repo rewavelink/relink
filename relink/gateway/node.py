@@ -502,21 +502,30 @@ class Node:
             event_type = data.pop("op", None)
             _log.debug("Received event OP=%s ; D=%r", event_type, data)
 
-            match event_type:
-                case "ready":
-                    await self._handle_ready(data)
-                case "playerUpdate":
-                    await self._handle_player_update(data)
-                case "stats":
-                    self._handle_stats(data)
-                case "event":
-                    await self._handle_event(data)
-                case _:
-                    _log.debug(
-                        "Received unhandled event type %r from Node %r",
-                        event_type,
-                        self,
-                    )
+            try:
+                match event_type:
+                    case "ready":
+                        await self._handle_ready(data)
+                    case "playerUpdate":
+                        await self._handle_player_update(data)
+                    case "stats":
+                        self._handle_stats(data)
+                    case "event":
+                        await self._handle_event(data)
+                    case _:
+                        _log.debug(
+                            "Received unhandled event type %r from Node %r",
+                            event_type,
+                            self,
+                        )
+            except Exception as exc:
+                _log.error(
+                    "Node %r: Unhandled exception while processing OP=%s: %s",
+                    self._id,
+                    event_type,
+                    exc,
+                    exc_info=True,
+                )
 
     async def _handle_ready(self, data: dict[str, Any]) -> None:
         assert self._client is not None
