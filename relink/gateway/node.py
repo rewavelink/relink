@@ -35,7 +35,12 @@ import msgspec
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
 from relink.models.server_info import ServerInfo
-from relink.models.settings import AutoPlaySettings, CacheSettings, HistorySettings, InactivitySettings
+from relink.models.settings import (
+    AutoPlaySettings,
+    CacheSettings,
+    HistorySettings,
+    InactivitySettings,
+)
 from relink.models.track import Playable
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError

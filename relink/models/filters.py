@@ -269,7 +269,12 @@ class Filters(BaseModel[filters.PlayerFilters]):
         super().__init__(client=client, data=data)
 
         self._equalizer = [
-            Equalizer(client=client, data=e) for e in (self._data.equalizer if self._data.equalizer is not msgspec.UNSET else [])
+            Equalizer(client=client, data=e)
+            for e in (
+                self._data.equalizer
+                if self._data.equalizer is not msgspec.UNSET
+                else []
+            )
         ]
         self._karaoke = self._wrap(Karaoke, self._data.karaoke)
         self._timescale = self._wrap(Timescale, self._data.timescale)
