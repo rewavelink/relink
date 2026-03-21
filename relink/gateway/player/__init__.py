@@ -208,10 +208,10 @@ class Player(discord.VoiceProtocol):
         self._node = node
         self._connection = self.get_connection_state()
 
-        self._filters = PlayerFilters()
+        self._filters = filters or PlayerFilters()
         self._queue = Queue(history_settings=history_settings)
-        self._paused = False
-        self._volume = 100
+        self._paused = paused or False
+        self._volume = volume if volume is not None else 100
 
         self._last_position = 0
         self._last_update = 0.0
