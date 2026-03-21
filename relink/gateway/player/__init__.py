@@ -116,7 +116,7 @@ class Player(discord.VoiceProtocol):
     ----------
     node: :class:`Node` | :data:`None`
         The node to associate this player with. If ``None``, the player will attempt
-        to fetch an available node from the :class:`NodePool` during the connection process.
+        to fetch an available node from the :class:`Client` during the connection process.
 
     Attributes
     ----------
@@ -174,7 +174,16 @@ class Player(discord.VoiceProtocol):
         )
 
     @overload
-    def __init__(self, *, node: Node) -> None: ...
+    def __init__(
+        self,
+        *,
+        node: Node | None = ...,
+        autoplay_settings: AutoPlaySettings | None = ...,
+        history_settings: HistorySettings | None = ...,
+        volume: int | None = ...,
+        paused: bool | None = ...,
+        filters: PlayerFilters | None = ...,
+    ) -> None: ...
 
     @overload
     def __init__(
@@ -191,6 +200,9 @@ class Player(discord.VoiceProtocol):
         node: Node | None = None,
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
+        volume: int | None = None,
+        paused: bool | None = None,
+        filters: PlayerFilters | None = None,
     ) -> None:
         self._guild = None
         self._node = node
@@ -230,9 +242,7 @@ class Player(discord.VoiceProtocol):
         if isinstance(channel, (discord.VoiceChannel, discord.StageChannel)):
             self._guild = channel.guild
 
-        if self._node:
-            self._node._add_player(self)
-
+        self._ensure_node()
         return self
 
     @property
@@ -593,7 +603,8 @@ class Player(discord.VoiceProtocol):
             raise RuntimeError(f"No relink.Client is associated with {self.client!r}.")
 
         self._node = rl_client.get_best_node()
-        self._node._add_player(self)
+        if self.guild.id not in self._node._players:
+            self._node._add_player(self)
         return self._node
 
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
