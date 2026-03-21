@@ -138,7 +138,7 @@ Searching before and after
    data = result.result
    if isinstance(data, list):
        track = data[0]
-   elif hasattr(data, "tracks"):
+   elif isinstance(data, relink.models.Playlist):
        track = data.tracks[0]
    else:
        track = data
