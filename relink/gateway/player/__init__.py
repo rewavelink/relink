@@ -591,18 +591,16 @@ class Player(discord.VoiceProtocol):
         await self._events_handler.on_voice_state_update(data)
 
     def _ensure_node(self) -> Node:
-        if self._node:
-            return self._node
+        if self._node is None:
+            if self.client is MISSING:
+                raise RuntimeError("Cannot ensure Node without a Client.")
 
-        if self.client is MISSING:
-            raise RuntimeError("Cannot ensure Node without a Client.")
+            rl_client = _registry.clients.get(self.client)
+            if rl_client is None:
+                raise RuntimeError(f"No relink.Client is associated with {self.client!r}")
 
-        rl_client = _registry.clients.get(self.client)
+            self._node = rl_client.get_best_node()
 
-        if rl_client is None:
-            raise RuntimeError(f"No relink.Client is associated with {self.client!r}.")
-
-        self._node = rl_client.get_best_node()
         if self.guild.id not in self._node._players:
             self._node._add_player(self)
         return self._node
