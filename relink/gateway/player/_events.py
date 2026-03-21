@@ -191,7 +191,12 @@ class EventsHandler(HandlerBase):
             channel_id=self._player._connection.channel_id,
         )
 
-        request_data = UpdatePlayerRequest(voice=voice_state)
+        request_data = UpdatePlayerRequest(
+            voice=voice_state,
+            filters=self._player.filters,
+            volume=self._player.volume,
+            paused=self._player.paused,
+        )
 
         try:
             await self._player._node._manager.update_player(
