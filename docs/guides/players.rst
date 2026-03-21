@@ -16,6 +16,23 @@ Use :class:`relink.Player` as the ``cls`` argument when connecting to a Discord 
 When the player is created this way, it finds the attached :class:`relink.Client`,
 selects the best connected node, and completes the Discord voice handshake.
 
+Players can also be created using :meth:`relink.Node.create_player`, this allows you
+to add extra configuration parameters for your player before connecting it to Discord, and can
+still be passed to the ``cls`` argument on :meth:`discord.abc.Connectable.connect`.
+
+.. code-block:: python
+
+   player = node.create_player(
+      volume=100,
+      filters=relink.rest.schemas.PlayerFilter(
+         karaoke=relink.rest.schemas.KaraokeFilter(
+            level=0.5,
+         )
+      )
+   )
+
+   await voice_channel.connect(cls=player)
+
 Reusing an existing player
 --------------------------
 
@@ -57,14 +74,10 @@ Disconnecting cleanly
 ---------------------
 
 Use :meth:`relink.Player.disconnect` instead of only disconnecting the Discord voice client.
-That ensures the Lavalink-side player is destroyed and internal state is cleaned up.
+That ensures the Lavalink-side player is destroyed and internal state is cleaned up. This is
+as simple as doing:
 
-Event listeners
----------------
+.. code-block:: python
 
-ReLink has an internal event router on :class:`relink.Client`. You can register listeners with
-``rl_client._event_router.listen(...)``. The router dispatches events such as node readiness,
-node closure, and player updates.
-
-If you document or expose this in your own bot code, prefer wrapping it in your own public API
-because the router is currently stored on a private attribute.
+   vc = ctx.voice_client
+   await vc.disconnect()
