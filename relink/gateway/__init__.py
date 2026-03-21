@@ -14,6 +14,7 @@ from .errors import *
 from .node import *
 from .player import *
 from .queue import *
+from .event_models import *
 
 __all__ = (
     "AutoPlayMode",

@@ -26,6 +26,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import msgspec
+
 from ..rest.schemas import filters
 from .base import BaseModel
 
@@ -267,7 +269,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
         super().__init__(client=client, data=data)
 
         self._equalizer = [
-            Equalizer(client=client, data=e) for e in (self._data.equalizer or [])
+            Equalizer(client=client, data=e) for e in (self._data.equalizer if self._data.equalizer is not msgspec.UNSET else [])
         ]
         self._karaoke = self._wrap(Karaoke, self._data.karaoke)
         self._timescale = self._wrap(Timescale, self._data.timescale)
@@ -284,7 +286,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
     @property
     def volume(self) -> float:
         """The linear volume multiplier (0.0 to 5.0). Defaults to 1.0."""
-        return self._data.volume if self._data.volume is not None else 1.0
+        return self._data.volume if self._data.volume is not msgspec.UNSET else 1.0
 
     @property
     def equalizer(self) -> list[Equalizer]:

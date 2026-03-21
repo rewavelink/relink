@@ -35,7 +35,7 @@ import msgspec
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
 from relink.models.server_info import ServerInfo
-from relink.models.settings import CacheSettings, InactivitySettings
+from relink.models.settings import AutoPlaySettings, CacheSettings, HistorySettings, InactivitySettings
 from relink.models.track import Playable
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
@@ -44,11 +44,12 @@ from relink.rest.enums import TrackSourceType
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
+from relink.rest.schemas.filters import PlayerFilters
 
 from .cache import LFUCache
 from .enums import NodeStatus
 from .errors import InvalidNodePassword, NodeURINotFound
-from .events.raw_models import PlayerUpdateEvent, ReadyEvent
+from .event_models import PlayerUpdateEvent, ReadyEvent
 from .player import Player
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
@@ -533,21 +534,30 @@ class Node:
             event_type = data.pop("op", None)
             _log.debug("Received event OP=%s ; D=%r", event_type, data)
 
-            match event_type:
-                case "ready":
-                    await self._handle_ready(data)
-                case "playerUpdate":
-                    await self._handle_player_update(data)
-                case "stats":
-                    self._handle_stats(data)
-                case "event":
-                    await self._handle_event(data)
-                case _:
-                    _log.debug(
-                        "Received unhandled event type %r from Node %r",
-                        event_type,
-                        self,
-                    )
+            try:
+                match event_type:
+                    case "ready":
+                        await self._handle_ready(data)
+                    case "playerUpdate":
+                        await self._handle_player_update(data)
+                    case "stats":
+                        self._handle_stats(data)
+                    case "event":
+                        await self._handle_event(data)
+                    case _:
+                        _log.debug(
+                            "Received unhandled event type %r from Node %r",
+                            event_type,
+                            self,
+                        )
+            except Exception as exc:
+                _log.error(
+                    "Node %r: Unhandled exception while processing OP=%s: %s",
+                    self._id,
+                    event_type,
+                    exc,
+                    exc_info=True,
+                )
 
     async def _handle_ready(self, data: dict[str, Any]) -> None:
         assert self._client is not None
@@ -631,3 +641,42 @@ class Node:
         This is automatically called by the library.
         """
         ...
+
+    def create_player(
+        self,
+        *,
+        volume: int | None = None,
+        paused: bool | None = None,
+        filters: PlayerFilters | None = None,
+        autoplay_settings: AutoPlaySettings | None = None,
+        history_settings: HistorySettings | None = None,
+    ) -> Player:
+        """
+        Creates a player with extra configuration bound to this node.
+
+        Parameters
+        ----------
+        volume: :class:`int` | :data:`None`
+            The volume of the player, in percentage from 0 to 1000. Defaults to ``None``.
+        paused: :class:`bool` | :data:`None`
+            Whether the player should start paused. Defaults to ``None``.
+        filters: :class:`PlayerFilters` | :data:`None`
+            The filters to apply to the player. Defaults to ``None``.
+        autoplay_settings: :class:`AutoPlaySettings` | :data:`None`
+            The autoplay settings to set to this player. Defaults to ``None``.
+        history_settings: :class:`HistorySettings` | :data:`None`
+            The history settings to set to this player. Defaults to ``None``.
+
+        Returns
+        -------
+        :class:`Player`
+            The player. This can be passed to the ``cls=`` kwarg on :meth:`~discord.abc.Connectable.connect`
+        """
+        return Player(
+            node=self,
+            autoplay_settings=autoplay_settings,
+            history_settings=history_settings,
+            volume=volume,
+            paused=paused,
+            filters=filters,
+        )

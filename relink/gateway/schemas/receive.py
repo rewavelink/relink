@@ -28,8 +28,6 @@ import datetime
 
 import msgspec
 
-from relink.utils import cached_property
-
 __all__ = (
     "ReadyEvent",
     "PlayerUpdateEvent",
