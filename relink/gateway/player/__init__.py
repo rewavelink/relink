@@ -37,7 +37,7 @@ from relink.models.settings import AutoPlaySettings, HistorySettings
 from relink.rest.schemas.filters import PlayerFilters
 
 from ...models.track import Playable
-from ..enums import AutoPlayMode
+from ..enums import AutoPlayMode, QueueMode
 from ..queue.queue import Queue
 from ..schemas.receive import PlayerState
 from ._autoplay import AutoPlayHandler
@@ -178,6 +178,7 @@ class Player(discord.VoiceProtocol):
         self,
         *,
         node: Node | None = ...,
+        queue_mode: QueueMode = ...,
         autoplay_settings: AutoPlaySettings | None = ...,
         history_settings: HistorySettings | None = ...,
         volume: int | None = ...,
@@ -198,6 +199,7 @@ class Player(discord.VoiceProtocol):
         channel: discord.abc.Connectable = MISSING,
         *,
         node: Node | None = None,
+        queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
         volume: int | None = None,
@@ -209,7 +211,7 @@ class Player(discord.VoiceProtocol):
         self._connection = self.get_connection_state()
 
         self._filters = filters or PlayerFilters()
-        self._queue = Queue(history_settings=history_settings)
+        self._queue = Queue(mode=queue_mode, history_settings=history_settings)
         self._paused = paused or False
         self._volume = volume if volume is not None else 100
 
@@ -597,7 +599,9 @@ class Player(discord.VoiceProtocol):
 
             rl_client = _registry.clients.get(self.client)
             if rl_client is None:
-                raise RuntimeError(f"No relink.Client is associated with {self.client!r}")
+                raise RuntimeError(
+                    f"No relink.Client is associated with {self.client!r}"
+                )
 
             self._node = rl_client.get_best_node()
 
