@@ -34,8 +34,13 @@ import msgspec
 
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
-from relink.models.server_info import ServerInfo
-from relink.models.settings import AutoPlaySettings, CacheSettings, HistorySettings, InactivitySettings
+from relink.models.info import ServerInfo
+from relink.models.settings import (
+    AutoPlaySettings,
+    CacheSettings,
+    HistorySettings,
+    InactivitySettings,
+)
 from relink.models.track import Playable
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
@@ -47,7 +52,7 @@ from relink.rest.schemas.session import UpdateSessionRequest
 from relink.rest.schemas.filters import PlayerFilters
 
 from .cache import LFUCache
-from .enums import NodeStatus
+from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
 from .player import Player
@@ -617,6 +622,7 @@ class Node:
         volume: int | None = None,
         paused: bool | None = None,
         filters: PlayerFilters | None = None,
+        queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
     ) -> Player:
@@ -631,6 +637,8 @@ class Node:
             Whether the player should start paused. Defaults to ``None``.
         filters: :class:`PlayerFilters` | :data:`None`
             The filters to apply to the player. Defaults to ``None``.
+        queue_mode: :class:`QueueMode`
+            The playback strategy for the queue. Defaults to :attr:`QueueMode.NORMAL`.
         autoplay_settings: :class:`AutoPlaySettings` | :data:`None`
             The autoplay settings to set to this player. Defaults to ``None``.
         history_settings: :class:`HistorySettings` | :data:`None`
@@ -643,6 +651,7 @@ class Node:
         """
         return Player(
             node=self,
+            queue_mode=queue_mode,
             autoplay_settings=autoplay_settings,
             history_settings=history_settings,
             volume=volume,
