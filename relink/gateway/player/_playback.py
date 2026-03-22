@@ -28,11 +28,12 @@ import time
 
 import msgspec
 
+from relink.models.track import Playable
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
-from ...models.track import Playable
 from ..enums import AutoPlayMode, QueueMode
+from ..errors import QueueEmpty
 from ._base import HandlerBase, _log
 
 __all__ = ()
@@ -141,10 +142,12 @@ class PlaybackHandler(HandlerBase):
         return track
 
     async def skip(self) -> Playable | None:
-        if len(self._player.queue) > 0:
+        try:
             next_track = self._player.queue.get()
             await self.play(next_track)
             return next_track
+        except QueueEmpty:
+            pass
 
         handler = self._player._autoplay_handler
         if handler._settings.mode != AutoPlayMode.DISABLED:
