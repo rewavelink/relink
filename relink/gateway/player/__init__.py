@@ -158,7 +158,7 @@ class Player(discord.VoiceProtocol):
     )
 
     _connection: PlayerConnectionState
-    _filters: PlayerFilters
+    _filters: Filters
     _guild: discord.Guild | None
     _last_position: Annotated[int, "ms"]
     _last_update: Annotated[float, "time.monotonic"]
@@ -183,7 +183,7 @@ class Player(discord.VoiceProtocol):
         history_settings: HistorySettings | None = ...,
         volume: int | None = ...,
         paused: bool | None = ...,
-        filters: PlayerFilters | None = ...,
+        filters: Filters | None = ...,
     ) -> None: ...
 
     @overload
@@ -204,13 +204,13 @@ class Player(discord.VoiceProtocol):
         history_settings: HistorySettings | None = None,
         volume: int | None = None,
         paused: bool | None = None,
-        filters: PlayerFilters | None = None,
+        filters: Filters | None = None,
     ) -> None:
         self._guild = None
         self._node = node
         self._connection = self.get_connection_state()
 
-        self._filters = filters or PlayerFilters()
+        self._filters = filters or Filters()
         self._queue = Queue(mode=queue_mode, history_settings=history_settings)
         self._paused = paused or False
         self._volume = volume if volume is not None else 100
@@ -266,7 +266,7 @@ class Player(discord.VoiceProtocol):
         return self._queue.current_track
 
     @property
-    def filters(self) -> PlayerFilters:
+    def filters(self) -> Filters:
         """The currently applied filters for this player."""
         return self._filters
 
