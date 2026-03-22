@@ -34,7 +34,7 @@ from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink import _registry
 from relink.models.settings import AutoPlaySettings, HistorySettings
-from relink.rest.schemas.filters import PlayerFilters
+from relink.models.filters import Filters
 
 from ...models.track import Playable
 from ..enums import AutoPlayMode, QueueMode
@@ -117,6 +117,26 @@ class Player(discord.VoiceProtocol):
     node: :class:`Node` | :data:`None`
         The node to associate this player with. If ``None``, the player will attempt
         to fetch an available node from the :class:`Client` during the connection process.
+
+    Attributes
+    ----------
+    guild: :class:`discord.Guild`
+        The guild this player is attached to.
+    filters: :class:`Filters`
+        The currently applied filters for this player.
+    paused: :class:`bool`
+        Whether the player is currently paused.
+    position: :class:`int`
+        The current position of the player in milliseconds.
+    volume: :class:`int`
+        The current volume of the player (0-1000).
+    queue: :class:`Queue`
+        The track queue associated with this player. This handles both upcoming
+        tracks and playback history.
+    current: :class:`Playable` | :data:`None`
+        The currently playing track, or ``None`` if nothing is playing.
+    node: :class:`Node`
+        The node this player is currently attached to.
     """
 
     __slots__ = (
@@ -138,7 +158,7 @@ class Player(discord.VoiceProtocol):
     )
 
     _connection: PlayerConnectionState
-    _filters: PlayerFilters
+    _filters: Filters
     _guild: discord.Guild | None
     _last_position: Annotated[int, "ms"]
     _last_update: Annotated[float, "time.monotonic"]
@@ -163,7 +183,7 @@ class Player(discord.VoiceProtocol):
         history_settings: HistorySettings | None = ...,
         volume: int | None = ...,
         paused: bool | None = ...,
-        filters: PlayerFilters | None = ...,
+        filters: Filters | None = ...,
     ) -> None: ...
 
     @overload
@@ -184,13 +204,13 @@ class Player(discord.VoiceProtocol):
         history_settings: HistorySettings | None = None,
         volume: int | None = None,
         paused: bool | None = None,
-        filters: PlayerFilters | None = None,
+        filters: Filters | None = None,
     ) -> None:
         self._guild = None
         self._node = node
         self._connection = self.get_connection_state()
 
-        self._filters = filters or PlayerFilters()
+        self._filters = filters or Filters()
         self._queue = Queue(mode=queue_mode, history_settings=history_settings)
         self._paused = paused or False
         self._volume = volume if volume is not None else 100
@@ -246,7 +266,7 @@ class Player(discord.VoiceProtocol):
         return self._queue.current_track
 
     @property
-    def filters(self) -> PlayerFilters:
+    def filters(self) -> Filters:
         """The currently applied filters for this player."""
         return self._filters
 
@@ -520,7 +540,7 @@ class Player(discord.VoiceProtocol):
 
     async def set_filters(
         self,
-        filters: PlayerFilters,
+        filters: Filters,
         /,
         *,
         seek: bool = False,
@@ -530,7 +550,7 @@ class Player(discord.VoiceProtocol):
 
         Parameters
         ----------
-        filters: :class:`PlayerFilters`
+        filters: :class:`Filters`
             The filters to apply.
         seek: :class:`bool`
             Whether to seek to the current position to apply filters immediately.
@@ -542,7 +562,7 @@ class Player(discord.VoiceProtocol):
             The player is not connected to a node or session.
         """
 
-        await self._playback_handler.set_filters(filters, seek=seek)
+        await self._playback_handler.set_filters(filters.payload, seek=seek)
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         """

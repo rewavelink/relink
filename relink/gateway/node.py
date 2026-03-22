@@ -34,7 +34,7 @@ import msgspec
 
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
-from relink.models.server_info import ServerInfo
+from relink.models.info import ServerInfo
 from relink.models.settings import (
     AutoPlaySettings,
     CacheSettings,
@@ -42,6 +42,7 @@ from relink.models.settings import (
     InactivitySettings,
 )
 from relink.models.track import Playable
+from relink.models.filters import Filters
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
@@ -49,7 +50,6 @@ from relink.rest.enums import TrackSourceType
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
-from relink.rest.schemas.filters import PlayerFilters
 
 from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
@@ -652,7 +652,7 @@ class Node:
         *,
         volume: int | None = None,
         paused: bool | None = None,
-        filters: PlayerFilters | None = None,
+        filters: Filters | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,

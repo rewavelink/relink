@@ -74,6 +74,7 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
         If type is :attr:`relink.TrackLoadResult.PLAYLIST`, this will return a :class:`relink.models.Playlist`.
         If type is :attr:`relink.TrackLoadResult.SEARCH`, this will return a list of :class:`relink.models.Playable`\s.
         """
+        assert self._client
 
         match self.type:
             case TrackLoadResult.TRACK:

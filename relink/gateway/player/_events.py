@@ -203,7 +203,7 @@ class EventsHandler(HandlerBase):
 
         request_data = UpdatePlayerRequest(
             voice=voice_state,
-            filters=self._player.filters,
+            filters=self._player.filters.payload,
             volume=self._player.volume,
             paused=self._player.paused,
         )

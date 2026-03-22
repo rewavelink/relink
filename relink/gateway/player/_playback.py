@@ -28,6 +28,7 @@ import time
 
 import msgspec
 
+from relink.models.filters import Filters
 from relink.models.track import Playable
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
@@ -210,7 +211,8 @@ class PlaybackHandler(HandlerBase):
             data=data,
         )
 
-        self._player._filters = filters
+        assert self._player.node.client
+        self._player._filters = Filters._from_data(self._player.node.client, filters)
 
         if seek:
             await self.seek(self._player.position)
