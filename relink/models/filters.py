@@ -60,6 +60,7 @@ __all__ = (
     "Filters",
 )
 
+
 def _maybe_unset[T](val: T | None) -> T | msgspec.UnsetType:
     return val if val is not None else msgspec.UNSET
 
@@ -660,7 +661,8 @@ class Filters(BaseModel[filters.PlayerFilters]):
     @classmethod
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
         equalizer = [
-            Equalizer._from_data(client, e) for e in (_unwrap_unset(data.equalizer) or [])
+            Equalizer._from_data(client, e)
+            for e in (_unwrap_unset(data.equalizer) or [])
         ]
         karaoke = cls._wrap(Karaoke, client, data.karaoke)
         timescale = cls._wrap(Timescale, client, data.timescale)
@@ -690,8 +692,14 @@ class Filters(BaseModel[filters.PlayerFilters]):
         return self
 
     @classmethod
-    def _wrap[C: FilterModelTypes](cls, model: type[C], client: Client[Any], data: Any) -> C | None:
-        return model._from_data(client=client, data=data) if data is not msgspec.UNSET else None
+    def _wrap[C: FilterModelTypes](
+        cls, model: type[C], client: Client[Any], data: Any
+    ) -> C | None:
+        return (
+            model._from_data(client=client, data=data)
+            if data is not msgspec.UNSET
+            else None
+        )
 
     @property
     def volume(self) -> float:

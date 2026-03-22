@@ -122,13 +122,19 @@ class KaraokeFilter(msgspec.Struct, kw_only=True):
     level: float | msgspec.UnsetType = msgspec.UNSET
     """Overall effect intensity from ``0.0`` to ``1.0``."""
 
-    mono_level: float | msgspec.UnsetType = msgspec.field(name="monoLevel", default=msgspec.UNSET)
+    mono_level: float | msgspec.UnsetType = msgspec.field(
+        name="monoLevel", default=msgspec.UNSET
+    )
     """Mono signal amount from ``0.0`` to ``1.0``."""
 
-    filter_band: float | msgspec.UnsetType = msgspec.field(name="filterBand", default=msgspec.UNSET)
+    filter_band: float | msgspec.UnsetType = msgspec.field(
+        name="filterBand", default=msgspec.UNSET
+    )
     """Center frequency in Hz for the target region."""
 
-    filter_width: float | msgspec.UnsetType = msgspec.field(name="filterWidth", default=msgspec.UNSET)
+    filter_width: float | msgspec.UnsetType = msgspec.field(
+        name="filterWidth", default=msgspec.UNSET
+    )
     """Bandwidth around ``filter_band`` in Hz."""
 
 
@@ -181,7 +187,9 @@ class VibratoFilter(msgspec.Struct, kw_only=True):
 class RotationFilter(msgspec.Struct, kw_only=True):
     """Represents stereo rotation filter configuration."""
 
-    rotation_hz: float | msgspec.UnsetType = msgspec.field(name="rotationHz", default=msgspec.UNSET)
+    rotation_hz: float | msgspec.UnsetType = msgspec.field(
+        name="rotationHz", default=msgspec.UNSET
+    )
     """Rotation frequency in Hz. ``0.2`` is a common slow rotation."""
 
 
@@ -193,22 +201,34 @@ class DistortionFilter(msgspec.Struct, kw_only=True):
     produce large audible differences, so tune incrementally.
     """
 
-    sin_offset: float | msgspec.UnsetType = msgspec.field(name="sinOffset", default=msgspec.UNSET)
+    sin_offset: float | msgspec.UnsetType = msgspec.field(
+        name="sinOffset", default=msgspec.UNSET
+    )
     """Sine input offset component."""
 
-    sin_scale: float | msgspec.UnsetType = msgspec.field(name="sinScale", default=msgspec.UNSET)
+    sin_scale: float | msgspec.UnsetType = msgspec.field(
+        name="sinScale", default=msgspec.UNSET
+    )
     """Sine scaling component."""
 
-    cos_offset: float | msgspec.UnsetType = msgspec.field(name="cosOffset", default=msgspec.UNSET)
+    cos_offset: float | msgspec.UnsetType = msgspec.field(
+        name="cosOffset", default=msgspec.UNSET
+    )
     """Cosine input offset component."""
 
-    cos_scale: float | msgspec.UnsetType = msgspec.field(name="cosScale", default=msgspec.UNSET)
+    cos_scale: float | msgspec.UnsetType = msgspec.field(
+        name="cosScale", default=msgspec.UNSET
+    )
     """Cosine scaling component."""
 
-    tan_offset: float | msgspec.UnsetType = msgspec.field(name="tanOffset", default=msgspec.UNSET)
+    tan_offset: float | msgspec.UnsetType = msgspec.field(
+        name="tanOffset", default=msgspec.UNSET
+    )
     """Tangent input offset component."""
 
-    tan_scale: float | msgspec.UnsetType = msgspec.field(name="tanScale", default=msgspec.UNSET)
+    tan_scale: float | msgspec.UnsetType = msgspec.field(
+        name="tanScale", default=msgspec.UNSET
+    )
     """Tangent scaling component."""
 
     offset: float | msgspec.UnsetType = msgspec.UNSET
@@ -227,16 +247,24 @@ class ChannelMixFilter(msgspec.Struct, kw_only=True):
     ``0.5`` yields dual-mono output.
     """
 
-    left_to_left: float | msgspec.UnsetType = msgspec.field(name="leftToLeft", default=msgspec.UNSET)
+    left_to_left: float | msgspec.UnsetType = msgspec.field(
+        name="leftToLeft", default=msgspec.UNSET
+    )
     """Contribution of left input to left output."""
 
-    left_to_right: float | msgspec.UnsetType = msgspec.field(name="leftToRight", default=msgspec.UNSET)
+    left_to_right: float | msgspec.UnsetType = msgspec.field(
+        name="leftToRight", default=msgspec.UNSET
+    )
     """Contribution of left input to right output."""
 
-    right_to_left: float | msgspec.UnsetType = msgspec.field(name="rightToLeft", default=msgspec.UNSET)
+    right_to_left: float | msgspec.UnsetType = msgspec.field(
+        name="rightToLeft", default=msgspec.UNSET
+    )
     """Contribution of right input to left output."""
 
-    right_to_right: float | msgspec.UnsetType = msgspec.field(name="rightToRight", default=msgspec.UNSET)
+    right_to_right: float | msgspec.UnsetType = msgspec.field(
+        name="rightToRight", default=msgspec.UNSET
+    )
     """Contribution of right input to right output."""
 
 
