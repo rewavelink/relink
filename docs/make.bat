@@ -7,9 +7,15 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
+if "%SPHINXAUTOBUILD%" == "" (
+	set SPHINXAUTOBUILD=sphinx-autobuild
+)
 set SOURCEDIR=.
 set BUILDDIR=_build
 set CONFIGDIR=.
+if "%AUTOBUILDOPTS%" == "" (
+	set AUTOBUILDOPTS=--ignore _build/*
+)
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (
@@ -35,7 +41,7 @@ goto end
 goto end
 
 :livehtml
-sphinx-autobuild >NUL 2>NUL
+%SPHINXAUTOBUILD% >NUL 2>NUL
 if errorlevel 9009 (
 	echo.
 	echo.The 'sphinx-autobuild' command was not found. Install docs extras first:
@@ -47,10 +53,7 @@ if errorlevel 9009 (
 %SPHINXBUILD% -M clean %SOURCEDIR% %BUILDDIR% -c %CONFIGDIR% %SPHINXOPTS% %O%
 if errorlevel 1 exit /b 1
 
-%SPHINXBUILD% -b html -E -a %SOURCEDIR% %BUILDDIR%\html -c %CONFIGDIR% %SPHINXOPTS% %O%
-if errorlevel 1 exit /b 1
-
-sphinx-autobuild %SOURCEDIR% %BUILDDIR%\html -c %CONFIGDIR% %SPHINXOPTS% %O%
+%SPHINXAUTOBUILD% %AUTOBUILDOPTS% -b html -E -a %SOURCEDIR% %BUILDDIR%\html -c %CONFIGDIR% %SPHINXOPTS% %O%
 
 :end
 popd
