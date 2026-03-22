@@ -148,7 +148,7 @@ class LifecycleHandler(HandlerBase):
             position=self._player.position,
             volume=self._player._volume,
             paused=self._player._paused,
-            filters=self._player._filters,
+            filters=self._player._filters.payload,
         )
 
         await node._manager.update_player(

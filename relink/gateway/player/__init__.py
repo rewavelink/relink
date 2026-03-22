@@ -122,7 +122,7 @@ class Player(discord.VoiceProtocol):
     ----------
     guild: :class:`discord.Guild`
         The guild this player is attached to.
-    filters: :class:`PlayerFilters`
+    filters: :class:`Filters`
         The currently applied filters for this player.
     paused: :class:`bool`
         Whether the player is currently paused.
