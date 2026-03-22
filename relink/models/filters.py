@@ -667,7 +667,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
 
     This class provides a Pythonic interface to the underlying Lavalink filter state.
 
-    Attributes
+    Parameters
     ----------
     volume: float
         The linear volume multiplier (0.0 to 5.0).
@@ -704,6 +704,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
         "_channel_mix",
         "_low_pass",
         "_volume",
+        "_plugin_filters",
     )
 
     def __init__(
@@ -719,6 +720,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
         channel_mix: ChannelMix | None = None,
         low_pass: LowPass | None = None,
         volume: float = 1.0,
+        plugin_filters: dict[str, Any] | None = None,
     ) -> None:
         self._equalizer = equalizer
         self._karaoke = karaoke
@@ -730,6 +732,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
         self._channel_mix = channel_mix
         self._low_pass = low_pass
         self._volume = volume
+        self._plugin_filters = plugin_filters
 
     @classmethod
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
@@ -745,6 +748,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
         channel_mix = cls._wrap(ChannelMix, client, data.channel_mix)
         low_pass = cls._wrap(LowPass, client, data.low_pass)
         volume = _unwrap_unset(data.volume)
+        plugin_filters = _unwrap_unset(data.plugin_filters)
 
         self = cls(
             equalizer=equalizer,
@@ -757,6 +761,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
             channel_mix=channel_mix,
             low_pass=low_pass,
             volume=volume if volume is not None else 1.0,
+            plugin_filters=plugin_filters,
         )
         self._client = client
         return self
@@ -858,7 +863,11 @@ class Filters(BaseModel[filters.PlayerFilters]):
     @property
     def plugin_filters(self) -> dict[str, Any]:
         """A dictionary of raw plugin-defined filter payloads."""
-        return self._data.plugin_filters
+        return self._plugin_filters or {}
+
+    @plugin_filters.setter
+    def plugin_filters(self, value: dict[str, Any] | None) -> None:
+        self._plugin_filters = value
 
     @property
     def payload(self) -> filters.PlayerFilters:
@@ -886,4 +895,5 @@ class Filters(BaseModel[filters.PlayerFilters]):
             distortion=distortion,
             channel_mix=channel_mix,
             low_pass=low_pass,
+            plugin_filters=self.plugin_filters,
         )
