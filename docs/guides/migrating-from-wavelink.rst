@@ -42,7 +42,7 @@ Concept mapping
    * - ``wavelink.Search``
      - :class:`relink.models.SearchResult`
    * - ``wavelink.Filters``
-     - :class:`relink.models.PlayerFilters`
+     - :class:`relink.models.Filters`
 
 Connection lifecycle
 --------------------
@@ -58,7 +58,7 @@ In ReLink, the equivalent flow is explicit and instance-based:
    import relink
 
    rl_client = relink.Client(bot)
-
+   
    rl_client.create_node(
        uri="http://localhost:2333",
        password="youshallnotpass",
@@ -69,9 +69,9 @@ In ReLink, the equivalent flow is explicit and instance-based:
        await rl_client.start()
 
 .. note::
-   ``start()`` belongs in ``setup_hook``, not ``on_ready``. The bot's internal state is not
-   fully ready during ``on_ready``, which can cause the node connection to fail.
-
+   :meth:`relink.Client.start` belongs in :meth:`discord.ext.commands.Bot.setup_hook`,
+   not :func:`discord.on_ready`.
+   
 Settings
 --------
 
