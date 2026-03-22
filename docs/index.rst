@@ -24,14 +24,12 @@ Getting Started
 
    installation
    guides/index
-   concepts
    api/index
 
 Who should read what
 --------------------
 
 * **New users** — start with :doc:`installation`, then work through :doc:`guides/index`.
-* **Bot authors** — read :doc:`concepts` alongside the guide pages for a fuller picture.
 * **Advanced users** — jump straight to :doc:`api/index` and refer to the guides as needed.
 
 Typical flow

@@ -4,7 +4,8 @@ Supplementary
 =============
 
 
-This section contains reference documentation for the more advanced concepts and types in ReLink. If you're new to ReLink, you should start with the :doc:`/index` and the :doc:`/guides/index` before diving into this section.
+This section contains reference documentation for the more advanced concepts and types in ReLink. 
+If you're new to ReLink, you should start with the :doc:`/index` and the :doc:`/guides/index` before diving into this section.
 
 Queue
 -----
