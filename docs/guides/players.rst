@@ -225,7 +225,7 @@ The ``seek=True`` part is often important. Some filters are not immediately
 audible until playback position changes, so seeking to the current position
 makes the effect audible right away.
 
-For more information on filters, go to `the filters guide <guides/filters>`_.
+For more information on filters, go to `the filters guide <filters>`_.
 
 Playing tracks
 ^^^^^^^^^^^^^^
