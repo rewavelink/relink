@@ -30,13 +30,13 @@ defaults such as volume, filters, autoplay, or history settings.
 
 .. code-block:: python
 
-   from relink.rest.schemas import KaraokeFilter, PlayerFilters
+   from relink.models import Karaoke, Filters
 
    player = relink.Player(
       node=node,
       volume=100,
-      filters=PlayerFilters(
-         karaoke=KaraokeFilter(level=0.5),
+      filters=Filters(
+         karaoke=Karaoke(level=0.5),
       ),
    )
 
@@ -44,8 +44,8 @@ defaults such as volume, filters, autoplay, or history settings.
 
    player = node.create_player(
       volume=100,
-      filters=PlayerFilters(
-         karaoke=KaraokeFilter(level=0.5),
+      filters=Filters(
+         karaoke=Karaoke(level=0.5),
       ),
    )
 
@@ -211,13 +211,13 @@ timescale, equalizer, tremolo, or rotation.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, TimescaleFilter
+   from relink.models import Filters, Timescale
 
-   filters = PlayerFilters(timescale=TimescaleFilter(speed=1.1))
+   filters = Filters(timescale=Timescale(speed=1.1))
    await player.set_filters(filters, seek=True)
 
-Filters are grouped into a single :class:`relink.rest.schemas.PlayerFilters`
-object and then applied in one call.
+Filters are grouped into a single :class:`relink.models.Filters` object and then
+applied in one call.
 
 The ``seek=True`` part is often important. Some filters are not immediately
 audible until playback position changes, so seeking to the current position

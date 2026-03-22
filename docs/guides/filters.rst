@@ -7,16 +7,15 @@ Filters And Playback State
 Applying filters
 ----------------
 
-Lavalink filters are grouped into a single
-:class:`relink.rest.schemas.PlayerFilters` object. You build that object first,
-then apply it with :meth:`relink.Player.set_filters`:
+Lavalink filters are grouped into a single :class:`relink.models.Filters` object.
+You build that object first, then apply it with :meth:`relink.Player.set_filters`:
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, TimescaleFilter
+   from relink.models import Filters, Timescale
 
-   filters = PlayerFilters(
-      timescale=TimescaleFilter(speed=1.1),
+   filters = Filters(
+      timescale=Timescale(speed=1.1),
    )
    await player.set_filters(filters, seek=True)
 
@@ -27,7 +26,7 @@ in one request.
 How filter payloads work
 ------------------------
 
-:class:`relink.rest.schemas.PlayerFilters` mirrors the filter payload Lavalink
+:class:`relink.models.Filters` mirrors the filter payload Lavalink
 expects. Each attribute represents one filter family:
 
 * ``volume``
@@ -60,30 +59,30 @@ want:
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, RotationFilter
+   from relink.models import Filters, Rotation
 
-   filters = PlayerFilters(
-      rotation=RotationFilter(rotation_hz=0.2),
+   filters = Filters(
+      rotation=Rotation(rotation_hz=0.2),
    )
 
    await player.set_filters(filters, seek=True)
 
 If your bot supports multiple effects at once, it is usually better to compose
-them in a single ``PlayerFilters`` object:
+them in a single ``Filters`` object:
 
 .. code-block:: python
 
-   from relink.rest.schemas import (
-      PlayerFilters,
-      RotationFilter,
-      TimescaleFilter,
-      TremoloFilter,
+   from relink.models import (
+      Filters,
+      Rotation,
+      Timescale,
+      Tremolo,
    )
 
-   filters = PlayerFilters(
-      timescale=TimescaleFilter(speed=1.1, pitch=1.1),
-      rotation=RotationFilter(rotation_hz=0.2),
-      tremolo=TremoloFilter(frequency=4.0, depth=0.3),
+   filters = Filters(
+      timescale=Timescale(speed=1.1, pitch=1.1),
+      rotation=Rotation(rotation_hz=0.2),
+      tremolo=Tremolo(frequency=4.0, depth=0.3),
    )
 
    await player.set_filters(filters, seek=True)
@@ -130,14 +129,14 @@ Available filters
 ``volume``
 ^^^^^^^^^^
 
-``PlayerFilters.volume`` is a linear volume multiplier from ``0.0`` to ``5.0``.
-``1.0`` means unchanged volume.
+``Filters.volume`` is a linear volume multiplier from ``0.0`` to ``5.0``. ``1.0``
+means unchanged volume.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters
+   from relink.models import Filters
 
-   filters = PlayerFilters(volume=0.8)
+   filters = Filters(volume=0.8)
    await player.set_filters(filters, seek=True)
 
 This is different from :meth:`relink.Player.set_volume`, which uses Lavalink's
@@ -151,19 +150,19 @@ of a larger filter preset.
 ``equalizer``
 ^^^^^^^^^^^^^
 
-``PlayerFilters.equalizer`` lets you shape specific frequency bands. Lavalink
-provides 15 bands, covering roughly ``25 Hz`` through ``16000 Hz``.
+``Filters.equalizer`` lets you shape specific frequency bands. Lavalink provides 15
+bands, covering roughly ``25 Hz`` through ``16000 Hz``.
 
 .. code-block:: python
 
-   from relink.rest.schemas import EqualizerFilter, PlayerFilters
+   from relink.models import Equalizer, Filters
 
-   filters = PlayerFilters(
+   filters = Filters(
       equalizer=[
-         EqualizerFilter(band=0, gain=0.15),
-         EqualizerFilter(band=1, gain=0.15),
-         EqualizerFilter(band=2, gain=0.10),
-      ]
+         Equalizer(band=0, gain=0.15),
+         Equalizer(band=1, gain=0.15),
+         Equalizer(band=2, gain=0.10),
+      ],
    )
 
    await player.set_filters(filters, seek=True)
@@ -175,18 +174,18 @@ sound better than extreme ones, especially when multiple bands are boosted at on
 ``karaoke``
 ^^^^^^^^^^^
 
-``PlayerFilters.karaoke`` reduces content in a target frequency region. It is
-commonly used for vocal reduction.
+``Filters.karaoke`` reduces content in a target frequency region. It is commonly used
+for vocal reduction.
 
 .. code-block:: python
 
-   from relink.rest.schemas import KaraokeFilter, PlayerFilters
+   from relink.models import Karaoke, Filters
 
-   filters = PlayerFilters(
-      karaoke=KaraokeFilter(
+   filters = Filters(
+      karaoke=Karaoke(
          level=0.8,
          mono_level=0.8,
-      )
+      ),
    )
 
    await player.set_filters(filters, seek=True)
@@ -197,14 +196,14 @@ in some songs, but it will not cleanly remove vocals from every mix.
 ``timescale``
 ^^^^^^^^^^^^^
 
-``PlayerFilters.timescale`` changes playback speed, pitch, and rate.
+``Filters.timescale`` changes playback speed, pitch, and rate.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, TimescaleFilter
+   from relink.models import Filters, Timescale
 
-   filters = PlayerFilters(
-      timescale=TimescaleFilter(speed=1.1, pitch=1.1),
+   filters = Filters(
+      timescale=Timescale(speed=1.1, pitch=1.1),
    )
 
    await player.set_filters(filters, seek=True)
@@ -222,14 +221,14 @@ changes often sound more musical than aggressive ones.
 ``tremolo``
 ^^^^^^^^^^^
 
-``PlayerFilters.tremolo`` rapidly oscillates output volume.
+``Filters.tremolo`` rapidly oscillates output volume.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, TremoloFilter
+   from relink.models import Filters, Tremolo
 
-   filters = PlayerFilters(
-      tremolo=TremoloFilter(frequency=4.0, depth=0.5),
+   filters = Filters(
+      tremolo=Tremolo(frequency=4.0, depth=0.5),
    )
 
    await player.set_filters(filters, seek=True)
@@ -240,14 +239,14 @@ and ``depth`` controls how strong it is.
 ``vibrato``
 ^^^^^^^^^^^
 
-``PlayerFilters.vibrato`` rapidly oscillates pitch.
+``Filters.vibrato`` rapidly oscillates pitch.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, VibratoFilter
+   from relink.models import Filters, Vibrato
 
-   filters = PlayerFilters(
-      vibrato=VibratoFilter(frequency=6.0, depth=0.3),
+   filters = Filters(
+      vibrato=Vibrato(frequency=6.0, depth=0.3),
    )
 
    await player.set_filters(filters, seek=True)
@@ -258,14 +257,14 @@ synths, and sustained notes than on heavily percussive audio.
 ``rotation``
 ^^^^^^^^^^^^
 
-``PlayerFilters.rotation`` rotates audio across stereo channels.
+``Filters.rotation`` rotates audio across stereo channels.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters, RotationFilter
+   from relink.models import Filters, Rotation
 
-   filters = PlayerFilters(
-      rotation=RotationFilter(rotation_hz=0.2),
+   filters = Filters(
+      rotation=Rotation(rotation_hz=0.2),
    )
 
    await player.set_filters(filters, seek=True)
@@ -282,14 +281,14 @@ tone dramatically.
 
 .. code-block:: python
 
-   from relink.rest.schemas import DistortionFilter, PlayerFilters
+   from relink.models import Distortion, Filters
 
-   filters = PlayerFilters(
-      distortion=DistortionFilter(
+   filters = Filters(
+      distortion=Distortion(
          sin_scale=0.2,
          cos_scale=0.2,
          scale=1.0,
-      )
+      ),
    )
 
    await player.set_filters(filters, seek=True)
@@ -306,15 +305,15 @@ mixed into the output channels.
 
 .. code-block:: python
 
-   from relink.rest.schemas import ChannelMixFilter, PlayerFilters
+   from relink.models import ChannelMix, Filters
 
-   filters = PlayerFilters(
-      channel_mix=ChannelMixFilter(
+   filters = Filters(
+      channel_mix=ChannelMix(
          left_to_left=0.5,
          left_to_right=0.5,
          right_to_left=0.5,
          right_to_right=0.5,
-      )
+      ),
    )
 
    await player.set_filters(filters, seek=True)
@@ -325,15 +324,14 @@ output. A value of ``0.5`` for all four coefficients is a common dual-mono setup
 ``low_pass``
 ^^^^^^^^^^^^
 
-``PlayerFilters.low_pass`` suppresses higher frequencies while preserving lower
-ones.
+``Filters.low_pass`` suppresses higher frequencies while preserving lower ones.
 
 .. code-block:: python
 
-   from relink.rest.schemas import LowPassFilter, PlayerFilters
+   from relink.models import LowPass, Filters
 
-   filters = PlayerFilters(
-      low_pass=LowPassFilter(smoothing=20.0),
+   filters = Filters(
+      low_pass=LowPass(smoothing=20.0),
    )
 
    await player.set_filters(filters, seek=True)
@@ -344,14 +342,14 @@ style sound depending on the settings and the source material.
 ``plugin_filters``
 ^^^^^^^^^^^^^^^^^^
 
-``PlayerFilters.plugin_filters`` is reserved for Lavalink plugin-defined
-filters. ReLink passes this payload through as-is.
+``Filters.plugin_filters`` is reserved for Lavalink plugin-defined filters.
+ReLink passes this payload through as-is.
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters
+   from relink.models import Filters
 
-   filters = PlayerFilters(
+   filters = Filters(
       plugin_filters={
          "some-plugin": {
             "strength": 0.75,
