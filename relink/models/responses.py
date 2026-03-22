@@ -74,6 +74,7 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
         If type is :attr:`TrackLoadResult.PLAYLIST`, this will return a :class:`Playlist`.
         If type is :attr:`TrackLoadResult.SEARCH`, this will return a list of :class:`Playable`\s.
         """
+        assert self._client
 
         match self.type:
             case TrackLoadResult.TRACK:

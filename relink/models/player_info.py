@@ -54,6 +54,7 @@ class PlayerInfo(BaseModel[PlayerInfoPayload]):
         track = self._data.track
         if not track:
             return None
+        assert self._client
         return Playable(client=self._client, data=track)
 
     @property

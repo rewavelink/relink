@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self, Union
 
 import msgspec
 
@@ -33,6 +33,18 @@ from .base import BaseModel
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
+
+    FilterModelTypes = Union[
+        "Equalizer",
+        "Karaoke",
+        "Timescale",
+        "Tremolo",
+        "Vibrato",
+        "Rotation",
+        "Distortion",
+        "ChannelMix",
+        "LowPass",
+    ]
 
 
 __all__ = (
@@ -47,6 +59,13 @@ __all__ = (
     "LowPass",
     "Filters",
 )
+
+def _maybe_unset[T](val: T | None) -> T | msgspec.UnsetType:
+    return val if val is not None else msgspec.UNSET
+
+
+def _unwrap_unset[T](val: T | msgspec.UnsetType) -> T | None:
+    return val if val is not msgspec.UNSET else None
 
 
 class Equalizer(BaseModel[filters.EqualizerFilter]):
@@ -63,15 +82,43 @@ class Equalizer(BaseModel[filters.EqualizerFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        band: int,
+        gain: float,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.EqualizerFilter(
+                band=band,
+                gain=gain,
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.EqualizerFilter) -> Self:
+        self = cls(band=data.band, gain=data.gain)
+        self._client = client
+        return self
+
     @property
     def band(self) -> int:
         """The target band index (0 to 14)."""
         return self._data.band
 
+    @band.setter
+    def band(self, value: int) -> None:
+        self._data.band = value
+
     @property
     def gain(self) -> float:
         """The band gain multiplier (-0.25 to 1.0)."""
         return self._data.gain
+
+    @gain.setter
+    def gain(self, value: float) -> None:
+        self._data.gain = value
 
 
 class Karaoke(BaseModel[filters.KaraokeFilter]):
@@ -92,25 +139,70 @@ class Karaoke(BaseModel[filters.KaraokeFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        level: float | None = None,
+        mono_level: float | None = None,
+        filter_band: float | None = None,
+        filter_width: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.KaraokeFilter(
+                level=_maybe_unset(level),
+                mono_level=_maybe_unset(mono_level),
+                filter_band=_maybe_unset(filter_band),
+                filter_width=_maybe_unset(filter_width),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.KaraokeFilter) -> Self:
+        self = cls(
+            level=_unwrap_unset(data.level),
+            mono_level=_unwrap_unset(data.mono_level),
+            filter_band=_unwrap_unset(data.filter_band),
+            filter_width=_unwrap_unset(data.filter_width),
+        )
+        self._client = client
+        return self
+
     @property
     def level(self) -> float | None:
         """Overall effect intensity (0.0 to 1.0)."""
-        return self._data.level
+        return _unwrap_unset(self._data.level)
+
+    @level.setter
+    def level(self, value: float | None) -> None:
+        self._data.level = _maybe_unset(value)
 
     @property
     def mono_level(self) -> float | None:
         """Mono signal amount (0.0 to 1.0)."""
-        return self._data.mono_level
+        return _unwrap_unset(self._data.mono_level)
+
+    @mono_level.setter
+    def mono_level(self, value: float | None) -> None:
+        self._data.mono_level = _maybe_unset(value)
 
     @property
     def filter_band(self) -> float | None:
         """Center frequency in Hz for the target region."""
-        return self._data.filter_band
+        return _unwrap_unset(self._data.filter_band)
+
+    @filter_band.setter
+    def filter_band(self, value: float | None) -> None:
+        self._data.filter_band = _maybe_unset(value)
 
     @property
     def filter_width(self) -> float | None:
         """Bandwidth around the filter band in Hz."""
-        return self._data.filter_width
+        return _unwrap_unset(self._data.filter_width)
+
+    @filter_width.setter
+    def filter_width(self, value: float | None) -> None:
+        self._data.filter_width = _maybe_unset(value)
 
 
 class Timescale(BaseModel[filters.TimescaleFilter]):
@@ -129,20 +221,58 @@ class Timescale(BaseModel[filters.TimescaleFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        speed: float | None = None,
+        pitch: float | None = None,
+        rate: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.TimescaleFilter(
+                speed=_maybe_unset(speed),
+                pitch=_maybe_unset(pitch),
+                rate=_maybe_unset(rate),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.TimescaleFilter) -> Self:
+        self = cls(
+            speed=_unwrap_unset(data.speed),
+            pitch=_unwrap_unset(data.pitch),
+            rate=_unwrap_unset(data.rate),
+        )
+        self._client = client
+        return self
+
     @property
     def speed(self) -> float | None:
         """Playback speed multiplier (>= 0.0)."""
-        return self._data.speed
+        return _unwrap_unset(self._data.speed)
+
+    @speed.setter
+    def speed(self, value: float | None) -> None:
+        self._data.speed = _maybe_unset(value)
 
     @property
     def pitch(self) -> float | None:
         """Pitch multiplier (>= 0.0)."""
-        return self._data.pitch
+        return _unwrap_unset(self._data.pitch)
+
+    @pitch.setter
+    def pitch(self, value: float | None) -> None:
+        self._data.pitch = _maybe_unset(value)
 
     @property
     def rate(self) -> float | None:
         """Internal rate multiplier (>= 0.0)."""
-        return self._data.rate
+        return _unwrap_unset(self._data.rate)
+
+    @rate.setter
+    def rate(self, value: float | None) -> None:
+        self._data.rate = _maybe_unset(value)
 
 
 class Tremolo(BaseModel[filters.TremoloFilter]):
@@ -159,15 +289,46 @@ class Tremolo(BaseModel[filters.TremoloFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        frequency: float | None = None,
+        depth: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.TremoloFilter(
+                frequency=_maybe_unset(frequency),
+                depth=_maybe_unset(depth),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.TremoloFilter) -> Self:
+        self = cls(
+            frequency=_unwrap_unset(data.frequency),
+            depth=_unwrap_unset(data.depth),
+        )
+        self._client = client
+        return self
+
     @property
     def frequency(self) -> float | None:
         """Oscillation frequency in Hz (> 0.0)."""
-        return self._data.frequency
+        return _unwrap_unset(self._data.frequency)
+
+    @frequency.setter
+    def frequency(self, value: float | None) -> None:
+        self._data.frequency = _maybe_unset(value)
 
     @property
     def depth(self) -> float | None:
         """Effect depth (0.0 < x <= 1.0)."""
-        return self._data.depth
+        return _unwrap_unset(self._data.depth)
+
+    @depth.setter
+    def depth(self, value: float | None) -> None:
+        self._data.depth = _maybe_unset(value)
 
 
 class Vibrato(BaseModel[filters.VibratoFilter]):
@@ -184,15 +345,46 @@ class Vibrato(BaseModel[filters.VibratoFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        frequency: float | None = None,
+        depth: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.VibratoFilter(
+                frequency=_maybe_unset(frequency),
+                depth=_maybe_unset(depth),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.VibratoFilter) -> Self:
+        self = cls(
+            frequency=_unwrap_unset(data.frequency),
+            depth=_unwrap_unset(data.depth),
+        )
+        self._client = client
+        return self
+
     @property
     def frequency(self) -> float | None:
         """Oscillation frequency in Hz (0.0 < x <= 14.0)."""
-        return self._data.frequency
+        return _unwrap_unset(self._data.frequency)
+
+    @frequency.setter
+    def frequency(self, value: float | None) -> None:
+        self._data.frequency = _maybe_unset(value)
 
     @property
     def depth(self) -> float | None:
         """Effect depth (0.0 < x <= 1.0)."""
-        return self._data.depth
+        return _unwrap_unset(self._data.depth)
+
+    @depth.setter
+    def depth(self, value: float | None) -> None:
+        self._data.depth = _maybe_unset(value)
 
 
 class Rotation(BaseModel[filters.RotationFilter]):
@@ -207,10 +399,34 @@ class Rotation(BaseModel[filters.RotationFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        rotation_hz: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.RotationFilter(
+                rotation_hz=_maybe_unset(rotation_hz),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.RotationFilter) -> Self:
+        self = cls(
+            rotation_hz=_unwrap_unset(data.rotation_hz),
+        )
+        self._client = client
+        return self
+
     @property
     def rotation_hz(self) -> float | None:
         """Rotation frequency in Hz."""
-        return self._data.rotation_hz
+        return _unwrap_unset(self._data.rotation_hz)
+
+    @rotation_hz.setter
+    def rotation_hz(self, value: float | None) -> None:
+        self._data.rotation_hz = _maybe_unset(value)
 
 
 class Distortion(BaseModel[filters.DistortionFilter]):
@@ -235,35 +451,94 @@ class Distortion(BaseModel[filters.DistortionFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        sin_offset: float | None = None,
+        sin_scale: float | None = None,
+        cos_offset: float | None = None,
+        cos_scale: float | None = None,
+        tan_offset: float | None = None,
+        tan_scale: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.DistortionFilter(
+                sin_offset=_maybe_unset(sin_offset),
+                sin_scale=_maybe_unset(sin_scale),
+                cos_offset=_maybe_unset(cos_offset),
+                cos_scale=_maybe_unset(cos_scale),
+                tan_offset=_maybe_unset(tan_offset),
+                tan_scale=_maybe_unset(tan_scale),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.DistortionFilter) -> Self:
+        self = cls(
+            sin_offset=_unwrap_unset(data.sin_offset),
+            sin_scale=_unwrap_unset(data.sin_scale),
+            cos_offset=_unwrap_unset(data.cos_offset),
+            cos_scale=_unwrap_unset(data.cos_scale),
+            tan_offset=_unwrap_unset(data.tan_offset),
+            tan_scale=_unwrap_unset(data.tan_scale),
+        )
+        self._client = client
+        return self
+
     @property
     def sin_offset(self) -> float | None:
         """The sine input offset component."""
-        return self._data.sin_offset
+        return _unwrap_unset(self._data.sin_offset)
+
+    @sin_offset.setter
+    def sin_offset(self, value: float | None) -> None:
+        self._data.sin_offset = _maybe_unset(value)
 
     @property
     def sin_scale(self) -> float | None:
         """The sine scaling component."""
-        return self._data.sin_scale
+        return _unwrap_unset(self._data.sin_scale)
+
+    @sin_scale.setter
+    def sin_scale(self, value: float | None) -> None:
+        self._data.sin_scale = _maybe_unset(value)
 
     @property
     def cos_offset(self) -> float | None:
         """The cosine input offset component."""
-        return self._data.cos_offset
+        return _unwrap_unset(self._data.cos_offset)
+
+    @cos_offset.setter
+    def cos_offset(self, value: float | None) -> None:
+        self._data.cos_offset = _maybe_unset(value)
 
     @property
     def cos_scale(self) -> float | None:
         """The cosine scaling component."""
-        return self._data.cos_scale
+        return _unwrap_unset(self._data.cos_scale)
+
+    @cos_scale.setter
+    def cos_scale(self, value: float | None) -> None:
+        self._data.cos_scale = _maybe_unset(value)
 
     @property
     def tan_offset(self) -> float | None:
         """The tangent input offset component."""
-        return self._data.tan_offset
+        return _unwrap_unset(self._data.tan_offset)
+
+    @tan_offset.setter
+    def tan_offset(self, value: float | None) -> None:
+        self._data.tan_offset = _maybe_unset(value)
 
     @property
     def tan_scale(self) -> float | None:
         """The tangent scaling component."""
-        return self._data.tan_scale
+        return _unwrap_unset(self._data.tan_scale)
+
+    @tan_scale.setter
+    def tan_scale(self, value: float | None) -> None:
+        self._data.tan_scale = _maybe_unset(value)
 
 
 class ChannelMix(BaseModel[filters.ChannelMixFilter]):
@@ -284,25 +559,70 @@ class ChannelMix(BaseModel[filters.ChannelMixFilter]):
 
     __slots__ = ()
 
+    def __init__(
+        self,
+        *,
+        left_to_left: float | None = None,
+        left_to_right: float | None = None,
+        right_to_left: float | None = None,
+        right_to_right: float | None = None,
+    ) -> None:
+        super().__init__(
+            client=None,
+            data=filters.ChannelMixFilter(
+                left_to_left=_maybe_unset(left_to_left),
+                left_to_right=_maybe_unset(left_to_right),
+                right_to_left=_maybe_unset(right_to_left),
+                right_to_right=_maybe_unset(right_to_right),
+            ),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.ChannelMixFilter) -> Self:
+        self = cls(
+            left_to_left=_unwrap_unset(data.left_to_left),
+            left_to_right=_unwrap_unset(data.left_to_right),
+            right_to_left=_unwrap_unset(data.right_to_left),
+            right_to_right=_unwrap_unset(data.right_to_right),
+        )
+        self._client = client
+        return self
+
     @property
     def left_to_left(self) -> float | None:
         """The contribution of the left input channel to the left output channel."""
-        return self._data.left_to_left
+        return _unwrap_unset(self._data.left_to_left)
+
+    @left_to_left.setter
+    def left_to_left(self, value: float | None) -> None:
+        self._data.left_to_left = _maybe_unset(value)
 
     @property
     def left_to_right(self) -> float | None:
         """The contribution of the left input channel to the right output channel."""
-        return self._data.left_to_right
+        return _unwrap_unset(self._data.left_to_right)
+
+    @left_to_right.setter
+    def left_to_right(self, value: float | None) -> None:
+        self._data.left_to_right = _maybe_unset(value)
 
     @property
     def right_to_left(self) -> float | None:
         """The contribution of the right input channel to the left output channel."""
-        return self._data.right_to_left
+        return _unwrap_unset(self._data.right_to_left)
+
+    @right_to_left.setter
+    def right_to_left(self, value: float | None) -> None:
+        self._data.right_to_left = _maybe_unset(value)
 
     @property
     def right_to_right(self) -> float | None:
         """The contribution of the right input channel to the right output channel."""
-        return self._data.right_to_right
+        return _unwrap_unset(self._data.right_to_right)
+
+    @right_to_right.setter
+    def right_to_right(self, value: float | None) -> None:
+        self._data.right_to_right = _maybe_unset(value)
 
 
 class LowPass(BaseModel[filters.LowPassFilter]):
@@ -317,10 +637,28 @@ class LowPass(BaseModel[filters.LowPassFilter]):
 
     __slots__ = ()
 
+    def __init__(self, *, smoothing: float | None = None) -> None:
+        super().__init__(
+            client=None,
+            data=filters.LowPassFilter(smoothing=_maybe_unset(smoothing)),
+        )
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.LowPassFilter) -> Self:
+        self = cls(
+            smoothing=_unwrap_unset(data.smoothing),
+        )
+        self._client = client
+        return self
+
     @property
     def smoothing(self) -> float | None:
         """Smoothing factor (x > 1.0)."""
-        return self._data.smoothing
+        return _unwrap_unset(self._data.smoothing)
+
+    @smoothing.setter
+    def smoothing(self, value: float | None) -> None:
+        self._data.smoothing = _maybe_unset(value)
 
 
 class Filters(BaseModel[filters.PlayerFilters]):
@@ -365,75 +703,157 @@ class Filters(BaseModel[filters.PlayerFilters]):
         "_distortion",
         "_channel_mix",
         "_low_pass",
+        "_volume",
     )
 
-    def __init__(self, *, client: Client[Any], data: filters.PlayerFilters) -> None:
-        super().__init__(client=client, data=data)
+    def __init__(
+        self,
+        *,
+        equalizer: list[Equalizer] | None = None,
+        karaoke: Karaoke | None = None,
+        timescale: Timescale | None = None,
+        tremolo: Tremolo | None = None,
+        vibrato: Vibrato | None = None,
+        rotation: Rotation | None = None,
+        distortion: Distortion | None = None,
+        channel_mix: ChannelMix | None = None,
+        low_pass: LowPass | None = None,
+        volume: float = 1.0,
+    ) -> None:
+        self._equalizer = equalizer
+        self._karaoke = karaoke
+        self._timescale = timescale
+        self._tremolo = tremolo
+        self._vibrato = vibrato
+        self._rotation = rotation
+        self._distortion = distortion
+        self._channel_mix = channel_mix
+        self._low_pass = low_pass
+        self._volume = volume
 
-        self._equalizer = [
-            Equalizer(client=client, data=e) for e in (self._data.equalizer if self._data.equalizer is not msgspec.UNSET else [])
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
+        equalizer = [
+            Equalizer._from_data(client, e) for e in (_unwrap_unset(data.equalizer) or [])
         ]
-        self._karaoke = self._wrap(Karaoke, self._data.karaoke)
-        self._timescale = self._wrap(Timescale, self._data.timescale)
-        self._tremolo = self._wrap(Tremolo, self._data.tremolo)
-        self._vibrato = self._wrap(Vibrato, self._data.vibrato)
-        self._rotation = self._wrap(Rotation, self._data.rotation)
-        self._distortion = self._wrap(Distortion, self._data.distortion)
-        self._channel_mix = self._wrap(ChannelMix, self._data.channel_mix)
-        self._low_pass = self._wrap(LowPass, self._data.low_pass)
+        karaoke = cls._wrap(Karaoke, client, data.karaoke)
+        timescale = cls._wrap(Timescale, client, data.timescale)
+        tremolo = cls._wrap(Tremolo, client, data.tremolo)
+        vibrato = cls._wrap(Vibrato, client, data.vibrato)
+        rotation = cls._wrap(Rotation, client, data.rotation)
+        distortion = cls._wrap(Distortion, client, data.distortion)
+        channel_mix = cls._wrap(ChannelMix, client, data.channel_mix)
+        low_pass = cls._wrap(LowPass, client, data.low_pass)
+        volume = _unwrap_unset(data.volume)
 
-    def _wrap(self, cls: Any, data: Any) -> Any | None:
-        return cls(client=self._client, data=data) if data else None
+        self = cls(
+            equalizer=equalizer,
+            karaoke=karaoke,
+            timescale=timescale,
+            tremolo=tremolo,
+            vibrato=vibrato,
+            rotation=rotation,
+            distortion=distortion,
+            channel_mix=channel_mix,
+            low_pass=low_pass,
+            volume=volume if volume is not None else 1.0,
+        )
+        self._client = client
+        return self
+
+    @classmethod
+    def _wrap[C: FilterModelTypes](cls, model: type[C], client: Client[Any], data: Any) -> C | None:
+        return model._from_data(client=client, data=data) if data is not msgspec.UNSET else None
 
     @property
     def volume(self) -> float:
         """The linear volume multiplier (0.0 to 5.0). Defaults to 1.0."""
-        return self._data.volume if self._data.volume is not msgspec.UNSET else 1.0
+        return self._volume
+
+    @volume.setter
+    def volume(self, value: float) -> None:
+        self._volume = value
 
     @property
     def equalizer(self) -> list[Equalizer]:
         """A list of active equalizer bands."""
-        return self._equalizer
+        return self._equalizer or []
+
+    @equalizer.setter
+    def equalizer(self, value: list[Equalizer] | None) -> None:
+        self._equalizer = value
 
     @property
     def karaoke(self) -> Karaoke | None:
         """The active karaoke filter, if set."""
         return self._karaoke
 
+    @karaoke.setter
+    def karaoke(self, value: Karaoke | None) -> None:
+        self._karaoke = value
+
     @property
     def timescale(self) -> Timescale | None:
         """The active timescale filter, if set."""
         return self._timescale
+
+    @timescale.setter
+    def timescale(self, value: Timescale | None) -> None:
+        self._timescale = value
 
     @property
     def tremolo(self) -> Tremolo | None:
         """The active tremolo filter, if set."""
         return self._tremolo
 
+    @tremolo.setter
+    def tremolo(self, value: Tremolo | None) -> None:
+        self._tremolo = value
+
     @property
     def vibrato(self) -> Vibrato | None:
         """The active vibrato filter, if set."""
         return self._vibrato
+
+    @vibrato.setter
+    def vibrato(self, value: Vibrato | None) -> None:
+        self._vibrato = value
 
     @property
     def rotation(self) -> Rotation | None:
         """The active rotation filter, if set."""
         return self._rotation
 
+    @rotation.setter
+    def rotation(self, value: Rotation | None) -> None:
+        self._rotation = value
+
     @property
     def distortion(self) -> Distortion | None:
         """The active distortion filter, if set."""
         return self._distortion
+
+    @distortion.setter
+    def distortion(self, value: Distortion | None) -> None:
+        self._distortion = value
 
     @property
     def channel_mix(self) -> ChannelMix | None:
         """The active channel mix filter, if set."""
         return self._channel_mix
 
+    @channel_mix.setter
+    def channel_mix(self, value: ChannelMix | None) -> None:
+        self._channel_mix = value
+
     @property
     def low_pass(self) -> LowPass | None:
         """The active low pass filter, if set."""
         return self._low_pass
+
+    @low_pass.setter
+    def low_pass(self, value: LowPass | None) -> None:
+        self._low_pass = value
 
     @property
     def plugin_filters(self) -> dict[str, Any]:
@@ -443,4 +863,27 @@ class Filters(BaseModel[filters.PlayerFilters]):
     @property
     def payload(self) -> filters.PlayerFilters:
         """Returns the underlying msgspec schema for API requests."""
-        return self._data
+        return self._generate_schema()
+
+    def _generate_schema(self) -> filters.PlayerFilters:
+        equalizer = [e._data for e in self.equalizer] or msgspec.UNSET
+        karaoke = self.karaoke._data if self.karaoke else msgspec.UNSET
+        timescale = self.timescale._data if self.timescale else msgspec.UNSET
+        tremolo = self.tremolo._data if self.tremolo else msgspec.UNSET
+        vibrato = self.vibrato._data if self.vibrato else msgspec.UNSET
+        rotation = self.rotation._data if self.rotation else msgspec.UNSET
+        distortion = self.distortion._data if self.distortion else msgspec.UNSET
+        channel_mix = self.channel_mix._data if self.channel_mix else msgspec.UNSET
+        low_pass = self.low_pass._data if self.low_pass else msgspec.UNSET
+        return filters.PlayerFilters(
+            volume=self.volume,
+            equalizer=equalizer,
+            karaoke=karaoke,
+            timescale=timescale,
+            tremolo=tremolo,
+            vibrato=vibrato,
+            rotation=rotation,
+            distortion=distortion,
+            channel_mix=channel_mix,
+            low_pass=low_pass,
+        )

@@ -119,16 +119,16 @@ class KaraokeFilter(msgspec.Struct, kw_only=True):
     vocal reduction.
     """
 
-    level: float | None = None
+    level: float | msgspec.UnsetType = msgspec.UNSET
     """Overall effect intensity from ``0.0`` to ``1.0``."""
 
-    mono_level: float | None = msgspec.field(name="monoLevel", default=None)
+    mono_level: float | msgspec.UnsetType = msgspec.field(name="monoLevel", default=msgspec.UNSET)
     """Mono signal amount from ``0.0`` to ``1.0``."""
 
-    filter_band: float | None = msgspec.field(name="filterBand", default=None)
+    filter_band: float | msgspec.UnsetType = msgspec.field(name="filterBand", default=msgspec.UNSET)
     """Center frequency in Hz for the target region."""
 
-    filter_width: float | None = msgspec.field(name="filterWidth", default=None)
+    filter_width: float | msgspec.UnsetType = msgspec.field(name="filterWidth", default=msgspec.UNSET)
     """Bandwidth around ``filter_band`` in Hz."""
 
 
@@ -140,13 +140,13 @@ class TimescaleFilter(msgspec.Struct, kw_only=True):
     omitted values are treated as ``1.0``.
     """
 
-    speed: float | None = None
+    speed: float | msgspec.UnsetType = msgspec.UNSET
     """Playback speed multiplier (``0.0 <= x``). ``1.0`` is normal."""
 
-    pitch: float | None = None
+    pitch: float | msgspec.UnsetType = msgspec.UNSET
     """Pitch multiplier (``0.0 <= x``). ``1.0`` is unchanged."""
 
-    rate: float | None = None
+    rate: float | msgspec.UnsetType = msgspec.UNSET
     """Internal rate multiplier (``0.0 <= x``)."""
 
 
@@ -157,10 +157,10 @@ class TremoloFilter(msgspec.Struct, kw_only=True):
     Tremolo rapidly oscillates output volume.
     """
 
-    frequency: float | None = None
+    frequency: float | msgspec.UnsetType = msgspec.UNSET
     """Oscillation frequency in Hz (``0.0 < x``)."""
 
-    depth: float | None = None
+    depth: float | msgspec.UnsetType = msgspec.UNSET
     """Effect depth (``0.0 < x <= 1.0``)."""
 
 
@@ -171,17 +171,17 @@ class VibratoFilter(msgspec.Struct, kw_only=True):
     Vibrato rapidly oscillates output pitch.
     """
 
-    frequency: float | None = None
+    frequency: float | msgspec.UnsetType = msgspec.UNSET
     """Oscillation frequency in Hz (``0.0 < x <= 14.0``)."""
 
-    depth: float | None = None
+    depth: float | msgspec.UnsetType = msgspec.UNSET
     """Effect depth (``0.0 < x <= 1.0``)."""
 
 
 class RotationFilter(msgspec.Struct, kw_only=True):
     """Represents stereo rotation filter configuration."""
 
-    rotation_hz: float | None = msgspec.field(name="rotationHz", default=None)
+    rotation_hz: float | msgspec.UnsetType = msgspec.field(name="rotationHz", default=msgspec.UNSET)
     """Rotation frequency in Hz. ``0.2`` is a common slow rotation."""
 
 
@@ -193,28 +193,28 @@ class DistortionFilter(msgspec.Struct, kw_only=True):
     produce large audible differences, so tune incrementally.
     """
 
-    sin_offset: float | None = msgspec.field(name="sinOffset", default=None)
+    sin_offset: float | msgspec.UnsetType = msgspec.field(name="sinOffset", default=msgspec.UNSET)
     """Sine input offset component."""
 
-    sin_scale: float | None = msgspec.field(name="sinScale", default=None)
+    sin_scale: float | msgspec.UnsetType = msgspec.field(name="sinScale", default=msgspec.UNSET)
     """Sine scaling component."""
 
-    cos_offset: float | None = msgspec.field(name="cosOffset", default=None)
+    cos_offset: float | msgspec.UnsetType = msgspec.field(name="cosOffset", default=msgspec.UNSET)
     """Cosine input offset component."""
 
-    cos_scale: float | None = msgspec.field(name="cosScale", default=None)
+    cos_scale: float | msgspec.UnsetType = msgspec.field(name="cosScale", default=msgspec.UNSET)
     """Cosine scaling component."""
 
-    tan_offset: float | None = msgspec.field(name="tanOffset", default=None)
+    tan_offset: float | msgspec.UnsetType = msgspec.field(name="tanOffset", default=msgspec.UNSET)
     """Tangent input offset component."""
 
-    tan_scale: float | None = msgspec.field(name="tanScale", default=None)
+    tan_scale: float | msgspec.UnsetType = msgspec.field(name="tanScale", default=msgspec.UNSET)
     """Tangent scaling component."""
 
-    offset: float | None = None
+    offset: float | msgspec.UnsetType = msgspec.UNSET
     """Linear output offset applied after shaping."""
 
-    scale: float | None = None
+    scale: float | msgspec.UnsetType = msgspec.UNSET
     """Linear output scaling applied after shaping."""
 
 
@@ -227,16 +227,16 @@ class ChannelMixFilter(msgspec.Struct, kw_only=True):
     ``0.5`` yields dual-mono output.
     """
 
-    left_to_left: float | None = msgspec.field(name="leftToLeft", default=None)
+    left_to_left: float | msgspec.UnsetType = msgspec.field(name="leftToLeft", default=msgspec.UNSET)
     """Contribution of left input to left output."""
 
-    left_to_right: float | None = msgspec.field(name="leftToRight", default=None)
+    left_to_right: float | msgspec.UnsetType = msgspec.field(name="leftToRight", default=msgspec.UNSET)
     """Contribution of left input to right output."""
 
-    right_to_left: float | None = msgspec.field(name="rightToLeft", default=None)
+    right_to_left: float | msgspec.UnsetType = msgspec.field(name="rightToLeft", default=msgspec.UNSET)
     """Contribution of right input to left output."""
 
-    right_to_right: float | None = msgspec.field(name="rightToRight", default=None)
+    right_to_right: float | msgspec.UnsetType = msgspec.field(name="rightToRight", default=msgspec.UNSET)
     """Contribution of right input to right output."""
 
 
@@ -247,5 +247,5 @@ class LowPassFilter(msgspec.Struct, kw_only=True):
     Low-pass filtering suppresses higher frequencies while preserving lower ones.
     """
 
-    smoothing: float | None = None
+    smoothing: float | msgspec.UnsetType = msgspec.UNSET
     """Smoothing factor (``x > 1.0``). Values ``<= 1.0`` disable this filter."""

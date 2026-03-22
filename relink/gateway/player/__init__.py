@@ -34,7 +34,7 @@ from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink import _registry
 from relink.models.settings import AutoPlaySettings, HistorySettings
-from relink.rest.schemas.filters import PlayerFilters
+from relink.models.filters import Filters
 
 from ...models.track import Playable
 from ..enums import AutoPlayMode
@@ -538,7 +538,7 @@ class Player(discord.VoiceProtocol):
 
     async def set_filters(
         self,
-        filters: PlayerFilters,
+        filters: Filters,
         /,
         *,
         seek: bool = False,
@@ -548,7 +548,7 @@ class Player(discord.VoiceProtocol):
 
         Parameters
         ----------
-        filters: :class:`PlayerFilters`
+        filters: :class:`Filters`
             The filters to apply.
         seek: :class:`bool`
             Whether to seek to the current position to apply filters immediately.
@@ -560,7 +560,7 @@ class Player(discord.VoiceProtocol):
             The player is not connected to a node or session.
         """
 
-        await self._playback_handler.set_filters(filters, seek=seek)
+        await self._playback_handler.set_filters(filters.payload, seek=seek)
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         """
