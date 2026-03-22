@@ -13,11 +13,9 @@ Private implementation modules are intentionally excluded from this section.
    :maxdepth: 2
 
    core
-   exceptions
-   enums
-   gateway
-   rest
    models
+   enums
    events
-   advanced
+   exceptions
+   advanced/index
 

@@ -44,7 +44,7 @@ Because it is a voice protocol, the normal entry point is:
 
    await voice_channel.connect(cls=relink.Player)
 
-Queue and history
+Queue and History
 -----------------
 
 Each player owns a :class:`relink.Queue`. The queue tracks:

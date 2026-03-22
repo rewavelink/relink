@@ -5,7 +5,7 @@ Gateway API
 
 The gateway layer contains the queue, enum, error, and event-related runtime types.
 The top-level :class:`relink.Client`, :class:`relink.Node`, and :class:`relink.Player`
-classes are documented on :doc:`core`.
+classes are documented on :doc:`/api/core`.
 
 Voice state
 -----------

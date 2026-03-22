@@ -1,5 +1,5 @@
-Events Reference
-=================
+Events
+======
 
 Track
 ------
@@ -76,6 +76,7 @@ Node Close
 +++++++++++
 
 .. function:: on_relink_node_close(node: relink.Node)
+    
    Called when a node is closed.
 
    Parameters
@@ -87,6 +88,7 @@ Node Ready
 +++++++++++
 
 .. function:: on_relink_node_ready(payload: ReadyEvent)
+
    Called when a node is ready.
 
    Parameters
