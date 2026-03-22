@@ -30,13 +30,13 @@ defaults such as volume, filters, autoplay, or history settings.
 
 .. code-block:: python
 
+   from relink.rest.schemas import KaraokeFilter, PlayerFilters
+
    player = relink.Player(
       node=node,
       volume=100,
-      filters=relink.rest.schemas.PlayerFilters(
-         karaoke=relink.rest.schemas.KaraokeFilter(
-            level=0.5,
-         ),
+      filters=PlayerFilters(
+         karaoke=KaraokeFilter(level=0.5),
       ),
    )
 
@@ -44,10 +44,8 @@ defaults such as volume, filters, autoplay, or history settings.
 
    player = node.create_player(
       volume=100,
-      filters=relink.rest.schemas.PlayerFilters(
-         karaoke=relink.rest.schemas.KaraokeFilter(
-            level=0.5,
-         ),
+      filters=PlayerFilters(
+         karaoke=KaraokeFilter(level=0.5),
       ),
    )
 
@@ -225,10 +223,10 @@ The ``seek=True`` part is often important. Some filters are not immediately
 audible until playback position changes, so seeking to the current position
 makes the effect audible right away.
 
-For more information on filters, go to `the filters guide <filters.html>`_.
+For more information on filters, see :doc:`/guides/filters`.
 
 Playing tracks
-^^^^^^^^^^^^^^
+--------------
 
 A common playback flow is:
 
@@ -243,20 +241,23 @@ A common playback flow is:
        return
 
    data = result.result
+   rest = []
+
    if isinstance(data, list):
-       track = data[0]
+       play_track = data[0]
    elif isinstance(data, relink.models.Playlist):
-       track = data.tracks[0]
+       play_track = data.tracks[0]
+       rest = data.tracks[1:]
    else:
-       track = data
+       play_track = data
 
-   player.queue.put(track)
+   if not player.current:
+       await player.play(play_track)
+   else:
+       rest = [play_track, *rest]
 
-   if player.current is None:
-       await player.play(player.queue.get())
-
-This pattern is a good default because it works just as well for a simple play
-command as it does for a larger queue-driven music flow.
+   for track in rest:
+       await player.queue.put_wait(track)
 
 Moving between nodes
 --------------------

@@ -143,15 +143,15 @@ In ReLink, searching returns a wrapper object that makes the result type explici
        return
 
    data = result.result
+   rest = []
+
    if isinstance(data, list):
        play_track = data[0]
-       rest = []
    elif isinstance(data, relink.models.Playlist):
        play_track = data.tracks[0]
        rest = data.tracks[1:]
    else:
        play_track = data
-       rest = []
 
 :class:`relink.models.SearchResult` covers all possible outcomes: a single track, a playlist,
 a search result list, an empty result, or an error result.
@@ -205,11 +205,11 @@ tracks into the queue. Queue progression after a track ends is handled automatic
 
    if not vc.current:
        await vc.play(play_track)
-       for track in rest:
-           await vc.queue.put_wait(track)
    else:
-       for track in [play_track, *rest]:
-           await vc.queue.put_wait(track)
+       rest = [play_track, *rest]
+
+   for track in rest:
+       await vc.queue.put_wait(track)
 
 When a track ends, ReLink automatically calls :meth:`relink.Player.skip` internally, which
 pulls the next track from the queue, falls back to autoplay if the queue is empty, and stops
