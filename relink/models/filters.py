@@ -64,10 +64,28 @@ __all__ = (
 class Equalizer(BaseFilter[filters.EqualizerFilter]):
     """
     Represents a single Lavalink equalizer band.
+
+    Parameters
+    ----------
+    band: :class:`int`
+        The target band index (0 to 14).
+    gain: :class:`float`
+        The band gain multiplier (-0.25 to 1.0).
     """
 
     __slots__ = ()
     _schema_cls = filters.EqualizerFilter
+
+    def __init__(
+        self,
+        *,
+        band: int,
+        gain: float,
+    ) -> None:
+        super().__init__(
+            band=band,
+            gain=gain,
+        )
 
     @property
     def band(self) -> int:
@@ -91,10 +109,36 @@ class Equalizer(BaseFilter[filters.EqualizerFilter]):
 class Karaoke(BaseFilter[filters.KaraokeFilter]):
     """
     Filter that reduces vocal levels in a track, useful for karaoke.
+
+    Parameters
+    ----------
+    level: :class:`float` | :data:`None`
+        Overall effect intensity (0.0 to 1.0).
+    mono_level: :class:`float` | :data:`None`
+        Mono signal amount (0.0 to 1.0).
+    filter_band: :class:`float` | :data:`None`
+        Center frequency in Hz for the target region.
+    filter_width: :class:`float` | :data:`None`
+        Bandwidth around the filter band in Hz.
     """
 
     __slots__ = ()
     _schema_cls = filters.KaraokeFilter
+
+    def __init__(
+        self,
+        *,
+        level: float | None = None,
+        mono_level: float | None = None,
+        filter_band: float | None = None,
+        filter_width: float | None = None,
+    ) -> None:
+        super().__init__(
+            level=level,
+            mono_level=mono_level,
+            filter_band=filter_band,
+            filter_width=filter_width,
+        )
 
     @property
     def level(self) -> float | None:
@@ -136,10 +180,32 @@ class Karaoke(BaseFilter[filters.KaraokeFilter]):
 class Timescale(BaseFilter[filters.TimescaleFilter]):
     """
     Adjusts the speed, pitch, and rate of audio playback.
+
+    Parameters
+    ----------
+    speed: :class:`float` | :data:`None`
+        Playback speed multiplier (``0.0 <= x``).
+    pitch: :class:`float` | :data:`None`
+        Pitch multiplier (``0.0 <= x``).
+    rate: :class:`float` | :data:`None`
+        Internal rate multiplier (``0.0 <= x``).
     """
 
     __slots__ = ()
     _schema_cls = filters.TimescaleFilter
+
+    def __init__(
+        self,
+        *,
+        speed: float | None = None,
+        pitch: float | None = None,
+        rate: float | None = None,
+    ) -> None:
+        super().__init__(
+            speed=speed,
+            pitch=pitch,
+            rate=rate,
+        )
 
     @property
     def speed(self) -> float | None:
@@ -172,10 +238,28 @@ class Timescale(BaseFilter[filters.TimescaleFilter]):
 class Tremolo(BaseFilter[filters.TremoloFilter]):
     """
     Rapidly oscillates the volume of the audio.
+
+    Parameters
+    ----------
+    frequency: :class:`float` | :data:`None`
+        Oscillation frequency in Hz (``0.0 < x``).
+    depth: :class:`float` | :data:`None`
+        Effect depth (``0.0 < x <= 1.0``).
     """
 
     __slots__ = ()
     _schema_cls = filters.TremoloFilter
+
+    def __init__(
+        self,
+        *,
+        frequency: float | None = None,
+        depth: float | None = None,
+    ) -> None:
+        super().__init__(
+            frequency=frequency,
+            depth=depth,
+        )
 
     @property
     def frequency(self) -> float | None:
@@ -199,10 +283,28 @@ class Tremolo(BaseFilter[filters.TremoloFilter]):
 class Vibrato(BaseFilter[filters.VibratoFilter]):
     """
     Rapidly oscillates the pitch of the audio.
+
+    Parameters
+    ----------
+    frequency: :class:`float` | :data:`None`
+        Oscillation frequency in Hz (``0.0 < x <= 14.0``).
+    depth: :class:`float` | :data:`None`
+        Effect depth (``0.0 < x <= 1.0``).
     """
 
     __slots__ = ()
     _schema_cls = filters.VibratoFilter
+
+    def __init__(
+        self,
+        *,
+        frequency: float | None = None,
+        depth: float | None = None,
+    ) -> None:
+        super().__init__(
+            frequency=frequency,
+            depth=depth,
+        )
 
     @property
     def frequency(self) -> float | None:
@@ -226,10 +328,22 @@ class Vibrato(BaseFilter[filters.VibratoFilter]):
 class Rotation(BaseFilter[filters.RotationFilter]):
     """
     Rotates the audio across the stereo channels (panning effect).
+
+    Parameters
+    ----------
+    rotation_hz: :class:`float` | :data:`None`
+        Rotation frequency in Hz.
     """
 
     __slots__ = ()
     _schema_cls = filters.RotationFilter
+
+    def __init__(
+        self,
+        *,
+        rotation_hz: float | None = None,
+    ) -> None:
+        super().__init__(rotation_hz=rotation_hz)
 
     @property
     def rotation_hz(self) -> float | None:
@@ -244,10 +358,52 @@ class Rotation(BaseFilter[filters.RotationFilter]):
 class Distortion(BaseFilter[filters.DistortionFilter]):
     """
     Applies distortion effects using sine, cosine, and tangent transforms.
+
+    Parameters
+    ----------
+    sin_offset: :class:`float` | :data:`None`
+        The sine input offset component.
+    sin_scale: :class:`float` | :data:`None`
+        The sine scaling component.
+    cos_offset: :class:`float` | :data:`None`
+        The cosine input offset component.
+    cos_scale: :class:`float` | :data:`None`
+        The cosine scaling component.
+    tan_offset: :class:`float` | :data:`None`
+        The tangent input offset component.
+    tan_scale: :class:`float` | :data:`None`
+        The tangent scaling component.
+    offset: :class:`float` | :data:`None`
+        The input offset component.
+    scale: :class:`float` | :data:`None`
+        The scaling component.
     """
 
     __slots__ = ()
     _schema_cls = filters.DistortionFilter
+
+    def __init__(
+        self,
+        *,
+        sin_offset: float | None = None,
+        sin_scale: float | None = None,
+        cos_offset: float | None = None,
+        cos_scale: float | None = None,
+        tan_offset: float | None = None,
+        tan_scale: float | None = None,
+        offset: float | None = None,
+        scale: float | None = None,
+    ) -> None:
+        super().__init__(
+            sin_offset=sin_offset,
+            sin_scale=sin_scale,
+            cos_offset=cos_offset,
+            cos_scale=cos_scale,
+            tan_offset=tan_offset,
+            tan_scale=tan_scale,
+            offset=offset,
+            scale=scale,
+        )
 
     @property
     def sin_offset(self) -> float | None:
@@ -303,14 +459,58 @@ class Distortion(BaseFilter[filters.DistortionFilter]):
     def tan_scale(self, value: float | None) -> None:
         self._data.tan_scale = self._set(value)
 
+    @property
+    def offset(self) -> float | None:
+        """The input offset component."""
+        return self._get(self._data.offset)
+
+    @offset.setter
+    def offset(self, value: float | None) -> None:
+        self._data.offset = self._set(value)
+
+    @property
+    def scale(self) -> float | None:
+        """The scaling component."""
+        return self._get(self._data.scale)
+
+    @scale.setter
+    def scale(self, value: float | None) -> None:
+        self._data.scale = self._set(value)
+
 
 class ChannelMix(BaseFilter[filters.ChannelMixFilter]):
     """
     Mixes left and right audio channels to manipulate stereo separation.
+
+    Parameters
+    ----------
+    left_to_left: :class:`float` | :data:`None`
+        The left to left channel mix factor (``0.0 <= x <= 1.0``).
+    left_to_right: :class:`float` | :data:`None`
+        The left to right channel mix factor (``0.0 <= x <= 1.0``).
+    right_to_left: :class:`float` | :data:`None`
+        The right to left channel mix factor (``0.0 <= x <= 1.0``).
+    right_to_right: :class:`float` | :data:`None`
+        The right to right channel mix factor (``0.0 <= x <= 1.0``).
     """
 
     __slots__ = ()
     _schema_cls = filters.ChannelMixFilter
+
+    def __init__(
+        self,
+        *,
+        left_to_left: float | None = None,
+        left_to_right: float | None = None,
+        right_to_left: float | None = None,
+        right_to_right: float | None = None,
+    ) -> None:
+        super().__init__(
+            left_to_left=left_to_left,
+            left_to_right=left_to_right,
+            right_to_left=right_to_left,
+            right_to_right=right_to_right,
+        )
 
     @property
     def left_to_left(self) -> float | None:
@@ -352,10 +552,22 @@ class ChannelMix(BaseFilter[filters.ChannelMixFilter]):
 class LowPass(BaseFilter[filters.LowPassFilter]):
     """
     Suppresses higher frequencies in the audio signal.
+
+    Parameters
+    ----------
+    smoothing: :class:`float` | :data:`None`
+        The smoothing factor (``x > 1.0``).
     """
 
     __slots__ = ()
     _schema_cls = filters.LowPassFilter
+
+    def __init__(
+        self,
+        *,
+        smoothing: float | None = None,
+    ) -> None:
+        super().__init__(smoothing=smoothing)
 
     @property
     def smoothing(self) -> float | None:
