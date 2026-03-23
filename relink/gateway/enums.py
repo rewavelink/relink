@@ -51,7 +51,7 @@ class NodeStatus(Enum):
 
 
 class TrackEndReason(StrEnum):
-    """Represents a TrackEndEvent's :attr:`TrackEndEvent.reason`.
+    """Represents the ``reason`` field from a track-end event payload.
 
     :ivar FINISHED: The track finished playing.
     :ivar LOAD_FAILED: The track failed to load.
@@ -96,7 +96,7 @@ class TrackExceptionSeverity(StrEnum):
 
 
 class QueueMode(StrEnum):
-    """Enum representing the various modes on :class:`wavelink.Queue`
+    """Enum representing the various modes on :class:`relink.Queue`
 
     :ivar NORMAL: Normal queue mode. Tracks are played in the order they were added.
     :ivar LOOP: Loop the current track indefinitely. The next track will not be played until the current track is stopped or replaced.

@@ -1,0 +1,76 @@
+.appearance-selector-separator {
+    border: none;
+    border-top: 1px solid var(--color-sidebar-search-border);
+    margin: 0.5rem 0;
+}
+
+.width-selector-label {
+    font-weight: normal !important;
+    margin-top: 0 !important;
+}
+
+.width-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.85em;
+    color: var(--color-foreground-primary);
+    font-family: "Outfit", sans-serif;
+    transition: color 0.2s ease;
+    justify-content: start !important;
+    width: 100% !important;
+    padding: 0 0 0 var(--sidebar-item-spacing-horizontal);
+}
+
+.width-option:hover {
+    color: var(--color-brand-content);
+}
+
+.width-option input[type="radio"] {
+    cursor: pointer;
+    margin: 0;
+    width: 1em;
+    height: 1em;
+}
+
+.width-option span {
+    user-select: none;
+    position: static;
+    display: inline;
+    flex-shrink: 0;
+}
+
+.sidebar-tree .width-option {
+    display: flex !important;
+    position: relative !important;
+}
+
+body.wide-mode .sidebar-drawer {
+    width: 15em;
+    min-width: 15em;
+}
+
+body.wide-mode .main {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
+body.wide-mode .content {
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    flex: 1 1 0;
+}
+
+body.wide-mode .article-container,
+body.wide-mode article[role="main"] {
+    width: 100%;
+    max-width: none;
+}
+
+body.wide-mode .toc-drawer {
+    margin-left: auto;
+    flex-shrink: 0;
+}

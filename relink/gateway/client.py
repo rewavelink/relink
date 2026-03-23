@@ -57,7 +57,7 @@ class Client[N: Node]:
     ----------
     client: :class:`discord.Client`
         The discord.py's client this ReLink client is attached to.
-    node_cls: type[N]
+    node_cls: ``type[Node]``
         The class to use when creating new nodes. Defaults to :class:`Node`.
     """
 
@@ -124,11 +124,11 @@ class Client[N: Node]:
             The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
         cache_settings: :class:`CacheSettings` | :data:`None`
             The search result caching configuration.
-            Defaults to :meth:`CacheSettings.default`.
+            Defaults to ``CacheSettings.default()``.
         inactivity_settings: :class:`InactivitySettings` | :data:`None`
             The inactivity configuration for all players connected to this node.
-            If ``None`` is passed, it uses :meth:`InactivitySettings.default`.
-        session: :class:`aiohttp.ClientSession` | :class:`curl_cffi.AsyncSession` | :data:`None`
+            If ``None`` is passed, it uses ``InactivitySettings.default()``.
+        session: ``aiohttp.ClientSession`` | ``curl_cffi.AsyncSession`` | :data:`None`
             The session this node should use. If ``None`` is provided, creates one. Defaults to ``None``.
 
         Returns
@@ -179,7 +179,7 @@ class Client[N: Node]:
 
     async def start(self) -> None:
         """
-        Connects all registered :class:`Node`s to their respective Lavalink servers.
+        Connects all registered nodes to their respective Lavalink servers.
 
         This method should typically be called after the discord client is logged in,
         often within the ``on_ready`` event.
@@ -275,7 +275,8 @@ class Client[N: Node]:
         Decodes a track from its encoded data using the best Node available, obtained with
         :meth:`Client.get_best_node`.
 
-        When a track is fetched, the encoded data can be found under :attr:`Track.encoded`.
+        When a track is fetched, the encoded data can be found under
+        :attr:`relink.rest.schemas.Track.encoded`.
 
         Parameters
         ----------
@@ -284,7 +285,7 @@ class Client[N: Node]:
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The decoded resolved track.
         """
         node = self.get_best_node()
@@ -301,7 +302,7 @@ class Client[N: Node]:
 
         Returns
         -------
-        list[:class:`Playable`]
+        ``list[Playable]``
             The decoded resolved tracks.
         """
         node = self.get_best_node()

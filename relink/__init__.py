@@ -9,9 +9,10 @@ An async-prepared, high performance, Lavalink wrapper for discord.py.
 """
 
 from ._version import __version__, version_info
-from .gateway.client import Client
-from .gateway.node import Node
-from .gateway.player import Player
+
+from .gateway import *
+from .rest import *
+from .utils import *
 from . import gateway, models, rest, utils
 
 __all__ = (
@@ -24,4 +25,27 @@ __all__ = (
     "models",
     "rest",
     "utils",
+    "PlayerConnectionState",
+    "NodeStatus",
+    "TrackEndReason",
+    "TrackExceptionSeverity",
+    "QueueMode",
+    "AutoPlayMode",
+    "InactivityMode",
+    "SearchProvider",
+    "NodeError",
+    "InvalidNodePassword",
+    "NodeURINotFound",
+    "QueueEmpty",
+    "HistoryEmpty",
+    "Queue",
+    "History",
+    "ExceptionSeverity",
+    "TrackLoadResult",
+    "TrackSourceType",
+    "RoutePlannerType",
+    "IPBlockType",
+    "ErrorResponseType",
+    "HTTPException",
+    "cached_property",
 )

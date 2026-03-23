@@ -40,7 +40,7 @@ class Playlist(BaseModel[PlaylistData]):
     """
     Represents a Lavalink Playlist.
 
-    This class wraps the :class:`relink.rest.schemas.TrackLoadingData` schema
+    This class wraps the :class:`relink.rest.schemas.PlaylistData` schema
     and implements the Sequence protocol to allow iteration over tracks.
     """
 
@@ -73,7 +73,7 @@ class Playlist(BaseModel[PlaylistData]):
         return iter(self._tracks)
 
     def __contains__(self, item: object) -> bool:
-        """Checks if a :class:`Playable` is in the playlist."""
+        """Checks if a :class:`relink.models.Playable` is in the playlist."""
         return item in self._tracks
 
     @property
@@ -88,7 +88,7 @@ class Playlist(BaseModel[PlaylistData]):
 
     @property
     def tracks(self) -> list[Playable]:
-        """A list of :class:`Playable` objects in this playlist."""
+        """A list of :class:`relink.models.Playable` objects in this playlist."""
         return self._tracks
 
     @property

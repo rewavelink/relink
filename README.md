@@ -1,6 +1,6 @@
 <div align="center">
 
-![Logo](docs/logo.png)
+![Logo](docs/_static/banner.png)
 
 ![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13%20|%203.14+%20-blue)
 [![Github License](https://img.shields.io/github/license/rewavelink/relink)](LICENSE)

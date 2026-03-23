@@ -27,6 +27,7 @@ from __future__ import annotations
 from typing import Iterable
 
 import discord
+from discord.abc import Snowflake
 
 from relink.gateway.enums import AutoPlayMode, InactivityMode, SearchProvider
 
@@ -73,9 +74,9 @@ class AutoPlaySettings(BaseSettings):
         provider: SearchProvider = SearchProvider.YOUTUBE,
         discovery_count: int = 10,
     ) -> None:
-        self.mode = mode
-        self.max_seeds = max_seeds
-        self.provider = provider
+        self.mode: AutoPlayMode = mode
+        self.max_seeds: int = max_seeds
+        self.provider: SearchProvider = provider
         self.discovery_count = discovery_count
 
 
@@ -89,7 +90,7 @@ class InactivitySettings(BaseSettings):
         The time in seconds to wait before disconnecting. Defaults to 300.
     mode: :class:`InactivityMode`
         The strategy used to determine if the channel is "inactive".
-    user_ids: Iterable[:class:`discord.abc.Snowflake` | :class:`int`]
+    user_ids: ``Iterable[discord.abc.Snowflake | int]``
         An iterable of user IDs or Discord objects that act as "Keep Alive" members.
     """
 
@@ -106,9 +107,9 @@ class InactivitySettings(BaseSettings):
         mode: InactivityMode = InactivityMode.ALL_BOTS,
         user_ids: Iterable[discord.abc.Snowflake | int] | None = None,
     ) -> None:
-        self.timeout = timeout
-        self.mode = mode
-        self.user_ids = user_ids or []
+        self.timeout: int | None = timeout
+        self.mode: InactivityMode = mode
+        self.user_ids: Iterable[Snowflake | int] = user_ids or []
 
 
 class HistorySettings(BaseSettings):
@@ -134,13 +135,13 @@ class HistorySettings(BaseSettings):
         enabled: bool = True,
         max_items: int | None = None,
     ) -> None:
-        self.enabled = enabled
-        self.max_items = max_items
+        self.enabled: bool = enabled
+        self.max_items: int | None = max_items
 
 
 class CacheSettings(BaseSettings):
     """
-    Configuration for Node caching.
+    Configuration for node caching.
 
     Attributes
     ----------
@@ -162,5 +163,5 @@ class CacheSettings(BaseSettings):
         enabled: bool = True,
         max_items: int = 1000,
     ) -> None:
-        self.enabled = enabled
-        self.max_items = max_items
+        self.enabled: bool = enabled
+        self.max_items: int = max_items

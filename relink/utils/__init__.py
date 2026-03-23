@@ -3,4 +3,6 @@ relink.utils
 ~~~~~~~~~~~~
 """
 
-from .properties import *  # noqa: F403
+from .properties import *
+
+__all__ = ("cached_property",)

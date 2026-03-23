@@ -70,9 +70,9 @@ class SearchResult(BaseModel[TrackLoadingResponse]):
         The data of the search result. Depending on :attr:`SearchResult.type`, this property
         will return a different value.
 
-        If type is :attr:`TrackLoadResult.TRACK`, this will return a :class:`Playable`.
-        If type is :attr:`TrackLoadResult.PLAYLIST`, this will return a :class:`Playlist`.
-        If type is :attr:`TrackLoadResult.SEARCH`, this will return a list of :class:`Playable`\s.
+        If type is :attr:`relink.TrackLoadResult.TRACK`, this will return a :class:`relink.models.Playable`.
+        If type is :attr:`relink.TrackLoadResult.PLAYLIST`, this will return a :class:`relink.models.Playlist`.
+        If type is :attr:`relink.TrackLoadResult.SEARCH`, this will return a list of :class:`relink.models.Playable`\s.
         """
         assert self._client
 

@@ -74,12 +74,12 @@ class Queue(MutableQueueBase):
 
         This track is typically the one being played or most recently played.
 
-        This is also used when :attr:`mode` is set to :attr:`QueueMode.loop` to
+        This is also used when :attr:`mode` is set to :attr:`QueueMode.LOOP` to
         determine which track to repeat. This can be manually set too.
 
         Returns
         -------
-        :class:`Playable` | None
+        :class:`relink.models.Playable` | None
             The current track, or ``None`` if not set.
         """
         return self._current_track
@@ -148,7 +148,7 @@ class Queue(MutableQueueBase):
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The retrieved track.
 
         Raises
@@ -179,7 +179,7 @@ class Queue(MutableQueueBase):
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The popped track.
 
         Raises
@@ -212,7 +212,7 @@ class Queue(MutableQueueBase):
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The popped track.
 
         Raises
@@ -242,7 +242,7 @@ class Queue(MutableQueueBase):
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The track retrieved from history.
 
         Raises
@@ -285,7 +285,7 @@ class Queue(MutableQueueBase):
 
         Parameters
         ----------
-        tracks: :class:`Playable` | :class:`Playlist` | Iterable[:class:`Playable`]
+        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iterable[:class:`relink.models.Playable`]
             The track(s) or playlist to add to the queue.
         atomic: :class:`bool`
             Whether to insert the items atomically. If ``True``, all items must be

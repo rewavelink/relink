@@ -53,15 +53,6 @@ class LifecycleHandler(HandlerBase):
         self_deaf: bool = False,
         self_mute: bool = False,
     ) -> None:
-        """
-        Connects this player.
-
-        .. warning::
-
-            This method should not be manually called, but rather automatically called when passing a :class:`Player`
-            to the ``cls`` kwarg on :meth`discord.VoiceChannel.connect`.
-        """
-
         channel = self._player.channel
         guild = self._player._guild
         node = self._player._node

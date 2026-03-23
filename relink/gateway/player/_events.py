@@ -84,7 +84,9 @@ class EventsHandler(HandlerBase):
                 self._player._stop_inactivity_timer()
 
                 self._player._node._client._dispatch(
-                    "track_start", self._player, TrackStartEvent(payload, self._player._node),
+                    "track_start",
+                    self._player,
+                    TrackStartEvent(payload, self._player._node),
                 )
 
             case "TrackEndEvent":
@@ -97,7 +99,11 @@ class EventsHandler(HandlerBase):
                 if payload.reason.can_start_next:
                     await self._player.skip()
 
-                self._player._node._client._dispatch("track_end", self._player, TrackEndEvent(payload, self._player._node))
+                self._player._node._client._dispatch(
+                    "track_end",
+                    self._player,
+                    TrackEndEvent(payload, self._player._node),
+                )
                 self._player._check_inactivity()
 
             case "TrackExceptionEvent":
@@ -109,7 +115,9 @@ class EventsHandler(HandlerBase):
                 )
 
                 self._player._node._client._dispatch(
-                    "track_exception", self._player, TrackExceptionEvent(payload, self._player._node),
+                    "track_exception",
+                    self._player,
+                    TrackExceptionEvent(payload, self._player._node),
                 )
 
             case "TrackStuckEvent":
@@ -121,7 +129,9 @@ class EventsHandler(HandlerBase):
                 )
 
                 self._player._node._client._dispatch(
-                    "track_stuck", self._player, TrackStuckEvent(payload, self._player._node),
+                    "track_stuck",
+                    self._player,
+                    TrackStuckEvent(payload, self._player._node),
                 )
 
             case "WebSocketClosedEvent":

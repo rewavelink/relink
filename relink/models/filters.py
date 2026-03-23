@@ -60,6 +60,7 @@ __all__ = (
     "Filters",
 )
 
+
 def _maybe_unset[T](val: T | None) -> T | msgspec.UnsetType:
     return val if val is not None else msgspec.UNSET
 
@@ -71,13 +72,6 @@ def _unwrap_unset[T](val: T | msgspec.UnsetType) -> T | None:
 class Equalizer(BaseModel[filters.EqualizerFilter]):
     """
     Represents a single Lavalink equalizer band.
-
-    Attributes
-    ----------
-    band: int
-        The target band index (0 to 14).
-    gain: float
-        The band gain multiplier (-0.25 to 1.0).
     """
 
     __slots__ = ()
@@ -124,17 +118,6 @@ class Equalizer(BaseModel[filters.EqualizerFilter]):
 class Karaoke(BaseModel[filters.KaraokeFilter]):
     """
     Filter that reduces vocal levels in a track, useful for karaoke.
-
-    Attributes
-    ----------
-    level: float | None
-        Overall effect intensity (0.0 to 1.0).
-    mono_level: float | None
-        Mono signal amount (0.0 to 1.0).
-    filter_band: float | None
-        Center frequency in Hz for the target region.
-    filter_width: float | None
-        Bandwidth around the filter band in Hz.
     """
 
     __slots__ = ()
@@ -208,15 +191,6 @@ class Karaoke(BaseModel[filters.KaraokeFilter]):
 class Timescale(BaseModel[filters.TimescaleFilter]):
     """
     Adjusts the speed, pitch, and rate of audio playback.
-
-    Attributes
-    ----------
-    speed: float | None
-        Playback speed multiplier (>= 0.0). 1.0 is normal.
-    pitch: float | None
-        Pitch multiplier (>= 0.0). 1.0 is normal.
-    rate: float | None
-        Internal rate multiplier (>= 0.0). 1.0 is normal.
     """
 
     __slots__ = ()
@@ -278,13 +252,6 @@ class Timescale(BaseModel[filters.TimescaleFilter]):
 class Tremolo(BaseModel[filters.TremoloFilter]):
     """
     Rapidly oscillates the volume of the audio.
-
-    Attributes
-    ----------
-    frequency: float | None
-        Oscillation frequency in Hz (> 0.0).
-    depth: float | None
-        Effect depth (0.0 < x <= 1.0).
     """
 
     __slots__ = ()
@@ -334,13 +301,6 @@ class Tremolo(BaseModel[filters.TremoloFilter]):
 class Vibrato(BaseModel[filters.VibratoFilter]):
     """
     Rapidly oscillates the pitch of the audio.
-
-    Attributes
-    ----------
-    frequency: float | None
-        Oscillation frequency in Hz (0.0 < x <= 14.0).
-    depth: float | None
-        Effect depth (0.0 < x <= 1.0).
     """
 
     __slots__ = ()
@@ -390,11 +350,6 @@ class Vibrato(BaseModel[filters.VibratoFilter]):
 class Rotation(BaseModel[filters.RotationFilter]):
     """
     Rotates the audio across the stereo channels (panning effect).
-
-    Attributes
-    ----------
-    rotation_hz: float | None
-        Rotation frequency in Hz.
     """
 
     __slots__ = ()
@@ -432,21 +387,6 @@ class Rotation(BaseModel[filters.RotationFilter]):
 class Distortion(BaseModel[filters.DistortionFilter]):
     """
     Applies distortion effects using sine, cosine, and tangent transforms.
-
-    Attributes
-    ----------
-    sin_offset: float | None
-        The sine input offset component.
-    sin_scale: float | None
-        The sine scaling component.
-    cos_offset: float | None
-        The cosine input offset component.
-    cos_scale: float | None
-        The cosine scaling component.
-    tan_offset: float | None
-        The tangent input offset component.
-    tan_scale: float | None
-        The tangent scaling component.
     """
 
     __slots__ = ()
@@ -544,17 +484,6 @@ class Distortion(BaseModel[filters.DistortionFilter]):
 class ChannelMix(BaseModel[filters.ChannelMixFilter]):
     """
     Mixes left and right audio channels to manipulate stereo separation.
-
-    Attributes
-    ----------
-    left_to_left: float | None
-        Left input contribution to left output.
-    left_to_right: float | None
-        Left input contribution to right output.
-    right_to_left: float | None
-        Right input contribution to left output.
-    right_to_right: float | None
-        Right input contribution to right output.
     """
 
     __slots__ = ()
@@ -628,11 +557,6 @@ class ChannelMix(BaseModel[filters.ChannelMixFilter]):
 class LowPass(BaseModel[filters.LowPassFilter]):
     """
     Suppresses higher frequencies in the audio signal.
-
-    Attributes
-    ----------
-    smoothing: float | None
-        Smoothing factor (x > 1.0).
     """
 
     __slots__ = ()
@@ -737,7 +661,8 @@ class Filters(BaseModel[filters.PlayerFilters]):
     @classmethod
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
         equalizer = [
-            Equalizer._from_data(client, e) for e in (_unwrap_unset(data.equalizer) or [])
+            Equalizer._from_data(client, e)
+            for e in (_unwrap_unset(data.equalizer) or [])
         ]
         karaoke = cls._wrap(Karaoke, client, data.karaoke)
         timescale = cls._wrap(Timescale, client, data.timescale)
@@ -767,8 +692,14 @@ class Filters(BaseModel[filters.PlayerFilters]):
         return self
 
     @classmethod
-    def _wrap[C: FilterModelTypes](cls, model: type[C], client: Client[Any], data: Any) -> C | None:
-        return model._from_data(client=client, data=data) if data is not msgspec.UNSET else None
+    def _wrap[C: FilterModelTypes](
+        cls, model: type[C], client: Client[Any], data: Any
+    ) -> C | None:
+        return (
+            model._from_data(client=client, data=data)
+            if data is not msgspec.UNSET
+            else None
+        )
 
     @property
     def volume(self) -> float:

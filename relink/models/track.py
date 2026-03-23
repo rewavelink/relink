@@ -43,13 +43,6 @@ __all__ = (
 class Album:
     """
     Represents album metadata usually provided by external plugins like LavaSrc.
-
-    Attributes
-    ----------
-    name: str | None
-        The name of the album, or None if not available.
-    url: str | None
-        The URL to the album on the source provider.
     """
 
     __slots__ = ("_data",)
@@ -74,13 +67,6 @@ class Album:
 class Artist:
     """
     Represents artist metadata usually provided by external plugins like LavaSrc.
-
-    Attributes
-    ----------
-    name: str | None
-        The name of the artist, or None if not available.
-    url: str | None
-        The URL to the artist's profile on the source provider.
     """
 
     __slots__ = ("_data",)

@@ -70,7 +70,37 @@ __all__ = ("Node",)
 
 
 class Node:
-    """Represents a connectable Node."""
+    """
+    Represents a connectable Node.
+
+    Parameters
+    ----------
+    client: :class:`relink.Client`
+        The ReLink client this node is attached to.
+    uri: :class:`str`
+        The base URI for the Lavalink node. Do not include REST or websocket routes.
+    password: :class:`str`
+        The Lavalink server password used for both HTTP and websocket authentication.
+    id: :class:`str` | :data:`None`
+        The identifier used to track this node inside the client. If ``None`` is passed,
+        a random identifier is generated.
+    retries: :class:`int` | :data:`None`
+        How many reconnect attempts should be made before the node gives up. If ``None``
+        is passed, reconnect attempts are unlimited.
+    resume_timeout: :class:`float`
+        The number of seconds Lavalink should keep a resumable session alive.
+    auto_reconnect: :class:`bool`
+        Whether the node should attempt to reconnect automatically after an unexpected
+        disconnect.
+    cache_settings: :class:`relink.models.CacheSettings` | :data:`None`
+        Settings used for the node's search-result cache. If ``None`` is passed, default
+        cache settings are used.
+    inactivity_settings: :class:`relink.models.InactivitySettings`
+        Default inactivity behavior applied to players managed by this node.
+    session: ``aiohttp.ClientSession`` | ``curl_cffi.AsyncSession`` | :data:`None`
+        Optional pre-existing HTTP session to reuse for this node's REST and websocket
+        transport. If ``None`` is passed, the library creates one.
+    """
 
     retries: int | None
     """The amount of retries to attempt when connecting or reconnecting this node."""
@@ -206,7 +236,7 @@ class Node:
 
     @property
     def uri(self) -> str:
-        """The URI this node connects to. This can only be changed when :attr:`Node.status` is :attr:`NodeStatus.DISCONNECTED`"""
+        """The URI this node connects to. This can only be changed while the node is disconnected."""
         return self._uri
 
     @uri.setter
@@ -311,7 +341,8 @@ class Node:
         """
         Decodes a track from its encoded data.
 
-        When a track is fetched, the encoded data can be found under :attr:`Track.encoded`.
+        When a track is fetched, the encoded data can be found under
+        :attr:`relink.rest.schemas.Track.encoded`.
 
         Parameters
         ----------
@@ -320,7 +351,7 @@ class Node:
 
         Returns
         -------
-        :class:`Playable`
+        :class:`relink.models.Playable`
             The decoded resolved track.
         """
 
@@ -339,7 +370,7 @@ class Node:
 
         Returns
         -------
-        list[:class:`Playable`]
+        ``list[Playable]``
             The decoded resolved tracks.
         """
 
@@ -365,11 +396,11 @@ class Node:
         """
         Fetches all the player that are connected to this node.
 
-        Usually, you should use :attr:`Node.players` instead of this method.
+        This performs a fresh REST request for the current player states on the node.
 
         Returns
         -------
-        list[:class:`PlayerInfo`]
+        ``list[PlayerInfo]``
             The players connected to this node.
         """
 

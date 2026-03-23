@@ -8,10 +8,57 @@ Submodule containing all the schemas used in the rest module.
 :license: MIT
 """
 
-from .filters import *  # noqa: F403
-from .info import *  # noqa: F403
-from .planner import *  # noqa: F403
-from .player import *  # noqa: F403
-from .playlist import *  # noqa: F403
-from .session import *  # noqa: F403
-from .track import *  # noqa: F403
+from .filters import *
+from .info import *
+from .planner import *
+from .player import *
+from .playlist import *
+from .session import *
+from .track import *
+
+__all__ = (
+    "PlayerFilters",
+    "EqualizerFilter",
+    "KaraokeFilter",
+    "TimescaleFilter",
+    "TremoloFilter",
+    "VibratoFilter",
+    "RotationFilter",
+    "DistortionFilter",
+    "ChannelMixFilter",
+    "LowPassFilter",
+    "InfoResponse",
+    "VersionObject",
+    "GitObject",
+    "PluginObject",
+    "StatsResponse",
+    "MemoryObject",
+    "CPUObject",
+    "FrameStatsObject",
+    "VersionResponse",
+    "DetailsObject",
+    "IPBlockObject",
+    "FailingAddressObject",
+    "RoutePlannerStatusResponse",
+    "UnmarkFailedAddressRequest",
+    "UnmarkFailedAddressResponse",
+    "UnmarkAllFailedAddressesResponse",
+    "Player",
+    "PlayerState",
+    "PlayerVoiceState",
+    "UpdatePlayerRequest",
+    "UpdatePlayerTrackRequest",
+    "GetPlayersResponse",
+    "GetPlayerResponse",
+    "UpdatePlayerResponse",
+    "DestroyPlayerResponse",
+    "PlaylistInfo",
+    "UpdateSessionRequest",
+    "UpdateSessionResponse",
+    "Track",
+    "TrackInfo",
+    "TrackLoadingResponse",
+    "PlaylistData",
+    "TrackDecodeResponse",
+    "TracksDecodeResponse",
+)
