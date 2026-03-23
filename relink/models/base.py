@@ -25,7 +25,9 @@ SOFTWARE.
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, ClassVar, Self
+
+import msgspec
 
 if TYPE_CHECKING:
     from ..gateway.client import Client
@@ -99,3 +101,35 @@ class BaseSettings:
             if hasattr(self, key):
                 setattr(new, key, value)
         return new
+
+
+class BaseFilter[D](BaseModel[D]):
+    """
+    A base class for all single Lavalink filter models.
+
+    Subclasses must declare ``_schema_cls`` as a class variable pointing
+    to the corresponding msgspec schema type.
+    """
+
+    __slots__ = ()
+
+    _schema_cls: ClassVar[type]
+
+    def __init__(self, *, client: Client[Any] | None = None, **kwargs: Any) -> None:
+        data = self._schema_cls(**{k: self._set(v) for k, v in kwargs.items()})
+        super().__init__(client=client, data=data)
+
+    @classmethod
+    def _from_data(cls, client: Client[Any], data: D) -> Self:
+        fields: tuple[str, ...] = getattr(data, "__struct_fields__", ())
+        self = cls(**{field: cls._get(getattr(data, field)) for field in fields})
+        self._client = client
+        return self
+
+    @staticmethod
+    def _get[T](value: T | msgspec.UnsetType) -> T | None:
+        return value if value is not msgspec.UNSET else None
+
+    @staticmethod
+    def _set[T](value: T | None) -> T | msgspec.UnsetType:
+        return value if value is not None else msgspec.UNSET
