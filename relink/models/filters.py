@@ -590,25 +590,25 @@ class Filters(BaseModel[filters.PlayerFilters]):
     ----------
     volume: float
         The linear volume multiplier. Defaults to 1.0.
-    equalizer: list[:class:`Equalizer`] | None
+    equalizer: list[Equalizer] | None
         A list of active equalizer bands.
-    karaoke: :class:`Karaoke` | None
+    karaoke: :class:`Karaoke` | :data:`None`
         The active karaoke filter settings.
-    timescale: :class:`Timescale` | None
+    timescale: :class:`Timescale` | :data:`None`
         The active timescale (speed/pitch) filter settings.
-    tremolo: :class:`Tremolo` | None
+    tremolo: :class:`Tremolo` | :data:`None`
         The active tremolo (volume oscillation) filter settings.
-    vibrato: :class:`Vibrato` | None
+    vibrato: :class:`Vibrato` | :data:`None`
         The active vibrato (pitch oscillation) filter settings.
-    rotation: :class:`Rotation` | None
+    rotation: :class:`Rotation` | :data:`None`
         The active rotation (panning) filter settings.
-    distortion: :class:`Distortion` | None
+    distortion: :class:`Distortion` | :data:`None`
         The active distortion filter settings.
-    channel_mix: :class:`ChannelMix` | None
+    channel_mix: :class:`ChannelMix` | :data:`None`
         The active channel mix filter settings.
-    low_pass: :class:`LowPass` | None
+    low_pass: :class:`LowPass` | :data:`None`
         The active low pass filter settings.
-    plugin_filters: dict[str, Any] | None
+    plugin_filters: :class:`dict` | :data:`None`
         A dictionary of raw plugin-defined filter payloads.
     """
 
@@ -641,17 +641,17 @@ class Filters(BaseModel[filters.PlayerFilters]):
         volume: float = 1.0,
         plugin_filters: dict[str, Any] | None = None,
     ) -> None:
-        self.equalizer: list[Equalizer] = equalizer or []
-        self.karaoke: Karaoke | None = karaoke
-        self.timescale: Timescale | None = timescale
-        self.tremolo: Tremolo | None = tremolo
-        self.vibrato: Vibrato | None = vibrato
-        self.rotation: Rotation | None = rotation
-        self.distortion: Distortion | None = distortion
-        self.channel_mix: ChannelMix | None = channel_mix
-        self.low_pass: LowPass | None = low_pass
-        self.volume: float = volume
-        self.plugin_filters: dict[str, Any] = plugin_filters or {}
+        self.equalizer: list[Equalizer] = equalizer or []  #: The list of active equalizer bands.
+        self.karaoke: Karaoke | None = karaoke  #: The active karaoke filter settings.
+        self.timescale: Timescale | None = timescale  #: The active timescale filter settings.
+        self.tremolo: Tremolo | None = tremolo  #: The active tremolo filter settings.
+        self.vibrato: Vibrato | None = vibrato  #: The active vibrato filter settings.
+        self.rotation: Rotation | None = rotation  #: The active rotation filter settings.
+        self.distortion: Distortion | None = distortion  #: The active distortion filter settings.
+        self.channel_mix: ChannelMix | None = channel_mix  #: The active channel mix filter settings.
+        self.low_pass: LowPass | None = low_pass  #: The active low pass filter settings.
+        self.volume: float = volume  #: The linear volume multiplier.
+        self.plugin_filters: dict[str, Any] = plugin_filters or {}  #: A raw dict of plugin-defined filter payloads.
 
     @classmethod
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
