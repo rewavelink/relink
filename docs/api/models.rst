@@ -55,43 +55,43 @@ Search and node models
 Filter wrapper models
 ---------------------
 
-.. autoclass:: relink.models.Equalizer()
+.. autoclass:: relink.models.Equalizer
    :members:
    
 
-.. autoclass:: relink.models.Karaoke()
+.. autoclass:: relink.models.Karaoke
    :members:
    
 
-.. autoclass:: relink.models.Timescale()
+.. autoclass:: relink.models.Timescale
    :members:
    
 
-.. autoclass:: relink.models.Tremolo()
+.. autoclass:: relink.models.Tremolo
    :members:
    
 
-.. autoclass:: relink.models.Vibrato()
+.. autoclass:: relink.models.Vibrato
    :members:
    
 
-.. autoclass:: relink.models.Rotation()
+.. autoclass:: relink.models.Rotation
    :members:
    
 
-.. autoclass:: relink.models.Distortion()
+.. autoclass:: relink.models.Distortion
    :members:
    
 
-.. autoclass:: relink.models.ChannelMix()
+.. autoclass:: relink.models.ChannelMix
    :members:
    
 
-.. autoclass:: relink.models.LowPass()
+.. autoclass:: relink.models.LowPass
    :members:
    
 
-.. autoclass:: relink.models.Filters()
+.. autoclass:: relink.models.Filters
    :members:
    
 
