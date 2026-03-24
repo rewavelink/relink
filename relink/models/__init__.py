@@ -8,10 +8,10 @@ Module containing all the available user-end models.
 :license: MIT
 """
 
-from .filters import *  
-from .player_info import *  
-from .playlist import *  
-from .responses import *  
-from .info import * 
-from .settings import *  
-from .track import * 
+from .filters import *
+from .player_info import *
+from .playlist import *
+from .responses import *
+from .info import *
+from .settings import *
+from .track import *
