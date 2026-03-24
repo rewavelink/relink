@@ -20,7 +20,7 @@
 
 - Full Lavalink v4+ REST API support
 - Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) and [orjson](https://github.com/ijl/orjson) for faster networking and serialization
-- Drop-in familiarity for WaveLink users — [migration guide included](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
+- Drop-in familiarity for Wavelink users — [migration guide included](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 - Actively maintained, unlike the library you're probably migrating from
 - Async-first and Pyright strict-compliant 
 
@@ -32,7 +32,7 @@
 > 
 ### Requirements:
 - Python 3.12 or higher
-- discord.py 2.6+
+- discord.py 2.7+
 - A running Lavalink 4.x server ([guide on setup](https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html))
 
 
