@@ -1,40 +1,66 @@
 <div align="center">
 
-![Logo](docs/_static/banner.png)
+![ReLink](docs/_static/images/banner.png)
 
-![Python Version](https://img.shields.io/badge/python-3.12%20|%203.13%20|%203.14+%20-blue)
-[![Github License](https://img.shields.io/github/license/rewavelink/relink)](LICENSE)
-[![Lavalink Version](https://img.shields.io/badge/Lavalink-v4.0%2B-blue?color=%23FB7713)](https://lavalink.dev)
-![Lavalink Plugins](https://img.shields.io/badge/Lavalink_Plugins-Native_Support-blue?color=%2373D673)
+[![PyPI](https://img.shields.io/pypi/v/rewavelink)](https://pypi.org/project/rewavelink)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
+[![License](https://img.shields.io/github/license/rewavelink/relink)](LICENSE)
+[![Lavalink](https://img.shields.io/badge/lavalink-4.x-orange)](https://lavalink.dev)
+[![Discord](https://img.shields.io/discord/1471146455002775624?label=discord)](https://discord.gg/tPHVWBPedt)
 
+**ReLink** is a high-performance Lavalink v4 wrapper for discord.py — a maintained, production-ready fork of WaveLink.
+
+[Documentation](https://relink.readthedocs.io/en/latest) · [Discord](https://discord.gg/tPHVWBPedt) · [Migration from WaveLink](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 
 </div>
 
+---
 
-**ReLink** is the best Lavalink wrapper for [discord.py](https://github.com/Rapptz/discord.py) (originally designed as a maintained fork of [WaveLink](https://github.com/PythonistaGuild/Wavelink)).
+## Features
+
+- Full Lavalink v4+ REST API support
+- Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) and [orjson](https://github.com/ijl/orjson) for faster networking and serialization
+- Drop-in familiarity for WaveLink users — [migration guide included](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
+- Actively maintained, unlike the library you're probably migrating from
+- Async-first and Pyright strict-compliant 
 
 
-### Features
+## Installation
 
-- Lavalink v4+ supported with REST API.
-- High performance networking (with optional curl_cffi).
-- Low memory footprint and efficient resource usage.
-- Native compatibility with discord.py v2+.
-- Type-annotated & compliant with **Pyright strict typing**.
-- Async-first architecture designed for scalability.
+> [!NOTE]
+> A [virtual environment](https://docs.python.org/3/library/venv.html) is recommended, especially on Linux where the system Python may restrict package installations.
+> 
+### Requirements:
+- Python 3.12 or higher
+- discord.py 2.6+
+- A running Lavalink 4.x server ([guide on setup](https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html))
 
-### Installation
+
+
+To install the stable version from PyPI:
+```sh
+# Linux/macOS
+python3 -m pip install -U rewavelink
+
+# Windows
+py -3 -m pip install -U rewavelink
 ```
-Soon...
+
+To install with optional speed improvements:
+```sh
+# Linux/macOS
+python3 -m pip install -U "rewavelink[speed]"
+
+# Windows
+py -3 -m pip install -U "rewavelink[speed]"
 ```
 
-### Getting started
-```
-Soon...
-```
+<br>
 
+<p align="center">
+	<img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/footers/gray0_ctp_on_line.svg?sanitize=true" />
+</p>
 
-### Lavalink
-```
-Soon...
-```
+<p align="center">
+        <i><code>&copy 2026 <a href="https://github.com/rewavelink">ReLink Development Team</a></code></i>
+</p>
