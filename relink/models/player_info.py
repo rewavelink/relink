@@ -27,6 +27,7 @@ from __future__ import annotations
 from relink.utils import cached_property
 
 from ..rest.schemas.player import Player as PlayerInfoPayload
+from ..rest.schemas.player import PlayerFilters, PlayerState, PlayerVoiceState
 from .base import BaseModel
 from .track import Playable
 
@@ -62,4 +63,57 @@ class PlayerInfo(BaseModel[PlayerInfoPayload]):
         """The player volume in a 0-1000 percent scale."""
         return self._data.volume
 
-    # TODO: finish this model
+    @property
+    def paused(self) -> bool:
+        """Whether the player is currently paused."""
+        return self._data.paused
+
+    @property
+    def state(self) -> PlayerState:
+        """
+        The current state of the player (:class:`~relink.rest.schemas.player.PlayerState`).
+        """
+        return self._data.state
+
+    @property
+    def position(self) -> int:
+        """Current track position in milliseconds."""
+        return self._data.state.position
+
+    @property
+    def connected(self) -> bool:
+        """Whether the player is connected to a voice channel."""
+        return self._data.state.connected
+
+    @property
+    def ping(self) -> int:
+        """
+        The connection ping in milliseconds.
+
+        Returns ``-1`` if the player is not connected.
+        """
+        return self._data.state.ping
+
+    @property
+    def voice(self) -> PlayerVoiceState:
+        """
+        The voice connection state of the player (:class:`~relink.rest.schemas.player.PlayerVoiceState`).
+        """
+        return self._data.voice
+
+    @property
+    def channel_id(self) -> int | None:
+        """
+        The Discord voice channel ID the player is connected to.
+
+        Returns ``None`` if the player is not connected to a channel.
+        """
+        channel_id = self._data.voice.channel_id
+        if channel_id is None:
+            return None
+        return int(channel_id)
+
+    @property
+    def filters(self) -> PlayerFilters:
+        """The audio filters currently applied to the player."""
+        return self._data.filters
