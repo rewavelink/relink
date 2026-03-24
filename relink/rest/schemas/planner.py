@@ -50,6 +50,12 @@ class DetailsObject(msgspec.Struct, kw_only=True):
     ip_block: IPBlockObject = msgspec.field(name="ipBlock")
     """IP block configuration currently used (:class:`IPBlockObject`)."""
 
+    failing_addresses: list[FailingAddressObject] = msgspec.field(
+        name="failingAddresses",
+        default_factory=lambda: list[FailingAddressObject](),
+    )
+    """List of addresses currently marked as failing (``FailingAddressObject``)."""
+
     rotate_index: str | None = msgspec.field(name="rotateIndex", default=None)
     """Number of performed rotations. Available for ``RotatingIpRoutePlanner``."""
 
@@ -58,7 +64,7 @@ class DetailsObject(msgspec.Struct, kw_only=True):
 
     block_index: int | None = msgspec.field(name="blockIndex", default=None)
     """
-    Index of the active ``/64`` block. This value increases whenever an address 
+    Index of the active ``/64`` block. This value increases whenever an address
     block is rotated due to bans. Available for ``RotatingNanoIpRoutePlanner``.
     """
 
@@ -70,7 +76,7 @@ class DetailsObject(msgspec.Struct, kw_only=True):
         default=None,
     )
     """
-    Offset of the active address inside the IP block. 
+    Offset of the active address inside the IP block.
     Available for ``NanoIpRoutePlanner`` and ``RotatingNanoIpRoutePlanner``.
     """
 

@@ -86,9 +86,9 @@ class PlayerFilters(msgspec.Struct, kw_only=True):
     )
     """Low-pass configuration (:class:`LowPassFilter`)."""
 
-    plugin_filters: dict[str, Any] = msgspec.field(
+    plugin_filters: dict[str, Any] | msgspec.UnsetType = msgspec.field(
         name="pluginFilters",
-        default_factory=dict[str, Any],
+        default=msgspec.UNSET,
     )
     """
     Plugin-defined filter payloads keyed by plugin name.

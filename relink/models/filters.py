@@ -641,17 +641,17 @@ class Filters(BaseModel[filters.PlayerFilters]):
         volume: float = 1.0,
         plugin_filters: dict[str, Any] | None = None,
     ) -> None:
-        self.equalizer: list[Equalizer] = equalizer or []  #: The list of active equalizer bands.
-        self.karaoke: Karaoke | None = karaoke  #: The active karaoke filter settings.
-        self.timescale: Timescale | None = timescale  #: The active timescale filter settings.
-        self.tremolo: Tremolo | None = tremolo  #: The active tremolo filter settings.
-        self.vibrato: Vibrato | None = vibrato  #: The active vibrato filter settings.
-        self.rotation: Rotation | None = rotation  #: The active rotation filter settings.
-        self.distortion: Distortion | None = distortion  #: The active distortion filter settings.
-        self.channel_mix: ChannelMix | None = channel_mix  #: The active channel mix filter settings.
-        self.low_pass: LowPass | None = low_pass  #: The active low pass filter settings.
-        self.volume: float = volume  #: The linear volume multiplier.
-        self.plugin_filters: dict[str, Any] = plugin_filters or {}  #: A raw dict of plugin-defined filter payloads.
+        self.equalizer: list[Equalizer] = equalizer or []
+        self.karaoke: Karaoke | None = karaoke
+        self.timescale: Timescale | None = timescale
+        self.tremolo: Tremolo | None = tremolo
+        self.vibrato: Vibrato | None = vibrato
+        self.rotation: Rotation | None = rotation
+        self.distortion: Distortion | None = distortion
+        self.channel_mix: ChannelMix | None = channel_mix
+        self.low_pass: LowPass | None = low_pass
+        self.volume: float = volume
+        self.plugin_filters: dict[str, Any] = plugin_filters or {}
 
     @classmethod
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
@@ -699,5 +699,5 @@ class Filters(BaseModel[filters.PlayerFilters]):
             distortion=self.distortion._data if self.distortion else msgspec.UNSET,
             channel_mix=self.channel_mix._data if self.channel_mix else msgspec.UNSET,
             low_pass=self.low_pass._data if self.low_pass else msgspec.UNSET,
-            plugin_filters=self.plugin_filters,
+            plugin_filters=self.plugin_filters or msgspec.UNSET,
         )
