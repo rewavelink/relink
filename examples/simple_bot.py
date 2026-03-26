@@ -32,6 +32,7 @@ class Bot(commands.Bot):
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
+
 bot = Bot()
 
 # Now we will add the nodes we want our client to connect to, we can
@@ -43,6 +44,7 @@ bot.rl_client.create_node(
 )
 
 # We will define some simple play, pause, resume, stop and skip commands.
+
 
 @bot.command()
 async def play(ctx: commands.Context[Bot], *, query: str) -> None:
