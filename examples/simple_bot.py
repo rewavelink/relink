@@ -87,9 +87,9 @@ async def play(ctx: commands.Context[Bot], *, query: str) -> None:
     if not vc.current:
         to_play = vc.queue.get()
         await vc.play(to_play)
-        await ctx.reply(f"Now playing `{to_play.title}` by `{to_play.artist.name}`!")
+        await ctx.reply(f"Now playing `{to_play.title}` by `{to_play.author}`!")
     else:
-        await ctx.reply(f"Added `{track.title}` by `{track.artist.name}` to the queue!")
+        await ctx.reply(f"Added `{track.title}` by `{track.author}` to the queue!")
 
 
 @bot.command()
@@ -144,8 +144,7 @@ async def skip(ctx: commands.Context[Bot]) -> None:
         await ctx.reply("Not connected to a voice channel!")
         return
 
-    # 'skip' will raise 'QueueEmpty' if there is no track to skip to
-    # so we must handle that
+    # 'skip' will raise 'QueueEmpty' if there are no tracks in queue
     try:
         track = await vc.skip()
     except relink.QueueEmpty:
@@ -155,7 +154,7 @@ async def skip(ctx: commands.Context[Bot]) -> None:
             await ctx.reply("Skipped!")
             return
 
-        await ctx.reply(f"Skipped to `{track.title}` by `{track.artist.name}`!")
+        await ctx.reply(f"Skipped to `{track.title}` by `{track.author}`!")
 
 
 # Now, we can run our bot
