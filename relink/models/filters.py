@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self, Union
+from typing import TYPE_CHECKING, Any, Self
 
 import msgspec
 
@@ -34,17 +34,7 @@ from .base import BaseFilter, BaseModel
 if TYPE_CHECKING:
     from ..gateway.client import Client
 
-    FilterModelTypes = Union[
-        "Equalizer",
-        "Karaoke",
-        "Timescale",
-        "Tremolo",
-        "Vibrato",
-        "Rotation",
-        "Distortion",
-        "ChannelMix",
-        "LowPass",
-    ]
+    type FilterModelTypes = "Equalizer | Karaoke | Timescale | Tremolo | Vibrato | Rotation | Distortion | ChannelMix | LowPass"
 
 
 __all__ = (
