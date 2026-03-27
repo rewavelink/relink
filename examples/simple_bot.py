@@ -7,6 +7,7 @@
 from typing import Any
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import relink
@@ -32,6 +33,10 @@ class Bot(commands.Bot):
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
+        # Sync slash commands globally (or pass a guild for faster testing)
+        await self.tree.sync()
+        print("Slash commands synced!")
+
 
 bot = Bot()
 
@@ -46,22 +51,23 @@ bot.rl_client.create_node(
 # We will define some simple play, pause, resume, stop and skip commands.
 
 
-@bot.command()
-async def play(ctx: commands.Context[Bot], *, query: str) -> None:
-    """Plays a song."""
+@bot.tree.command(name="play", description="Plays a song.")
+@app_commands.describe(query="The song name or URL to search for.")
+async def play(interaction: discord.Interaction, query: str) -> None:
+    await interaction.response.defer()
 
     # Here we must check whether we have an active player on the guild
     # if we don't, we will connect to the author voice channel, if available.
 
-    assert isinstance(ctx.author, discord.Member)
-    vc = ctx.voice_client
+    assert isinstance(interaction.user, discord.Member)
+    vc = interaction.guild.voice_client if interaction.guild else None
 
     if vc is None:
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            await ctx.reply("You must be in a voice channel!")
+        if not interaction.user.voice or not interaction.user.voice.channel:
+            await interaction.followup.send("You must be in a voice channel!")
             return
 
-        vc = await ctx.author.voice.channel.connect(cls=relink.Player)
+        vc = await interaction.user.voice.channel.connect(cls=relink.Player)
 
     assert isinstance(vc, relink.Player)
 
@@ -69,7 +75,7 @@ async def play(ctx: commands.Context[Bot], *, query: str) -> None:
     result = await bot.rl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
-        await ctx.reply("Could not find any tracks!")
+        await interaction.followup.send("Could not find any tracks!")
         return
 
     data = result.result
@@ -87,74 +93,72 @@ async def play(ctx: commands.Context[Bot], *, query: str) -> None:
     if not vc.current:
         to_play = vc.queue.get()
         await vc.play(to_play)
-        await ctx.reply(f"Now playing `{to_play.title}` by `{to_play.author}`!")
+        await interaction.followup.send(
+            f"Now playing `{to_play.title}` by `{to_play.author}`!"
+        )
     else:
-        await ctx.reply(f"Added `{track.title}` by `{track.author}` to the queue!")
+        await interaction.followup.send(
+            f"Added `{track.title}` by `{track.author}` to the queue!"
+        )
 
 
-@bot.command()
-async def pause(ctx: commands.Context[Bot]) -> None:
-    """Pauses the current playing song."""
-
-    vc = ctx.voice_client
+@bot.tree.command(name="pause", description="Pauses the current playing song.")
+async def pause(interaction: discord.Interaction) -> None:
+    vc = interaction.guild.voice_client if interaction.guild else None
 
     if not isinstance(vc, relink.Player):
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     await vc.pause()
-    await ctx.reply("Paused!")
+    await interaction.response.send_message("Paused!")
 
 
-@bot.command()
-async def resume(ctx: commands.Context[Bot]) -> None:
-    """Resumes the current playing song."""
-
-    vc = ctx.voice_client
+@bot.tree.command(name="resume", description="Resumes the current playing song.")
+async def resume(interaction: discord.Interaction) -> None:
+    vc = interaction.guild.voice_client if interaction.guild else None
 
     if not isinstance(vc, relink.Player):
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     await vc.resume()
-    await ctx.reply("Resumed!")
+    await interaction.response.send_message("Resumed!")
 
 
-@bot.command()
-async def stop(ctx: commands.Context[Bot]) -> None:
-    """Stops and disconnects."""
-
-    vc = ctx.voice_client
+@bot.tree.command(name="stop", description="Stops playback and disconnects the bot.")
+async def stop(interaction: discord.Interaction) -> None:
+    vc = interaction.guild.voice_client if interaction.guild else None
 
     if not isinstance(vc, relink.Player):
-        await ctx.reply("Already disconnected!")
+        await interaction.response.send_message("Already disconnected!")
         return
 
     await vc.disconnect()
-    await ctx.reply("Disconnected!")
+    await interaction.response.send_message("Disconnected!")
 
 
-@bot.command()
-async def skip(ctx: commands.Context[Bot]) -> None:
-    """Skips the current song."""
-
-    vc = ctx.voice_client
+@bot.tree.command(name="skip", description="Skips the current song.")
+async def skip(interaction: discord.Interaction) -> None:
+    vc = interaction.guild.voice_client if interaction.guild else None
 
     if not isinstance(vc, relink.Player):
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     # 'skip' will raise 'QueueEmpty' if there are no tracks in queue
     try:
         track = await vc.skip()
     except relink.QueueEmpty:
-        await ctx.reply("There is no track to skip to!")
+        await interaction.response.send_message("There is no track to skip to!")
     else:
         if not track:
-            await ctx.reply("Skipped!")
+            await interaction.response.send_message("Skipped!")
             return
 
-        await ctx.reply(f"Skipped to `{track.title}` by `{track.author}`!")
+        await interaction.response.send_message(
+            f"Skipped to `{track.title}` by `{track.author}`!"
+        )
 
 
 # Now, we can run our bot

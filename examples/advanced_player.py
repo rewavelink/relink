@@ -5,9 +5,10 @@
 # It requires an active Lavalink server — for setup instructions see:
 # https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
-from typing import Any
+from typing import Any, Literal
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import relink
@@ -37,6 +38,10 @@ class Bot(commands.Bot):
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
+        # Sync slash commands to Discord
+        await self.tree.sync()
+        print("Slash commands synced!")
+
 
 bot = Bot()
 
@@ -49,9 +54,9 @@ bot.rl_client.create_node(
 
 
 # Helper function for DRY (Don't Repeat Yourself)
-def _player_check(ctx: commands.Context[Bot]) -> relink.Player | None:
+def _player_check(interaction: discord.Interaction) -> relink.Player | None:
     """Returns the active Player for this guild, or None if not connected."""
-    vc = ctx.voice_client
+    vc = interaction.guild.voice_client if interaction.guild else None
     return vc if isinstance(vc, relink.Player) else None
 
 
@@ -60,25 +65,28 @@ def _player_check(ctx: commands.Context[Bot]) -> relink.Player | None:
 # -----------------
 
 
-@bot.command()
-async def play(ctx: commands.Context[Bot], *, query: str) -> None:
+@bot.tree.command(name="play", description="Plays a track or playlist.")
+@app_commands.describe(query="The song name or URL to search for.")
+async def play(interaction: discord.Interaction, query: str) -> None:
     """
     Plays a track or playlist, or adds it to the queue if something is already playing.
 
     Supports plain search queries as well as direct URLs (YouTube, SoundCloud, etc.).
     When a playlist URL is provided, all tracks are enqueued.
     """
+    # Defer since searching/connecting can take longer than 3 seconds
+    await interaction.response.defer()
 
-    assert isinstance(ctx.author, discord.Member)
-    vc = ctx.voice_client
+    assert isinstance(interaction.user, discord.Member)
+    vc = interaction.guild.voice_client if interaction.guild else None
 
     # Connect to the author's voice channel if we are not already in one.
     if vc is None:
-        if not ctx.author.voice or not ctx.author.voice.channel:
-            await ctx.reply("You must be in a voice channel!")
+        if not interaction.user.voice or not interaction.user.voice.channel:
+            await interaction.followup.send("You must be in a voice channel!")
             return
 
-        vc = await ctx.author.voice.channel.connect(cls=relink.Player)
+        vc = await interaction.user.voice.channel.connect(cls=relink.Player)
 
     assert isinstance(vc, relink.Player)
 
@@ -87,7 +95,7 @@ async def play(ctx: commands.Context[Bot], *, query: str) -> None:
     result = await bot.rl_client.search_track(query, source=TrackSourceType.YOUTUBE)
 
     if result.is_error() or result.is_empty() or result.result is None:
-        await ctx.reply("Could not find any tracks!")
+        await interaction.followup.send("Could not find any tracks!")
         return
 
     data = result.result
@@ -104,12 +112,12 @@ async def play(ctx: commands.Context[Bot], *, query: str) -> None:
 
         if not vc.current:
             await vc.play(vc.queue.get())
-            await ctx.reply(
+            await interaction.followup.send(
                 f"Now playing `{first.title}` and queued {len(rest)} more tracks "
                 f"from playlist `{data.name}`!"
             )
         else:
-            await ctx.reply(
+            await interaction.followup.send(
                 f"Added `{data.name}` ({len(data.tracks)} tracks) to the queue!"
             )
         return
@@ -121,118 +129,131 @@ async def play(ctx: commands.Context[Bot], *, query: str) -> None:
     if not vc.current:
         to_play = vc.queue.get()
         await vc.play(to_play)
-        await ctx.reply(f"Now playing `{to_play.title}` by `{to_play.author}`!")
+        await interaction.followup.send(
+            f"Now playing `{to_play.title}` by `{to_play.author}`!"
+        )
     else:
-        await ctx.reply(f"Added `{track.title}` by `{track.author}` to the queue!")
+        await interaction.followup.send(
+            f"Added `{track.title}` by `{track.author}` to the queue!"
+        )
 
 
-@bot.command()
-async def pause(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="pause", description="Pauses the current track.")
+async def pause(interaction: discord.Interaction) -> None:
     """Pauses the current track."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     if vc.paused:
-        await ctx.reply("Already paused! Use `!resume` to continue.")
+        await interaction.response.send_message(
+            "Already paused! Use `/resume` to continue."
+        )
         return
 
     await vc.pause()
-    await ctx.reply("Paused!")
+    await interaction.response.send_message("Paused!")
 
 
-@bot.command()
-async def resume(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="resume", description="Resumes the player if it is paused.")
+async def resume(interaction: discord.Interaction) -> None:
     """Resumes the player if it is paused."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     if not vc.paused:
-        await ctx.reply("Not paused!")
+        await interaction.response.send_message("Not paused!")
         return
 
     await vc.resume()
-    await ctx.reply("Resumed!")
+    await interaction.response.send_message("Resumed!")
 
 
-@bot.command()
-async def skip(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="skip", description="Skips the current track.")
+async def skip(interaction: discord.Interaction) -> None:
     """Skips the current track and plays the next one in the queue."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     # 'skip' raises QueueEmpty when there are no further tracks to advance to.
     try:
         track = await vc.skip()
     except relink.QueueEmpty:
-        await ctx.reply("The queue is empty — nothing to skip to!")
+        await interaction.response.send_message(
+            "The queue is empty — nothing to skip to!"
+        )
         return
 
     if track:
-        await ctx.reply(f"Skipped to `{track.title}` by `{track.author}`!")
+        await interaction.response.send_message(
+            f"Skipped to `{track.title}` by `{track.author}`!"
+        )
     else:
-        await ctx.reply("Skipped! Nothing left in the queue.")
+        await interaction.response.send_message("Skipped! Nothing left in the queue.")
 
 
-@bot.command()
-async def previous(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="previous", description="Goes back to the previous track.")
+async def previous(interaction: discord.Interaction) -> None:
     """Goes back to the previous track in the history."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     # 'previous' raises HistoryEmpty when there is no track to go back to.
     try:
         track = await vc.previous()
     except relink.HistoryEmpty:
-        await ctx.reply("No previous track in history!")
+        await interaction.response.send_message("No previous track in history!")
         return
 
-    await ctx.reply(f"Going back to `{track.title}` by `{track.author}`!")
+    await interaction.response.send_message(
+        f"Going back to `{track.title}` by `{track.author}`!"
+    )
 
 
-@bot.command()
-async def seek(ctx: commands.Context[Bot], seconds: int) -> None:
+@bot.tree.command(name="seek", description="Seeks to a position (seconds).")
+@app_commands.describe(seconds="The position in seconds to jump to.")
+async def seek(interaction: discord.Interaction, seconds: int) -> None:
     """
     Seeks to a position in the current track (in seconds).
 
-    Example: !seek 90  →  jumps to the 1:30 mark.
+    Example: /seek 90  →  jumps to the 1:30 mark.
     """
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     if not vc.current:
-        await ctx.reply("Nothing is playing!")
+        await interaction.response.send_message("Nothing is playing!")
         return
 
     await vc.seek(seconds * 1000)
-    await ctx.reply(f"Seeked to {seconds}s!")
+    await interaction.response.send_message(f"Seeked to {seconds}s!")
 
 
-@bot.command()
-async def stop(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="stop", description="Stops playback and disconnects.")
+async def stop(interaction: discord.Interaction) -> None:
     """Stops playback, clears the queue, and disconnects the bot."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Already disconnected!")
+        await interaction.response.send_message("Already disconnected!")
         return
 
     await vc.disconnect()
-    await ctx.reply("Disconnected and cleared the queue!")
+    await interaction.response.send_message("Disconnected and cleared the queue!")
 
 
 # --------------
@@ -240,19 +261,19 @@ async def stop(ctx: commands.Context[Bot]) -> None:
 # --------------
 
 
-@bot.command()
-async def queue(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="queue", description="Displays the current queue.")
+async def queue(interaction: discord.Interaction) -> None:
     """Displays the current queue (up to 10 upcoming tracks)."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     tracks = vc.queue.tracks
 
     if not tracks and not vc.current:
-        await ctx.reply("The queue is empty!")
+        await interaction.response.send_message("The queue is empty!")
         return
 
     lines: list[str] = []
@@ -270,28 +291,31 @@ async def queue(ctx: commands.Context[Bot]) -> None:
         if len(tracks) > 10:
             lines.append(f"\n*...and {len(tracks) - 10} more tracks.*")
 
-    await ctx.reply("\n".join(lines))
+    await interaction.response.send_message("\n".join(lines))
 
 
-@bot.command()
-async def shuffle(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="shuffle", description="Shuffles the current queue.")
+async def shuffle(interaction: discord.Interaction) -> None:
     """Shuffles the current queue in place."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     if not vc.queue.tracks:
-        await ctx.reply("The queue is empty!")
+        await interaction.response.send_message("The queue is empty!")
         return
 
     vc.queue.shuffle()
-    await ctx.reply("Queue shuffled!")
+    await interaction.response.send_message("Queue shuffled!")
 
 
-@bot.command()
-async def loop(ctx: commands.Context[Bot], mode: str = "track") -> None:
+@bot.tree.command(name="loop", description="Sets the loop mode.")
+@app_commands.describe(mode="Choose from: track, all, off")
+async def loop(
+    interaction: discord.Interaction, mode: Literal["track", "all", "off"] = "track"
+) -> None:
     """
     Sets the loop mode. Options: 'track', 'all', 'off'.
 
@@ -300,24 +324,20 @@ async def loop(ctx: commands.Context[Bot], mode: str = "track") -> None:
     - off:   disables looping.
     """
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
-    mode = mode.lower()
     mapping = {
         "track": QueueMode.LOOP,
         "all": QueueMode.LOOP_ALL,
         "off": QueueMode.NORMAL,
     }
 
-    if mode not in mapping:
-        await ctx.reply("Invalid mode! Choose from: `track`, `all`, `off`.")
-        return
-
+    # Literal type ensures 'mode' is one of the valid strings
     vc.queue.mode = mapping[mode]
-    await ctx.reply(f"Loop mode set to `{mode}`!")
+    await interaction.response.send_message(f"Loop mode set to `{mode}`!")
 
 
 # ---------------
@@ -325,35 +345,35 @@ async def loop(ctx: commands.Context[Bot], mode: str = "track") -> None:
 # ---------------
 
 
-@bot.command()
-async def volume(ctx: commands.Context[Bot], value: int) -> None:
+@bot.tree.command(name="volume", description="Sets the player volume (0–1000).")
+@app_commands.describe(value="Volume level between 0 and 1000.")
+async def volume(
+    interaction: discord.Interaction, value: app_commands.Range[int, 0, 1000]
+) -> None:
     """Sets the player volume (0–1000). Default is 100."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
-    if not 0 <= value <= 1000:
-        await ctx.reply("Volume must be between 0 and 1000!")
-        return
-
+    # app_commands.Range ensures the value stays between 0 and 1000 in the UI
     await vc.set_volume(value)
-    await ctx.reply(f"Volume set to `{value}`!")
+    await interaction.response.send_message(f"Volume set to `{value}`!")
 
 
-@bot.command()
-async def nowplaying(ctx: commands.Context[Bot]) -> None:
+@bot.tree.command(name="nowplaying", description="Shows current track info.")
+async def nowplaying(interaction: discord.Interaction) -> None:
     """Shows information about the currently playing track."""
 
-    vc = _player_check(ctx)
+    vc = _player_check(interaction)
     if not vc:
-        await ctx.reply("Not connected to a voice channel!")
+        await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     track = vc.current
     if not track:
-        await ctx.reply("Nothing is playing right now!")
+        await interaction.response.send_message("Nothing is playing right now!")
         return
 
     # Convert milliseconds to a readable mm:ss position / duration.
@@ -361,7 +381,7 @@ async def nowplaying(ctx: commands.Context[Bot]) -> None:
         s = ms // 1000
         return f"{s // 60}:{s % 60:02d}"
 
-    await ctx.reply(
+    await interaction.response.send_message(
         f"**Now playing:** `{track.title}` by `{track.author}`\n"
         f"**Position:** `{fmt(vc.position)}` / `{fmt(track.length)}`\n"
         f"**Volume:** `{vc.volume}` | **Loop:** `{vc.queue.mode.name.lower()}`"
