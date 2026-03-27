@@ -1,5 +1,3 @@
-# NOTE: This example requires the 'message_content' and 'members' privileged intents
-
 # This example covers an advanced music bot using relink, featuring a full
 # queue system, volume control, track history, seeking, and playlist support.
 # It requires an active Lavalink server — for setup instructions see:
@@ -21,13 +19,11 @@ from relink.rest.enums import TrackSourceType
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.Bot):
     def __init__(self) -> None:
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.members = True
+        intents = discord.Intents(guilds=True, voice_states=True)
 
         super().__init__(
             intents=intents,
-            command_prefix="!",
+            command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
         )
 
         self.rl_client: relink.Client[Any] = relink.Client(self)

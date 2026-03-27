@@ -1,5 +1,3 @@
-# NOTE: This examples requires the 'message_content' and 'members' priviliged intents
-
 # This example covers the procedure of creating a simple music bot using relink
 # and requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
@@ -13,16 +11,15 @@ from discord.ext import commands
 import relink
 
 
-# Start by building your clients, in this example we will subclass commands.Bot
+# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.Bot):
     def __init__(self) -> None:
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.members = True
+        intents = discord.Intents(guilds=True, voice_states=True)
 
         super().__init__(
             intents=intents,
-            command_prefix="!",
+            command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
         )
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
@@ -33,16 +30,15 @@ class Bot(commands.Bot):
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
-        # Sync slash commands globally (or pass a guild for faster testing)
+        # Sync slash commands to Discord
         await self.tree.sync()
         print("Slash commands synced!")
 
 
 bot = Bot()
 
-# Now we will add the nodes we want our client to connect to, we can
-# access our relink.Client instance with 'bot.rl_client'.
-
+# Register the node we want to connect to. You can register multiple nodes
+# and relink will automatically load-balance between them via 'get_best_node'.
 bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",

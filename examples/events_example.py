@@ -1,5 +1,3 @@
-# NOTE: This example requires the 'message_content' privileged intents
-
 # This example covers the procedure of creating a simple music bot using relink,
 # with event handlers for track lifecycle and node events.
 # It requires an active Lavalink server, for more information on setting up one
@@ -13,17 +11,15 @@ from discord.ext import commands
 import relink
 
 
-# Start by building our clients. We subclass commands.Bot so we can hold
-# our relink.Client instance cleanly without relying on a global.
+# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.Bot):
     def __init__(self) -> None:
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.members = True
+        intents = discord.Intents(guilds=True, voice_states=True)
 
         super().__init__(
             intents=intents,
-            command_prefix="!",
+            command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
         )
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
