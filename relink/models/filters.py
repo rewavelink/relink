@@ -24,7 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self, Union
+import copy
+from typing import TYPE_CHECKING, Any, Self
 
 import msgspec
 
@@ -34,17 +35,7 @@ from .base import BaseFilter, BaseModel
 if TYPE_CHECKING:
     from ..gateway.client import Client
 
-    FilterModelTypes = Union[
-        "Equalizer",
-        "Karaoke",
-        "Timescale",
-        "Tremolo",
-        "Vibrato",
-        "Rotation",
-        "Distortion",
-        "ChannelMix",
-        "LowPass",
-    ]
+    type FilterModelTypes = "Equalizer | Karaoke | Timescale | Tremolo | Vibrato | Rotation | Distortion | ChannelMix | LowPass"
 
 
 __all__ = (
@@ -685,6 +676,18 @@ class Filters(BaseModel[filters.PlayerFilters]):
             else None
         )
 
+    def __or__(self, other: object) -> Self:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return self.combine(other)
+
+    def __ior__(self, other: object) -> Self:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return self.merge(other)
+
     @property
     def payload(self) -> filters.PlayerFilters:
         """Returns the underlying msgspec schema for API requests."""
@@ -701,3 +704,108 @@ class Filters(BaseModel[filters.PlayerFilters]):
             low_pass=self.low_pass._data if self.low_pass else msgspec.UNSET,
             plugin_filters=self.plugin_filters or msgspec.UNSET,
         )
+
+    def merge(self, other: Filters) -> Self:
+        """
+        Merge another filter set into this instance in place.
+
+        This mutates ``self``. Use :meth:`combine` when you need a new
+        merged :class:`Filters` instance without changing either input.
+
+        Parameters
+        ----------
+        other: :class:`Filters`
+            The other filter to merge with.
+
+        Returns
+        -------
+        :class:`Filters`
+            This filter instance after merging.
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError(
+                f"Can only merge filters of the same type, got {type(other).__name__}"
+            )
+
+        if other.equalizer:
+            if self.equalizer:
+                self.equalizer.extend(other.equalizer)
+            else:
+                self.equalizer = other.equalizer
+
+            self.equalizer.sort(key=lambda f: f.band)
+
+        if self.karaoke and other.karaoke:
+            self.karaoke.merge(other.karaoke)
+        elif other.karaoke:
+            self.karaoke = other.karaoke
+
+        if self.timescale and other.timescale:
+            self.timescale.merge(other.timescale)
+        elif other.timescale:
+            self.timescale = other.timescale
+
+        if self.tremolo and other.tremolo:
+            self.tremolo.merge(other.tremolo)
+        elif other.tremolo:
+            self.tremolo = other.tremolo
+
+        if self.vibrato and other.vibrato:
+            self.vibrato.merge(other.vibrato)
+        elif other.vibrato:
+            self.vibrato = other.vibrato
+
+        if self.rotation and other.rotation:
+            self.rotation.merge(other.rotation)
+        elif other.rotation:
+            self.rotation = other.rotation
+
+        if self.distortion and other.distortion:
+            self.distortion.merge(other.distortion)
+        elif other.distortion:
+            self.distortion = other.distortion
+
+        if self.channel_mix and other.channel_mix:
+            self.channel_mix.merge(other.channel_mix)
+        elif other.channel_mix:
+            self.channel_mix = other.channel_mix
+
+        if self.low_pass and other.low_pass:
+            self.low_pass.merge(other.low_pass)
+        elif other.low_pass:
+            self.low_pass = other.low_pass
+
+        if other.plugin_filters:
+            if self.plugin_filters:
+                self.plugin_filters.update(other.plugin_filters)
+            else:
+                self.plugin_filters = other.plugin_filters
+
+        if other.volume != 1.0 and other.volume != self.volume:
+            self.volume = other.volume
+
+        return self
+
+    def combine(self, other: Filters) -> Self:
+        """
+        Return a new filter set with ``other`` merged into a copy of this one.
+
+        This does not mutate either input. Use :meth:`merge` when you want
+        in-place mutation of the current instance.
+
+        Parameters
+        ----------
+        other: :class:`Filters`
+            The other filter to combine with.
+
+        Returns
+        -------
+        :class:`Filters`
+            This filter instance after combining.
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError(
+                f"Can only combine filters of the same type, got {type(other).__name__}"
+            )
+
+        return copy.deepcopy(self).merge(other)
