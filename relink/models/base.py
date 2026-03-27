@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from ..gateway.client import Client
 
 
-class BaseModel[D]:
+class BaseModel[D: msgspec.Struct]:
     """
     A base class for all relink models.
 
@@ -103,7 +103,7 @@ class BaseSettings:
         return new
 
 
-class BaseFilter[D](BaseModel[D]):
+class BaseFilter[D: msgspec.Struct](BaseModel[D]):
     """
     A base class for all single Lavalink filter models.
 
@@ -133,3 +133,75 @@ class BaseFilter[D](BaseModel[D]):
     @staticmethod
     def _set[T](value: T | None) -> T | msgspec.UnsetType:
         return value if value is not None else msgspec.UNSET
+
+    def __or__(self, other: object) -> BaseFilter[D]:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+
+        return self.combine(other)
+
+    def __ior__(self, other: object) -> Self:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+
+        return self.merge(other)
+
+    def merge(self, other: BaseFilter[D]) -> Self:
+        """
+        Merges another filter into this one, preferring the other's values.
+
+        This method mutates the current instance and returns it for chaining.
+
+        See also :meth:`combine` for a non-mutating version that returns a new instance.
+
+        Parameters
+        ----------
+        other: :class:`BaseFilter`
+            The other filter to merge into this one. Must be of the same type.
+
+        Returns
+        -------
+        :class:`BaseFilter`
+            The current instance with merged values.
+        """
+        if not isinstance(other, self.__class__):
+            raise TypeError(
+                f"Cannot merge an object of type {type(other).__name__} into {self.__class__.__name__}"
+            )
+
+        for field in msgspec.structs.fields(self.data):
+            attr_name: str = field.name
+            self_value = getattr(self, attr_name)
+            other_value = getattr(other, attr_name)
+            if other_value is not None and other_value != self_value:
+                setattr(self, attr_name, other_value)
+
+        return self
+
+    def combine(self, other: BaseFilter[D]) -> BaseFilter[D]:
+        """
+        Combines this filter with another, preferring the other's values.
+
+        This method does not mutate the current instance and returns a new one.
+        See also :meth:`merge` for an in-place version that mutates the current instance.
+
+        Parameters
+        ----------
+        other: :class:`BaseFilter`
+            The other filter to combine with this one. Must be of the same type.
+
+        Returns
+        -------
+        :class:`BaseFilter`
+            A new instance with merged values from both filters.
+        """
+        if not isinstance(other, self.__class__):
+            raise TypeError(
+                f"Cannot merge an object of type {type(other).__name__} into {self.__class__.__name__}"
+            )
+
+        kws = {
+            field.name: getattr(self, field.name)
+            for field in msgspec.structs.fields(self.data)
+        }
+        return self.__class__(**kws).merge(other)
