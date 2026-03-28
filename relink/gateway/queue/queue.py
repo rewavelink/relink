@@ -170,6 +170,41 @@ class Queue(MutableQueueBase):
 
         return self.pop()
 
+    async def get_wait(self) -> Playable:
+        """
+        Asynchronously get a track from the queue, waits if necessary.
+
+        This method will wait indefinitely until a track is available in the queue.
+        This method can be used to implement a system that waits for a next track to
+        play after the current track finishes, for example.
+
+        Returns
+        -------
+        :class:`Playable`
+            The retrieved track.
+        """
+        while True:
+            try:
+                return self.get()
+            except QueueEmpty:
+                pass
+
+            waiter: asyncio.Future[None] = asyncio.get_running_loop().create_future()
+            self._waiters.append(waiter)
+
+            try:
+                await waiter
+            finally:
+                waiter.cancel()
+
+                try:
+                    self._waiters.remove(waiter)
+                except ValueError:
+                    pass
+
+                if self and not waiter.cancelled():
+                    self._wakeup_next()
+
     def pop(self) -> Playable:
         """
         Remove and return the next track from the queue.
