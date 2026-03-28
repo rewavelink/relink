@@ -35,7 +35,17 @@ from .base import BaseFilter, BaseModel
 if TYPE_CHECKING:
     from ..gateway.client import Client
 
-    type FilterModelTypes = "Equalizer | Karaoke | Timescale | Tremolo | Vibrato | Rotation | Distortion | ChannelMix | LowPass"
+type FilterModelTypes = (
+    Equalizer
+    | Karaoke
+    | Timescale
+    | Tremolo
+    | Vibrato
+    | Rotation
+    | Distortion
+    | ChannelMix
+    | LowPass
+)
 
 
 __all__ = (

@@ -32,7 +32,11 @@ if TYPE_CHECKING:
     import aiohttp
     import curl_cffi
 
-    WSErrorType = aiohttp.WebSocketError | aiohttp.WSServerHandshakeError | curl_cffi.requests.WebSocketError
+    WSErrorType = (
+        aiohttp.WebSocketError
+        | aiohttp.WSServerHandshakeError
+        | curl_cffi.requests.WebSocketError
+    )
 
 
 class NetworkError(ReLinkException):
