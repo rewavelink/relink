@@ -31,11 +31,24 @@ body:
         - macOS
     validations:
       required: true
-  - type: input
-    id: version
+  - type: dropdown
+    id: python_version
     attributes:
-      label: Library Version & Python Version
-      placeholder: "e.g., ReLink v1.0.0, Python 3.12"
+      label: Python Version
+      description: >
+        Select the Python version you are using. 
+        **Note:** Any version not listed here is not officially supported by ReLink.
+      options:
+        - "3.12"
+        - "3.13"
+        - "3.14"
+    validations:
+      required: true
+  - type: input
+    id: relink_version
+    attributes:
+      label: ReLink Version
+      placeholder: "e.g., v1.0.0"
     validations:
       required: true
   - type: checkboxes
