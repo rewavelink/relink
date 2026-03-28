@@ -47,6 +47,17 @@ type FilterModelTypes = (
     | LowPass
 )
 
+_SINGLE_FILTER_ATTRS: tuple[str, ...] = (
+    "karaoke",
+    "timescale",
+    "tremolo",
+    "vibrato",
+    "rotation",
+    "distortion",
+    "channel_mix",
+    "low_pass",
+)
+
 
 __all__ = (
     "Equalizer",
@@ -658,7 +669,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
         eq_raw = data.equalizer if data.equalizer is not msgspec.UNSET else []
 
-        self = cls(
+        instance = cls(
             equalizer=[Equalizer._from_data(client, e) for e in eq_raw],
             karaoke=cls._wrap(Karaoke, client, data.karaoke),
             timescale=cls._wrap(Timescale, client, data.timescale),
@@ -673,8 +684,8 @@ class Filters(BaseModel[filters.PlayerFilters]):
             if data.plugin_filters is not msgspec.UNSET
             else None,
         )
-        self._client = client
-        return self
+        instance._client = client
+        return instance
 
     @classmethod
     def _wrap[C: FilterModelTypes](
@@ -737,53 +748,21 @@ class Filters(BaseModel[filters.PlayerFilters]):
                 f"Can only merge filters of the same type, got {type(other).__name__}"
             )
 
+        for attr in _SINGLE_FILTER_ATTRS:
+            self_filter = getattr(self, attr)
+            other_filter = getattr(other, attr)
+
+            if self_filter and other_filter:
+                self_filter.merge(other_filter)
+            elif other_filter:
+                setattr(self, attr, other_filter)
+
         if other.equalizer:
             if self.equalizer:
                 self.equalizer.extend(other.equalizer)
             else:
                 self.equalizer = other.equalizer
-
             self.equalizer.sort(key=lambda f: f.band)
-
-        if self.karaoke and other.karaoke:
-            self.karaoke.merge(other.karaoke)
-        elif other.karaoke:
-            self.karaoke = other.karaoke
-
-        if self.timescale and other.timescale:
-            self.timescale.merge(other.timescale)
-        elif other.timescale:
-            self.timescale = other.timescale
-
-        if self.tremolo and other.tremolo:
-            self.tremolo.merge(other.tremolo)
-        elif other.tremolo:
-            self.tremolo = other.tremolo
-
-        if self.vibrato and other.vibrato:
-            self.vibrato.merge(other.vibrato)
-        elif other.vibrato:
-            self.vibrato = other.vibrato
-
-        if self.rotation and other.rotation:
-            self.rotation.merge(other.rotation)
-        elif other.rotation:
-            self.rotation = other.rotation
-
-        if self.distortion and other.distortion:
-            self.distortion.merge(other.distortion)
-        elif other.distortion:
-            self.distortion = other.distortion
-
-        if self.channel_mix and other.channel_mix:
-            self.channel_mix.merge(other.channel_mix)
-        elif other.channel_mix:
-            self.channel_mix = other.channel_mix
-
-        if self.low_pass and other.low_pass:
-            self.low_pass.merge(other.low_pass)
-        elif other.low_pass:
-            self.low_pass = other.low_pass
 
         if other.plugin_filters:
             if self.plugin_filters:
