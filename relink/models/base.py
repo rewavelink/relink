@@ -89,7 +89,7 @@ class BaseSettings:
         """Returns a fresh instance of this settings class with defaults."""
         return cls()
 
-    def replace(self, **kwrags: Any) -> Self:
+    def replace(self, **kwargs: Any) -> Self:
         """
         Returns a new instance of the settings with updated values.
 
@@ -97,7 +97,7 @@ class BaseSettings:
         instance remains immutable.
         """
         new = copy.copy(self)
-        for key, value in kwrags.items():
+        for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(new, key, value)
         return new
@@ -122,9 +122,9 @@ class BaseFilter[D: msgspec.Struct](BaseModel[D]):
     @classmethod
     def _from_data(cls, client: Client[Any], data: D) -> Self:
         fields: tuple[str, ...] = getattr(data, "__struct_fields__", ())
-        self = cls(**{field: cls._get(getattr(data, field)) for field in fields})
-        self._client = client
-        return self
+        instance = cls(**{field: cls._get(getattr(data, field)) for field in fields})
+        instance._client = client
+        return instance
 
     @staticmethod
     def _get[T](value: T | msgspec.UnsetType) -> T | None:
@@ -134,7 +134,7 @@ class BaseFilter[D: msgspec.Struct](BaseModel[D]):
     def _set[T](value: T | None) -> T | msgspec.UnsetType:
         return value if value is not None else msgspec.UNSET
 
-    def __or__(self, other: object) -> BaseFilter[D]:
+    def __or__(self, other: object) -> Self:
         if not isinstance(other, self.__class__):
             return NotImplemented
 
@@ -178,7 +178,7 @@ class BaseFilter[D: msgspec.Struct](BaseModel[D]):
 
         return self
 
-    def combine(self, other: BaseFilter[D]) -> BaseFilter[D]:
+    def combine(self, other: BaseFilter[D]) -> Self:
         """
         Combines this filter with another, preferring the other's values.
 
