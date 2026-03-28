@@ -1,0 +1,57 @@
+name: Bug Report
+description: Alert us to broken logic or unexpected library behavior
+labels: ["bug: unconfirmed"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        ### Let's get this fixed.
+        Please provide enough detail for us to reproduce the issue.
+        
+        **Need immediate help?** Join our [Discord Server](https://discord.gg/tPHVWBPedt).
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A short description of what is happening?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide a minimal code snippet.
+      render: python
+      placeholder: |
+        import relink
+        # Your code here
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - Windows
+        - macOS
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Library Version & Python Version
+      placeholder: "e.g., ReLink v1.0.0, Python 3.12"
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Preliminary Checks
+      options:
+        - label: I have verified I am on the latest version of ReLink.
+          required: true
+        - label: I have checked existing issues to ensure this isn't a duplicate.
+          required: true
+        - label: This behavior is not an "Expected Behavior" defined in the documentation.
+          required: true
