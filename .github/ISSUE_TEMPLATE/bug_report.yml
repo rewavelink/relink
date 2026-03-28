@@ -2,25 +2,19 @@ name: Bug Report
 description: Alert us to broken logic or unexpected library behavior
 labels: ["bug: unconfirmed"]
 body:
-  - type: markdown
-    attributes:
-      value: >
-        ### Let's get this fixed.
-        Please provide enough detail for us to reproduce the issue.
-        
-        **Need immediate help?** Join our [Discord Server](https://discord.gg/tPHVWBPedt).
   - type: textarea
     id: summary
     attributes:
-      label: Summary
-      description: A short description of what is happening?
+      label: Problem Summary
+      description: A clear and concise description of what the bug is.
+      placeholder: "e.g., The timescale filter throws a ValueError when speed is set to 2.0"
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: Reproduction
-      description: Provide a minimal code snippet.
+      label: Minimal Reproducible Example
+      description: Provide a small, self-contained code snippet that demonstrates the issue.
       render: python
       placeholder: |
         import relink
