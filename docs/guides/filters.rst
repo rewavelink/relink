@@ -90,6 +90,63 @@ them in a single ``Filters`` object:
 This keeps the applied state easy to reason about and avoids spreading one
 audio change across several unrelated command branches.
 
+Merging and combining filters
+-----------------------------
+
+If you need to layer effects on top of an existing filter state without
+replacing everything, :meth:`relink.models.Filters.merge` and
+:meth:`relink.models.Filters.combine` let you do that cleanly.
+
+``merge`` updates the current instance in place, preferring values from the
+other filter where both define the same effect:
+
+.. code-block:: python
+
+   from relink.models import Filters, Rotation, Timescale
+
+   filters = Filters(timescale=Timescale(speed=1.1, pitch=1.1))
+   extra = Filters(rotation=Rotation(rotation_hz=0.2))
+   
+   filters.merge(extra)
+   await player.set_filters(filters, seek=True)
+
+``combine`` does the same thing but returns a new ``Filters`` instance and
+leaves both inputs unchanged:
+
+.. code-block:: python
+
+   from relink.models import Filters, Rotation, Timescale
+
+   base = Filters(timescale=Timescale(speed=1.1, pitch=1.1))
+   extra = Filters(rotation=Rotation(rotation_hz=0.2))
+
+   merged = base.combine(extra)
+   await player.set_filters(merged, seek=True)
+
+Both methods also support the ``|`` and ``|=`` operators as shorthand:
+
+.. code-block:: python
+
+   # equivalent to combine (returns new instance)
+   merged = base | extra
+
+   # equivalent to merge (mutates in place)
+   base |= extra
+
+A practical case for these methods is when your bot tracks the player's current
+filter state and a command needs to add or override one effect without touching
+the others:
+
+.. code-block:: python
+
+   current = player.filters
+   nightcore = Filters(timescale=Timescale(speed=1.2, pitch=1.2))
+
+   await player.set_filters(current | nightcore, seek=True)
+
+This preserves any active equalizer, rotation, or other effects while applying
+the timescale change on top.
+
 Why ``seek=True`` matters
 -------------------------
 
