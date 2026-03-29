@@ -61,8 +61,36 @@ def _player_check(interaction: discord.Interaction) -> relink.Player | None:
 # -----------------
 
 
+async def query_autocomplete(
+    interaction: discord.Interaction,
+    current: str,
+) -> list[app_commands.Choice[str]]:
+    if not current:
+        return []
+
+    result = await bot.rl_client.search_track(current, source=TrackSourceType.YOUTUBE)
+
+    if result.is_error() or result.is_empty() or result.result is None:
+        return []
+
+    data = result.result
+
+    if isinstance(data, relink.models.Playlist):
+        return [app_commands.Choice(name=data.name[:100], value=data.name)]
+
+    tracks = data if isinstance(data, list) else [data]
+    return [
+        app_commands.Choice(
+            name=f"{t.title} - {t.author}"[:100], value=t.uri or t.title
+        )
+        for t in tracks
+        if t.title
+    ][:25]
+
+
 @bot.tree.command(name="play", description="Plays a track or playlist.")
 @app_commands.describe(query="The song name or URL to search for.")
+@app_commands.autocomplete(query=query_autocomplete)
 async def play(interaction: discord.Interaction, query: str) -> None:
     """
     Plays a track or playlist, or adds it to the queue if something is already playing.
