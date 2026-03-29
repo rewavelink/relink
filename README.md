@@ -1,6 +1,6 @@
 <div align="center">
 
-![ReLink](docs/_static/images/banner.png)
+![ReLink](https://raw.githubusercontent.com/rewavelink/relink/main/docs/_static/images/banner.png)
 
 [![PyPI](https://img.shields.io/pypi/v/rewavelink)](https://pypi.org/project/rewavelink)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
