@@ -39,10 +39,10 @@ class VersionInfo(NamedTuple):
 
     def as_str(self) -> str:
         base = f"{self.major}.{self.minor}.{self.patch}"
-        if self.release_level == "final":
-            return base
-        return base + f"-{self.release_level}"
+        suffixes = {"alpha": "a0", "beta": "b0", "candidate": "rc0"}
+        suffix = suffixes.get(self.release_level, "")
+        return base + suffix
 
 
-version_info = VersionInfo(major=0, minor=0, patch=1, release_level="alpha")
+version_info = VersionInfo(major=1, minor=0, patch=0, release_level="final")
 __version__ = version_info.as_str()
