@@ -171,13 +171,13 @@ settings before connecting, you can either instantiate :class:`relink.Player` di
 
 .. code-block:: python
 
-   from relink.rest.schemas import KaraokeFilter, PlayerFilters
+   from relink.models import Filters, Karaoke
 
    player = relink.Player(
        node=node,
        volume=100,
-       filters=PlayerFilters(
-           karaoke=KaraokeFilter(level=0.5),
+       filters=Filters(
+           karaoke=Karaoke(level=0.5),
        ),
    )
 
@@ -185,8 +185,8 @@ settings before connecting, you can either instantiate :class:`relink.Player` di
 
    player = node.create_player(
        volume=100,
-       filters=PlayerFilters(
-           karaoke=KaraokeFilter(level=0.5),
+       filters=Filters(
+           karaoke=Karaoke(level=0.5),
        ),
    )
 
@@ -222,9 +222,9 @@ ReLink applies filters with the same player method name, but the type is differe
 
 .. code-block:: python
 
-   from relink.rest.schemas import PlayerFilters
+   from relink.models import Filters
 
-   filters = PlayerFilters()
+   filters = Filters()
    await player.set_filters(filters, seek=True)
 
 See :doc:`/guides/filters` for the full filter reference.
