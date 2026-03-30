@@ -29,6 +29,7 @@ from typing import Any
 
 import aiohttp
 
+from ..rest.errors import HTTPException
 from .base import BaseHTTPManager, BaseWebsocketManager
 from .errors import WebSocketError
 from .message import Message, MessageType
@@ -70,7 +71,12 @@ class AioHTTPManager(BaseHTTPManager[aiohttp.ClientSession]):
             if response.status == 204:
                 return None
 
-            return await response.read()
+            body = await response.read()
+
+            if response.status >= 400:
+                raise HTTPException(body)
+
+            return body
 
     async def close(self) -> None:
         if self._session is not None and not self._session.closed:
