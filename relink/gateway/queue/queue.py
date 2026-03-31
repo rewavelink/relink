@@ -344,6 +344,38 @@ class Queue(MutableQueueBase):
             await asyncio.sleep(0)
         return count
 
+    async def remove_wait(
+        self,
+        tracks: Iterable[Playable] | Playable | Playlist,
+        /,
+        *,
+        remove_all: bool = True,
+    ) -> int:
+        """
+        Asynchronously remove one or more tracks from the queue.
+
+        This method is thread-safe.
+
+        Parameters
+        ----------
+        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iterable[:class:`relink.models.Playable`]
+            The track(s) or playlist to remove from the queue.
+        remove_all: :class:`bool`
+            Whether to remove all occurrences of a track from this queue. When set to ``False``, only the first occurrence of each
+            track is removed. Defaults to ``True``.
+
+        Returns
+        -------
+        :class:`int`
+            The number of tracks removed from the queue.
+        """
+        async with self._lock:
+            count = self.remove(tracks, remove_all=remove_all)
+
+        if count != 0:
+            await asyncio.sleep(0)
+        return count
+
     def copy(self) -> Queue:
         """
         Create a shallow copy of the queue.
