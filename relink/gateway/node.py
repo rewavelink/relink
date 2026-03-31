@@ -25,10 +25,11 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 import logging
 import os
 import urllib.parse
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import msgspec
 
@@ -50,6 +51,7 @@ from relink.rest.enums import TrackSourceType
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
+from relink.rest.errors import HTTPException
 
 from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
@@ -638,6 +640,89 @@ class Node:
             raise NodeURINotFound(self) from exc
 
         _log.warning("Unexpected error while connecting %r to Lavalink: %s", self, exc)
+
+    async def send(
+        self,
+        method: Literal["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        path: str,
+        *,
+        headers: Mapping[str, str] | None = None,
+        params: Mapping[str, str] | None = None,
+        json: dict[str, Any] | None = None,
+        data: Any | None = None,
+    ) -> dict[str, Any] | list[Any] | str | bytes | None:
+        """Method for doing manual requests to the Lavalink node.
+
+        .. versionadded:: 1.1.0
+
+        .. warning::
+
+            Usually you wouldn't use this method. Please use the built in methods of :class:`~relink.Client`,
+            :class:`~relink.Node` and :class:`~relink.Player`, unless you need to send specific plugin data
+            to Lavalink.
+
+            Using this method may have unwanted side effects on your players and/or nodes.
+
+        Parameters
+        ----------
+        method: :class:`str` | :data:`None`
+            The method to use when making this request. Available methods are "GET", "POST", "PATCH",
+            "PUT", "DELETE" and "OPTIONS". Defaults to "GET".
+        path: str
+            The path to make this request to. E.g. "stats", which will translate to "/v4/stats".
+            Do not include the base URI of the node here or the "/v4" prefix.
+        headers: :class:`~collections.abc.Mapping` | :data:`None`
+            An optional dict of headers to send with this request. This is merged with the default
+            headers used for the node, so you don't have to include authentication headers here. E.g. ``{"X-Thing": "Value"}``.
+        params: :class:`~collections.abc.Mapping` | :data:`None`
+            An optional dict of query parameters to send with your request. If you include your query
+            parameters in the ``path`` parameter, do not pass them here as well. E.g. ``{"thing": 1, "other": 2}``
+            would equate to "?thing=1&other=2".
+        json: :class:`dict` | :data:`None`
+            The optional JSON data to send along with your request.
+        data: :class:`~typing.Any` | :data:`None`
+            The optional data to send along with your request.
+
+        Returns
+        -------
+        :class:`dict` | :class:`list` | :class:`str` | :class:`bytes` | :data:`None`
+            The response body returned by Lavalink, if any. This can be a dict (if the response is a JSON object),
+            a list (if the response is a JSON array), a string (if the response is text) or bytes (if the response is binary).
+            If the response has no body or the request is out of lavalink's control, ``None`` is returned.
+
+        Raises
+        ------
+        :exc:`msgspec.DecodeError`
+            The response body could not be decoded.
+        :exc:`relink.HTTPException`
+            An error occurred while making the request.
+        """
+        try:
+            response = await self._manager.request(
+                method=method,
+                url=path,
+                data=data,
+                params=params,
+                json=json,
+                headers=headers,
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001 # no choice here
+            _log.warning("Unexpected error while sending request to %r: %s", self, exc)
+            return None
+
+        try:
+            data = msgspec.json.decode(response)
+        except msgspec.DecodeError:
+            pass
+        else:
+            return data
+
+        try:
+            return response.decode("utf-8")
+        except UnicodeDecodeError:
+            return response
 
     async def cleanup(self) -> None:
         """A function that may be overriden in order to add custom clean-up
