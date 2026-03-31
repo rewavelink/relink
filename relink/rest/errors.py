@@ -51,6 +51,9 @@ class ErrorResponseType(msgspec.Struct, kw_only=True):
     def to_dict(self) -> dict[str, Any]:
         return dict(self.__dict__)
 
+    def __str__(self) -> str:
+        return f"{self.status} while requesting {self.path}: {self.message or self.error}"
+
 
 class HTTPException(ReLinkException):
     """An error response received by a HTTP request."""
@@ -64,6 +67,7 @@ class HTTPException(ReLinkException):
 
     def __init__(self, data: bytes) -> None:
         self._underlying = msgspec.json.decode(data, type=ErrorResponseType)
+        super().__init__(str(self._underlying))
 
     @cached_property("_cs_timestamp")
     def timestamp(self) -> datetime.datetime:
