@@ -24,6 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+import types
 from typing import TYPE_CHECKING, Any
 
 from ..rest.schemas.track import Track
@@ -96,7 +98,7 @@ class Playable(BaseModel[Track]):
     a high-level interface for accessing track metadata and state.
     """
 
-    __slots__ = ("_playlist",)
+    __slots__ = ("_playlist", "_extras")
 
     def __init__(
         self,
@@ -107,6 +109,7 @@ class Playable(BaseModel[Track]):
     ) -> None:
         super().__init__(client=client, data=data)
         self._playlist: Playlist | None = playlist
+        self._extras: types.SimpleNamespace = types.SimpleNamespace(**(data.user_data or {}))
 
     def __str__(self) -> str:
         return self.title
@@ -201,6 +204,13 @@ class Playable(BaseModel[Track]):
         return self._data.info.is_seekable
 
     @property
-    def extras(self) -> dict[str, Any]:
+    def extras(self) -> types.SimpleNamespace:
         """Additional custom data attached to this track."""
-        return self._data.user_data or {}
+        return self._extras
+
+    @extras.setter
+    def extras(self, value: Mapping[Any, Any] | types.SimpleNamespace) -> None:
+        if isinstance(value, Mapping):
+            self._extras = types.SimpleNamespace(**value)
+        else:
+            self._extras = value
