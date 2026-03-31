@@ -44,8 +44,8 @@ class ErrorResponseType(msgspec.Struct, kw_only=True):
     timestamp: int
     status: int
     error: str
-    message: str
     path: str
+    message: str | None = None
     trace: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
