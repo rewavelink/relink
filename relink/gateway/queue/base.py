@@ -93,9 +93,9 @@ class MutableQueueBase(ReadableCollection):
         tracks: Iterable[Playable] | Playable | Playlist,
         *,
         atomic: bool,
-    ) -> tuple[Iterable[Playable], int]:
+    ) -> tuple[list[Playable], int]:
         if isinstance(tracks, Playable):
-            return (tracks,), 1
+            return [tracks], 1
 
         if atomic:
             validated = [t for t in tracks if self._ensure_playable(t)]
@@ -136,6 +136,90 @@ class MutableQueueBase(ReadableCollection):
         items, count = self._materialize_tracks(tracks, atomic=atomic)
         if count != 0:
             self._items.extend(items)
+        return count
+
+    def put_at(
+        self,
+        index: int,
+        tracks: Iterable[Playable] | Playable | Playlist,
+        /,
+        *,
+        atomic: bool = True,
+    ) -> int:
+        """
+        Put one or more tracks at ``index``.
+
+        Parameters
+        ----------
+        index: :class:`int`
+            The index to insert the track(s) to.
+        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iteraeble[:class:`relink.models.Playable`]
+            The track(s) or playlist to add to the queue.
+        atomic: :class:`bool`
+            Whether to insert the items atomically. If ``True``, all items must be
+            Playable or a TypeError is raised and nothing is added. If ``False``,
+            non-Playable items are filtered out. Defaults to ``True``.
+
+        Returns
+        -------
+        :class:`int`
+            The number of tracks added to the queue.
+
+        Raises
+        ------
+        :exc:`TypeError`
+            When ``atomic=True`` and a non-Playable item is encountered.
+        """
+        items, count = self._materialize_tracks(tracks, atomic=atomic)
+        if count == 1:
+            self._items.insert(index, items[0])
+        elif count > 1:
+            l = list(self._items)
+            prev = l[:index]
+            post = l[index:]
+            self._items = deque(prev + items + post)
+        return count
+
+    def remove(
+        self,
+        tracks: Iterable[Playable] | Playable | Playlist,
+        /,
+        *,
+        remove_all: bool = True,
+    ) -> int:
+        """
+        Removes one or more tracks from this queue.
+
+        Parameters
+        ----------
+        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iterable[:class:`relink.models.Playable`]
+            The track(s) or playlist to remove from the queue.
+        remove_all: :class:`bool`
+            Whether to remove all occurrences of a track from this queue. When set to ``False``, only the first occurrence of each
+            track is removed. Defaults to ``True``.
+
+        Returns
+        -------
+        :class:`int`
+            The number of tracks removed from the queue.
+        """
+        items, _ = self._materialize_tracks(tracks, atomic=False)
+        count = 0
+        for i in items:
+            if remove_all:
+                while i in self._items:
+                    self._items.remove(i)
+                    count += 1
+    
+                    if i not in self._items:
+                        break
+            else:
+                try:
+                    self._items.remove(i)
+                except ValueError:
+                    continue
+                else:
+                    count += 1
         return count
 
     def clear(self) -> None:
