@@ -9,7 +9,7 @@ SPHINXAUTOBUILD ?= sphinx-autobuild
 SOURCEDIR     = .
 BUILDDIR      = _build
 CONFIGDIR     = .
-AUTOBUILDOPTS ?= --ignore "$(BUILDDIR)/*"
+AUTOBUILDOPTS ?= --ignore "$(BUILDDIR)/*" --watch "../"
 
 # Put it first so that "make" without argument is like "make help".
 help:
