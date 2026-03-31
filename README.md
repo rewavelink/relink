@@ -1,6 +1,6 @@
 <div align="center">
 
-![ReLink](docs/_static/images/banner.png)
+![ReLink](https://raw.githubusercontent.com/rewavelink/relink/main/docs/_static/images/banner.png)
 
 [![PyPI](https://img.shields.io/pypi/v/rewavelink)](https://pypi.org/project/rewavelink)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
@@ -19,6 +19,7 @@
 ## Features
 
 - Full Lavalink v4+ REST API support
+- Built on [msgspec](https://github.com/jcrist/msgspec) for rapid serialization and strict type validation
 - Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) and [orjson](https://github.com/ijl/orjson) for faster networking and serialization
 - Drop-in familiarity for Wavelink users — [migration guide included](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 - Actively maintained, unlike the library you're probably migrating from

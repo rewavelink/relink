@@ -24,7 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self, Union
+import copy
+from typing import TYPE_CHECKING, Any, Self
 
 import msgspec
 
@@ -34,17 +35,28 @@ from .base import BaseFilter, BaseModel
 if TYPE_CHECKING:
     from ..gateway.client import Client
 
-    FilterModelTypes = Union[
-        "Equalizer",
-        "Karaoke",
-        "Timescale",
-        "Tremolo",
-        "Vibrato",
-        "Rotation",
-        "Distortion",
-        "ChannelMix",
-        "LowPass",
-    ]
+type FilterModelTypes = (
+    Equalizer
+    | Karaoke
+    | Timescale
+    | Tremolo
+    | Vibrato
+    | Rotation
+    | Distortion
+    | ChannelMix
+    | LowPass
+)
+
+_SINGLE_FILTER_ATTRS: tuple[str, ...] = (
+    "karaoke",
+    "timescale",
+    "tremolo",
+    "vibrato",
+    "rotation",
+    "distortion",
+    "channel_mix",
+    "low_pass",
+)
 
 
 __all__ = (
@@ -657,7 +669,7 @@ class Filters(BaseModel[filters.PlayerFilters]):
     def _from_data(cls, client: Client[Any], data: filters.PlayerFilters) -> Self:
         eq_raw = data.equalizer if data.equalizer is not msgspec.UNSET else []
 
-        self = cls(
+        instance = cls(
             equalizer=[Equalizer._from_data(client, e) for e in eq_raw],
             karaoke=cls._wrap(Karaoke, client, data.karaoke),
             timescale=cls._wrap(Timescale, client, data.timescale),
@@ -672,8 +684,8 @@ class Filters(BaseModel[filters.PlayerFilters]):
             if data.plugin_filters is not msgspec.UNSET
             else None,
         )
-        self._client = client
-        return self
+        instance._client = client
+        return instance
 
     @classmethod
     def _wrap[C: FilterModelTypes](
@@ -684,6 +696,18 @@ class Filters(BaseModel[filters.PlayerFilters]):
             if data is not msgspec.UNSET
             else None
         )
+
+    def __or__(self, other: object) -> Self:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return self.combine(other)
+
+    def __ior__(self, other: object) -> Self:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return self.merge(other)
 
     @property
     def payload(self) -> filters.PlayerFilters:
@@ -701,3 +725,76 @@ class Filters(BaseModel[filters.PlayerFilters]):
             low_pass=self.low_pass._data if self.low_pass else msgspec.UNSET,
             plugin_filters=self.plugin_filters or msgspec.UNSET,
         )
+
+    def merge(self, other: Filters) -> Self:
+        """
+        Merge another filter set into this instance in place.
+
+        This mutates ``self``. Use :meth:`combine` when you need a new
+        merged :class:`Filters` instance without changing either input.
+
+        Parameters
+        ----------
+        other: :class:`Filters`
+            The other filter to merge with.
+
+        Returns
+        -------
+        :class:`Filters`
+            This filter instance after merging.
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError(
+                f"Can only merge filters of the same type, got {type(other).__name__}"
+            )
+
+        for attr in _SINGLE_FILTER_ATTRS:
+            self_filter = getattr(self, attr)
+            other_filter = getattr(other, attr)
+
+            if self_filter and other_filter:
+                self_filter.merge(other_filter)
+            elif other_filter:
+                setattr(self, attr, other_filter)
+
+        if other.equalizer:
+            if self.equalizer:
+                self.equalizer.extend(other.equalizer)
+            else:
+                self.equalizer = other.equalizer
+            self.equalizer.sort(key=lambda f: f.band)
+
+        if other.plugin_filters:
+            if self.plugin_filters:
+                self.plugin_filters.update(other.plugin_filters)
+            else:
+                self.plugin_filters = other.plugin_filters
+
+        if other.volume != 1.0 and other.volume != self.volume:
+            self.volume = other.volume
+
+        return self
+
+    def combine(self, other: Filters) -> Self:
+        """
+        Return a new filter set with ``other`` merged into a copy of this one.
+
+        This does not mutate either input. Use :meth:`merge` when you want
+        in-place mutation of the current instance.
+
+        Parameters
+        ----------
+        other: :class:`Filters`
+            The other filter to combine with.
+
+        Returns
+        -------
+        :class:`Filters`
+            This filter instance after combining.
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError(
+                f"Can only combine filters of the same type, got {type(other).__name__}"
+            )
+
+        return copy.deepcopy(self).merge(other)

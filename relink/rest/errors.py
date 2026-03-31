@@ -62,8 +62,8 @@ class HTTPException(ReLinkException):
 
     _underlying: ErrorResponseType
 
-    def __init__(self, data: dict[str, Any]) -> None:
-        self._underlying = ErrorResponseType(**data)
+    def __init__(self, data: bytes) -> None:
+        self._underlying = msgspec.json.decode(data, type=ErrorResponseType)
 
     @cached_property("_cs_timestamp")
     def timestamp(self) -> datetime.datetime:

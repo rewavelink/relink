@@ -33,6 +33,7 @@ import discord
 from relink import _registry
 from relink._version import __version__
 from relink.models.settings import CacheSettings, InactivitySettings
+from relink.rest.enums import TrackSourceType
 
 from .node import Node
 
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
     from relink.models.responses import SearchResult
     from relink.models.track import Playable
     from relink.network import SessionType
-    from relink.rest.enums import TrackSourceType
+
 
 __all__ = ("Client",)
 
@@ -248,7 +249,7 @@ class Client[N: Node]:
         self,
         query: str,
         *,
-        source: TrackSourceType | str | None = None,
+        source: TrackSourceType | str = TrackSourceType.YOUTUBE,
     ) -> SearchResult:
         """
         Searches for ``query`` in the best Node available, obtained with :meth:`Client.get_best_node`.
@@ -257,7 +258,7 @@ class Client[N: Node]:
         ----------
         query: :class:`str`
             The query to search. This can be a full URL, or headed by hosts specified by any plugin.
-        source: :class:`TrackSourceType` | :class:`str` | :data:`None`
+        source: :class:`TrackSourceType` | :class:`str`
             The source to search from. This is, essentially, providing a host to ``query``. The library
             provides default source types under :class:`TrackSourceType`, but custom ones can be passed
             with a raw string.

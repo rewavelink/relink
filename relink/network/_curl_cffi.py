@@ -35,6 +35,7 @@ from curl_cffi.requests import (
     WebSocketError,
 )
 
+from ..rest.errors import HTTPException
 from .base import BaseHTTPManager, BaseWebsocketManager
 from .errors import WebSocketError as InnerWSError
 from .message import Message, MessageType
@@ -80,6 +81,9 @@ class CurlHTTPManager(BaseHTTPManager[AsyncSession[Response]]):
 
         if response.status_code == 204:
             return None
+
+        if response.status_code >= 400:
+            raise HTTPException(response.content)
 
         return response.content
 

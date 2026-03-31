@@ -29,16 +29,14 @@ from typing import TYPE_CHECKING
 from relink.errors import ReLinkException
 
 if TYPE_CHECKING:
-    from typing import Union
-
     import aiohttp
     import curl_cffi
 
-    WSErrorType = Union[
-        aiohttp.WebSocketError,
-        aiohttp.WSServerHandshakeError,
-        curl_cffi.requests.WebSocketError,
-    ]
+    WSErrorType = (
+        aiohttp.WebSocketError
+        | aiohttp.WSServerHandshakeError
+        | curl_cffi.requests.WebSocketError
+    )
 
 
 class NetworkError(ReLinkException):
