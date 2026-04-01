@@ -25,6 +25,7 @@ Getting Started
    installation
    guides/index
    api/index
+   changelog
 
 Who should read what
 --------------------
