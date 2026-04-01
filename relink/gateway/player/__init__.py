@@ -35,8 +35,8 @@ from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 from relink import _registry
 from relink.models.settings import AutoPlaySettings, HistorySettings
 from relink.models.filters import Filters
+from relink.models.track import Playable
 
-from ...models.track import Playable
 from ..enums import AutoPlayMode, QueueMode
 from ..queue.queue import Queue
 from ..schemas.receive import PlayerState
