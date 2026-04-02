@@ -1,13 +1,14 @@
 import os
-from typing import Any, Literal, cast
+from typing import Any, cast
 
 from ._base import BasePlayer
-from ._factory import PlayerFactory
+from ._factory import FrameworkLiteral, PlayerFactory
 
-FrameworkLiteral = Literal["discord.py", "disnake", "pycord"]
-
-
-__all__ = ("Player", "BasePlayer", "FrameworkLiteral")
+__all__ = (
+    "Player",
+    "BasePlayer",
+    "FrameworkLiteral",
+)
 
 
 class Player(BasePlayer):

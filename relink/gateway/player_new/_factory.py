@@ -25,28 +25,34 @@ SOFTWARE.
 from __future__ import annotations
 
 import importlib.metadata
-from typing import Literal
+import logging
+import os
+from typing import Literal, cast, get_args
 
 from ._base import BasePlayer
 
+FrameworkLiteral = Literal["discord.py", "pycord", "disnake"]
+
+_log = logging.getLogger(__name__)
+
 
 class PlayerFactory:
-    _FRAMEWORK_MAPPING = {
-        "discord.py": "discord",
-        "disnake": "disnake",
-        "pycord": "py-cord",
+    _FRAMEWORK_DATA: dict[str, dict[str, str]] = {
+        "discord.py": {"pkg": "discord.py", "import_name": "discord"},
+        "disnake": {"pkg": "disnake", "import_name": "disnake"},
+        "pycord": {"pkg": "py-cord", "import_name": "discord"},
     }
 
     def get_player(
         self,
-        framework: Literal["discord.py", "disnake", "pycord"],
+        framework: FrameworkLiteral,
     ) -> type[BasePlayer]:
         """
         Returns the appropriate VoiceProtocol based on the framework string.
         """
         if not self.has_framework(framework):
             raise RuntimeError(
-                f"Framework '{framework}' is not installed in the current environment."
+                f"Framework '{framework}' is not exclusively installed in the current environment."
             )
 
         match framework:
@@ -61,17 +67,52 @@ class PlayerFactory:
                 # ! Should be replaced when corresponding implementation is ready
                 return BasePlayer  # type: ignore
 
-    def has_framework(self, framework: str) -> bool:
-        """
-        Checks if the library for the specific framework is installed.
-        """
-        name = self._FRAMEWORK_MAPPING.get(framework)
+    def detect_framework(self) -> FrameworkLiteral | None:
+        if env := os.environ.get("RELINK_FRAMEWORK"):
+            return cast(FrameworkLiteral, env)
 
-        if name is None:
+        available: list[FrameworkLiteral] = [
+            framework
+            for framework in get_args(FrameworkLiteral)
+            if self.has_framework(framework)
+        ]
+
+        if not available:
+            _log.warning(
+                "No supported framework exclusively detected (discord.py, py-cord, disnake)."
+            )
+            return None
+
+        if len(available) > 1:
+            _log.warning(
+                "Ambiguous environment: multiple frameworks detected: %s. "
+                "Using '%s'. Override this by passing 'framework' to Client.",
+                available,
+                available[0],
+            )
+
+        return available[0]
+
+    def has_framework(self, framework: FrameworkLiteral) -> bool:
+        data = self._FRAMEWORK_DATA.get(framework)
+        if not data:
             return False
+
+        pkg, import_name = data["pkg"], data["import_name"]
+        target_norm = self._normalize(pkg)
 
         try:
-            importlib.metadata.version(name)
-            return True
+            importlib.metadata.version(pkg)
+
+            known = {self._normalize(d["pkg"]) for d in self._FRAMEWORK_DATA.values()}
+
+            mapping = importlib.metadata.packages_distributions()
+            providers = {self._normalize(p) for p in mapping.get(import_name, [])}
+
+            return (providers & known) == {target_norm}
+
         except importlib.metadata.PackageNotFoundError:
             return False
+
+    def _normalize(self, name: str) -> str:
+        return name.strip().casefold().replace("_", "-").replace(".", "-")

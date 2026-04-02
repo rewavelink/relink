@@ -33,7 +33,7 @@ import discord
 
 from relink import _registry
 from relink._version import __version__
-from relink.gateway.player_new import FrameworkLiteral
+from relink.gateway.player_new import FrameworkLiteral, PlayerFactory
 from relink.models.settings import CacheSettings, InactivitySettings
 from relink.rest.enums import TrackSourceType
 
@@ -75,11 +75,14 @@ class Client[N: Node]:
         client: discord.Client,
         *,
         node_cls: type[N] = Node,
-        framework: FrameworkLiteral = "discord.py",
+        framework: FrameworkLiteral | None = None,
     ) -> None:
         self._client = client
+
+        if framework is None:
+            framework = PlayerFactory().detect_framework() or "discord.py"
+
         self._framework = framework
-        
         self._nodes = {}
         self._session = None
         self.__node_tasks = {}
