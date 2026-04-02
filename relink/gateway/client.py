@@ -82,7 +82,9 @@ class Client[N: Node]:
         self._node_cls: type[N] = node_cls
 
         if client in _registry.clients:
-            raise RuntimeError("relink.Client already attached to this discord.Client")
+            raise RuntimeError(
+                f"relink.Client already attached to this {framework}.Client"
+            )
 
         _registry.clients[client] = self
 

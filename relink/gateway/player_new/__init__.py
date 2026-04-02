@@ -34,7 +34,7 @@ class PlayerFactory:
     async def get_player(
         self,
         framework: Literal["discord.py", "disnake", "pycord"],
-    ) -> BasePlayer:
+    ) -> type[BasePlayer]:
         """
         Returns the appropriate VoiceProtocol based on the framework string.
         """
@@ -47,13 +47,13 @@ class PlayerFactory:
             case "discord.py":
                 from .adapters._dpy import DpyPlayer
 
-                return DpyPlayer()
+                return DpyPlayer
             case "disnake":
                 # ! Should be replaced when corresponding implementation is ready
-                return BasePlayer()  # type: ignore
+                return BasePlayer  # type: ignore
             case "pycord":
                 # ! Should be replaced when corresponding implementation is ready
-                return BasePlayer()  # type: ignore
+                return BasePlayer  # type: ignore
 
     @staticmethod
     def has_framework(framework: str) -> bool:

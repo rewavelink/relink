@@ -25,17 +25,19 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
 import logging
 import os
 import urllib.parse
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Literal
 
 import msgspec
+from player_new import PlayerFactory
 
+from relink.models.filters import Filters
+from relink.models.info import ServerInfo
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
-from relink.models.info import ServerInfo
 from relink.models.settings import (
     AutoPlaySettings,
     CacheSettings,
@@ -43,15 +45,14 @@ from relink.models.settings import (
     InactivitySettings,
 )
 from relink.models.track import Playable
-from relink.models.filters import Filters
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
 from relink.rest.enums import TrackSourceType
+from relink.rest.errors import HTTPException
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
-from relink.rest.errors import HTTPException
 
 from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
@@ -148,6 +149,7 @@ class Node:
         self._stats = None
 
         self._players: dict[int, BasePlayer] = {}
+        self._player_factory = PlayerFactory()
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
         self._cache: LFUCache[str, Any] = LFUCache(settings=cache_settings)
@@ -732,7 +734,7 @@ class Node:
         """
         ...
 
-    def create_player(
+    async def create_player(
         self,
         *,
         volume: int | None = None,
@@ -765,13 +767,19 @@ class Node:
         :class:`Player`
             The player. This can be passed to the ``cls=`` kwarg on :meth:`~discord.abc.Connectable.connect`
         """
-        ...
-        # return Player(
-        #     node=self,
-        #     queue_mode=queue_mode,
-        #     autoplay_settings=autoplay_settings,
-        #     history_settings=history_settings,
-        #     volume=volume,
-        #     paused=paused,
-        #     filters=filters,
-        # )
+        client = self._ensure_client()
+
+        assert client.framework in ("discord.py", "disnake", "pycord")
+        player_cls = await self._player_factory.get_player(client.framework)
+
+        player = player_cls(
+            node=self,
+            volume=volume or 100,
+            paused=paused or False,
+            filters=filters,
+            queue_mode=queue_mode,
+            autoplay_settings=autoplay_settings,
+            history_settings=history_settings,
+        )
+
+        return player
