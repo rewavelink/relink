@@ -35,7 +35,7 @@ from relink.gateway.enums import AutoPlayMode, QueueMode
 from relink.models.filters import Filters
 from relink.models.track import Playable
 
-from .._base import BasePlayer, PlayerConnectionState
+from .._base import BasePlayer
 
 if TYPE_CHECKING:
     from relink.gateway.node import Node
@@ -273,20 +273,6 @@ class Player(BasePlayer, discord.VoiceProtocol):
     def volume(self) -> int:
         """The current volume of the player as an integer between ``0`` and ``1000``."""
         return self._volume
-
-    def get_connection_state(self) -> PlayerConnectionState:
-        """
-        Return a :class:`~relink.player.player.PlayerConnectionState` instance
-        for this player.
-
-        Override this method to supply a custom connection state subclass with
-        additional metadata relevant to your application.
-
-        Returns
-        -------
-        :class:`~relink.player.player.PlayerConnectionState`
-        """
-        return PlayerConnectionState()
 
     async def connect(
         self,

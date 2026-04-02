@@ -57,7 +57,7 @@ from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player import Player
+from .player_new._base import BasePlayer
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
 
@@ -147,7 +147,7 @@ class Node:
         self._keep_alive = None
         self._stats = None
 
-        self._players: dict[int, Player] = {}
+        self._players: dict[int, BasePlayer] = {}
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
         self._cache: LFUCache[str, Any] = LFUCache(settings=cache_settings)
@@ -449,11 +449,11 @@ class Node:
             guild_id=str(guild_id),
         )
 
-    def get_player(self, guild_id: int, /) -> Player | None:
+    def get_player(self, guild_id: int, /) -> BasePlayer | None:
         """Gets a player connected to this node."""
         return self._players.get(guild_id)
 
-    def _add_player(self, player: Player) -> None:
+    def _add_player(self, player: BasePlayer) -> None:
         """Internal helper to register a player to this node."""
         self._players[player.guild.id] = player
 
@@ -741,7 +741,7 @@ class Node:
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
-    ) -> Player:
+    ) -> BasePlayer:
         """
         Creates a player with extra configuration bound to this node.
 
@@ -765,12 +765,13 @@ class Node:
         :class:`Player`
             The player. This can be passed to the ``cls=`` kwarg on :meth:`~discord.abc.Connectable.connect`
         """
-        return Player(
-            node=self,
-            queue_mode=queue_mode,
-            autoplay_settings=autoplay_settings,
-            history_settings=history_settings,
-            volume=volume,
-            paused=paused,
-            filters=filters,
-        )
+        ...
+        # return Player(
+        #     node=self,
+        #     queue_mode=queue_mode,
+        #     autoplay_settings=autoplay_settings,
+        #     history_settings=history_settings,
+        #     volume=volume,
+        #     paused=paused,
+        #     filters=filters,
+        # )

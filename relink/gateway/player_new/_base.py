@@ -590,26 +590,21 @@ class BasePlayer(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def get_connection_state(self) -> Any:
+    def _ensure_node(self) -> Node: ...
+
+    def get_connection_state(self) -> PlayerConnectionState:
         """
-        Return the connection state handler for this player.
+        Return a :class:`~relink.player.player.PlayerConnectionState` instance
+        for this player.
 
-        The default implementation in library-specific subclasses should return
-        a ``PlayerConnectionState`` instance (or an equivalent subclass), which
-        tracks the gateway handshake data (token, endpoint, session ID, channel
-        ID) needed to establish the Lavalink voice session.
-
-        This method exists as a hook so that advanced users can override it to
-        inject a custom connection state class with additional metadata relevant
-        to their use case.
+        Override this method to supply a custom connection state subclass with
+        additional metadata relevant to your application.
 
         Returns
         -------
-        Any
-            A connection state object. Library-specific subclasses should narrow
-            this return type to their concrete ``PlayerConnectionState`` class.
+        :class:`~relink.player.player.PlayerConnectionState`
         """
-        ...
+        return PlayerConnectionState()
 
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
         await self._events_handler._dispatch_event(data)
