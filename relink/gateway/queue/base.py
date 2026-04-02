@@ -210,7 +210,7 @@ class MutableQueueBase(ReadableCollection):
                 while i in self._items:
                     self._items.remove(i)
                     count += 1
-
+    
                     if i not in self._items:
                         break
             else:

@@ -109,9 +109,7 @@ class Playable(BaseModel[Track]):
     ) -> None:
         super().__init__(client=client, data=data)
         self._playlist: Playlist | None = playlist
-        self._extras: types.SimpleNamespace = types.SimpleNamespace(
-            **(data.user_data or {})
-        )
+        self._extras: types.SimpleNamespace = types.SimpleNamespace(**(data.user_data or {}))
 
     def __str__(self) -> str:
         return self.title
