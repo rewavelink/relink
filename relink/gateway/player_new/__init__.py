@@ -25,14 +25,39 @@ SOFTWARE.
 from __future__ import annotations
 
 import importlib.util
+from typing import Literal
 
 from ._base import BasePlayer
 
 
 class PlayerFactory:
-    async def get_player(self, framework: str) -> BasePlayer:
-        return BasePlayer()
+    async def get_player(
+        self,
+        framework: Literal["discord.py", "disnake", "pycord"],
+    ) -> BasePlayer:
+        """
+        Returns the appropriate VoiceProtocol based on the framework string.
+        """
+        if not self.has_framework(framework):
+            raise RuntimeError(
+                f"Framework '{framework}' is not installed in the current environment."
+            )
+
+        match framework:
+            case "discord.py":
+                from .adapters._dpy import DpyPlayer
+
+                return DpyPlayer()
+            case "disnake":
+                # ! Should be replaced when corresponding implementation is ready
+                return BasePlayer()  # type: ignore
+            case "pycord":
+                # ! Should be replaced when corresponding implementation is ready
+                return BasePlayer()  # type: ignore
 
     @staticmethod
     def has_framework(framework: str) -> bool:
+        """
+        Checks if the library for the specific framework is installed.
+        """
         return importlib.util.find_spec("discord") is not None

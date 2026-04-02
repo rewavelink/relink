@@ -46,10 +46,10 @@ _log = logging.getLogger(__name__)
 MISSING = discord.utils.MISSING
 
 
-__all__ = ("Player",)
+__all__ = ("DpyPlayer",)
 
 
-class Player(BasePlayer, discord.VoiceProtocol):
+class DpyPlayer(BasePlayer, discord.VoiceProtocol):
     """
     A discord.py implementation of :class:`~relink.player.base_player.BasePlayer`.
 
