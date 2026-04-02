@@ -32,8 +32,8 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Literal
 
 import msgspec
-from player_new import PlayerFactory
 
+from relink.gateway.player_new import PlayerFactory
 from relink.models.filters import Filters
 from relink.models.info import ServerInfo
 from relink.models.player_info import PlayerInfo

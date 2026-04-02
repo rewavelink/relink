@@ -28,21 +28,23 @@ import abc
 import asyncio
 from typing import TYPE_CHECKING, Annotated, Any
 
-from handlers._autoplay import AutoPlayHandler
-from handlers._events import EventsHandler
-from handlers._incativity import InactivityHandler
-from handlers._lifecycle import LifecycleHandler
-from handlers._playback import PlaybackHandler
+from relink.gateway.player_new.handlers._autoplay import AutoPlayHandler
+from relink.gateway.player_new.handlers._events import EventsHandler
+from relink.gateway.player_new.handlers._incativity import InactivityHandler
+from relink.gateway.player_new.handlers._lifecycle import LifecycleHandler
+from relink.gateway.player_new.handlers._playback import PlaybackHandler
+from relink.models.filters import Filters
+
+from ..enums import AutoPlayMode, QueueMode
+from ..queue.queue import Queue
 
 if TYPE_CHECKING:
     from relink.gateway.schemas.receive import PlayerState
-    from relink.models.filters import Filters
     from relink.models.settings import AutoPlaySettings, HistorySettings
     from relink.models.track import Playable
 
-    from ..enums import AutoPlayMode, QueueMode
     from ..node import Node
-    from ..queue.queue import Queue
+
 
 __all__ = ("BasePlayer",)
 
