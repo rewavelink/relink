@@ -52,9 +52,7 @@ class ErrorResponseType(msgspec.Struct, kw_only=True):
         return dict(self.__dict__)
 
     def __str__(self) -> str:
-        return (
-            f"{self.status} while requesting {self.path}: {self.message or self.error}"
-        )
+        return f"{self.status} while requesting {self.path}: {self.message or self.error}"
 
 
 class HTTPException(ReLinkException):
