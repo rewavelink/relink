@@ -58,7 +58,7 @@ from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player_new import FrameworkLiteral, Player
+from .player_new import Player, BasePlayer
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
 
@@ -148,7 +148,7 @@ class Node:
         self._keep_alive = None
         self._stats = None
 
-        self._players: dict[int, Player] = {}
+        self._players: dict[int, BasePlayer] = {}
         self._player_factory = PlayerFactory()
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
@@ -451,11 +451,11 @@ class Node:
             guild_id=str(guild_id),
         )
 
-    def get_player(self, guild_id: int, /) -> Player | None:
+    def get_player(self, guild_id: int, /) -> BasePlayer | None:
         """Gets a player connected to this node."""
         return self._players.get(guild_id)
 
-    def _add_player(self, player: Player) -> None:
+    def _add_player(self, player: BasePlayer) -> None:
         """Internal helper to register a player to this node."""
         self._players[player.guild.id] = player
 
@@ -727,7 +727,8 @@ class Node:
             return response
 
     async def cleanup(self) -> None:
-        """A function that may be overriden in order to add custom clean-up
+        """
+        A function that may be overriden in order to add custom clean-up
         logic to a node.
 
         This is automatically called by the library.
@@ -768,9 +769,7 @@ class Node:
             The player. This can be passed to the ``cls=`` kwarg on :meth:`~discord.abc.Connectable.connect`
         """
         client = self._ensure_client()
-
-        framework = cast(FrameworkLiteral, client.framework)
-        player_cls = self._player_factory.get_player(framework)
+        player_cls = self._player_factory.get_player(client.framework)
 
         player = player_cls(
             node=self,

@@ -553,7 +553,9 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
         await self._events_handler.on_voice_state_update(data)
 
     def _ensure_node(self) -> Node:
-        if self._node is None:
+        node = self._node
+
+        if node is None:
             if self.client is MISSING:
                 raise RuntimeError("Cannot ensure Node without a Client.")
 
@@ -563,9 +565,10 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
                     f"No relink.Client is associated with {self.client!r}"
                 )
 
-            self._node = rl_client.get_best_node()
+            node = rl_client.get_best_node()
+            self._node = node
 
-        if self.guild.id not in self._node._players:
-            self._node._add_player(self)
+        if self.guild.id not in node._players:
+            node._add_player(self)
 
-        return self._node
+        return node
