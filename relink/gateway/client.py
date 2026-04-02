@@ -26,12 +26,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Literal
+import os
+from typing import TYPE_CHECKING, Any
 
 import discord
 
 from relink import _registry
 from relink._version import __version__
+from relink.gateway.player_new import FrameworkLiteral
 from relink.models.settings import CacheSettings, InactivitySettings
 from relink.rest.enums import TrackSourceType
 
@@ -63,6 +65,7 @@ class Client[N: Node]:
     """
 
     _client: discord.Client
+    _framework: FrameworkLiteral
     _nodes: dict[str, N]
     _session: SessionType | None
     __node_tasks: dict[str, asyncio.Task[Any]]
@@ -72,10 +75,11 @@ class Client[N: Node]:
         client: discord.Client,
         *,
         node_cls: type[N] = Node,
-        framework: Literal["discord.py", "disnake", "pycord"] = "discord.py",
+        framework: FrameworkLiteral = "discord.py",
     ) -> None:
         self._client = client
         self._framework = framework
+        
         self._nodes = {}
         self._session = None
         self.__node_tasks = {}
@@ -86,6 +90,7 @@ class Client[N: Node]:
                 f"relink.Client already attached to this {framework}.Client"
             )
 
+        os.environ["RELINK_FRAMEWORK"] = framework
         _registry.clients[client] = self
 
     def __repr__(self) -> str:
@@ -97,7 +102,7 @@ class Client[N: Node]:
         return list(self._nodes.values())
 
     @property
-    def framework(self) -> str:
+    def framework(self) -> FrameworkLiteral:
         """
         The Discord framework used by this client
         (``"discord.py"``, ``"disnake"``, or ``"pycord"``).
@@ -233,7 +238,7 @@ class Client[N: Node]:
 
         self._nodes.clear()
 
-    def get_best_node(self) -> Node:
+    def get_best_node(self) -> N:
         """
         Returns the best available :class:`Node` based on current load and connectivity.
 

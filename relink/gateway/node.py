@@ -29,11 +29,11 @@ import logging
 import os
 import urllib.parse
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import msgspec
 
-from relink.gateway.player_new import PlayerFactory
+from relink.gateway.player_new._factory import PlayerFactory
 from relink.models.filters import Filters
 from relink.models.info import ServerInfo
 from relink.models.player_info import PlayerInfo
@@ -58,7 +58,7 @@ from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player_new._base import BasePlayer
+from .player_new import FrameworkLiteral, Player
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
 
@@ -148,7 +148,7 @@ class Node:
         self._keep_alive = None
         self._stats = None
 
-        self._players: dict[int, BasePlayer] = {}
+        self._players: dict[int, Player] = {}
         self._player_factory = PlayerFactory()
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
@@ -451,11 +451,11 @@ class Node:
             guild_id=str(guild_id),
         )
 
-    def get_player(self, guild_id: int, /) -> BasePlayer | None:
+    def get_player(self, guild_id: int, /) -> Player | None:
         """Gets a player connected to this node."""
         return self._players.get(guild_id)
 
-    def _add_player(self, player: BasePlayer) -> None:
+    def _add_player(self, player: Player) -> None:
         """Internal helper to register a player to this node."""
         self._players[player.guild.id] = player
 
@@ -734,7 +734,7 @@ class Node:
         """
         ...
 
-    async def create_player(
+    def create_player(
         self,
         *,
         volume: int | None = None,
@@ -743,7 +743,7 @@ class Node:
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
         history_settings: HistorySettings | None = None,
-    ) -> BasePlayer:
+    ) -> Player:
         """
         Creates a player with extra configuration bound to this node.
 
@@ -769,8 +769,8 @@ class Node:
         """
         client = self._ensure_client()
 
-        assert client.framework in ("discord.py", "disnake", "pycord")
-        player_cls = await self._player_factory.get_player(client.framework)
+        framework = cast(FrameworkLiteral, client.framework)
+        player_cls = self._player_factory.get_player(framework)
 
         player = player_cls(
             node=self,
@@ -782,4 +782,4 @@ class Node:
             history_settings=history_settings,
         )
 
-        return player
+        return cast(Player, player)
