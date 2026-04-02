@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import discord
 
@@ -72,8 +72,10 @@ class Client[N: Node]:
         client: discord.Client,
         *,
         node_cls: type[N] = Node,
+        framework: Literal["discord.py", "disnake", "pycord"] = "discord.py",
     ) -> None:
         self._client = client
+        self._framework = framework
         self._nodes = {}
         self._session = None
         self.__node_tasks = {}
@@ -91,6 +93,14 @@ class Client[N: Node]:
     def nodes(self) -> list[N]:
         """The active nodes attached to this client."""
         return list(self._nodes.values())
+
+    @property
+    def framework(self) -> str:
+        """
+        The Discord framework used by this client
+        (``"discord.py"``, ``"disnake"``, or ``"pycord"``).
+        """
+        return self._framework
 
     def create_node(
         self,
