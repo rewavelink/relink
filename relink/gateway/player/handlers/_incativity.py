@@ -25,6 +25,7 @@ SOFTWARE.
 import asyncio
 
 from relink.gateway.enums import InactivityMode
+
 from ._base import HandlerBase, _log
 
 __all__ = ()

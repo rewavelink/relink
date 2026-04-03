@@ -29,10 +29,9 @@ import logging
 import os
 from typing import Literal, cast, get_args
 
+from packaging.version import Version
+
 from ._base import BasePlayer
-from .adapters._disnake import DisnakePlayer
-from .adapters._dpy import DpyPlayer
-from .adapters._pycord import PycordPlayer
 
 FrameworkLiteral = Literal["discord.py", "pycord", "disnake"]
 
@@ -41,9 +40,9 @@ _log = logging.getLogger(__name__)
 
 class PlayerFactory:
     _FRAMEWORK_DATA: dict[str, dict[str, str]] = {
-        "discord.py": {"pkg": "discord.py", "import_name": "discord"},
-        "disnake": {"pkg": "disnake", "import_name": "disnake"},
-        "pycord": {"pkg": "py-cord", "import_name": "discord"},
+        "discord.py": {"pkg": "discord.py", "import_name": "discord", "min": "2.7"},
+        "disnake": {"pkg": "disnake", "import_name": "disnake", "min": "2.12"},
+        "pycord": {"pkg": "py-cord", "import_name": "discord", "min": "2.8"},
     }
 
     def get_player(
@@ -54,16 +53,24 @@ class PlayerFactory:
         Returns the appropriate VoiceProtocol based on the framework string.
         """
         if not self.has_framework(framework):
+            pkg_info = self._FRAMEWORK_DATA[framework]
             raise RuntimeError(
-                f"Framework '{framework}' is not exclusively installed in the current environment."
+                f"Framework '{framework}' is not installed or does not meet "
+                f"the minimum version requirement (v{pkg_info['min']}+)."
             )
 
         match framework:
             case "discord.py":
+                from .adapters._dpy import DpyPlayer
+
                 return DpyPlayer
             case "disnake":
+                from .adapters._disnake import DisnakePlayer
+
                 return DisnakePlayer
             case "pycord":
+                from .adapters._pycord import PycordPlayer
+
                 return PycordPlayer
 
     def detect_framework(self) -> FrameworkLiteral | None:
@@ -77,10 +84,11 @@ class PlayerFactory:
         ]
 
         if not available:
-            _log.error(
-                "No supported framework exclusively detected (discord.py, py-cord, disnake)."
+            raise RuntimeError(
+                "No supported framework detected meeting the minimum version requirements.\n"
+                "Ensure one of the following is installed: "
+                "discord.py >= 2.7, py-cord >= 2.8, or disnake >= 2.12."
             )
-            return None
 
         if len(available) > 1:
             _log.warning(
@@ -97,14 +105,19 @@ class PlayerFactory:
         if not data:
             return False
 
-        pkg, import_name = data["pkg"], data["import_name"]
+        pkg, import_name, min_ver = data["pkg"], data["import_name"], data["min"]
         target_norm = self._normalize(pkg)
 
         try:
-            importlib.metadata.version(pkg)
+            installed_version = importlib.metadata.version(pkg)
+
+            if Version(installed_version) < Version(min_ver):
+                _log.warning(
+                    f"Found {pkg} v{installed_version}, but v{min_ver}+ is required."
+                )
+                return False
 
             known = {self._normalize(d["pkg"]) for d in self._FRAMEWORK_DATA.values()}
-
             mapping = importlib.metadata.packages_distributions()
             providers = {self._normalize(p) for p in mapping.get(import_name, [])}
 

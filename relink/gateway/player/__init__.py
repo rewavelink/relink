@@ -1,14 +1,18 @@
+import logging
 import os
 from typing import Any, cast
 
-from ._base import BasePlayer
+from ._base import BasePlayer, PlayerConnectionState
 from ._factory import FrameworkLiteral, PlayerFactory
 
 __all__ = (
     "Player",
     "BasePlayer",
+    "PlayerConnectionState",
     "FrameworkLiteral",
 )
+
+_log = logging.getLogger(__name__)
 
 
 class Player(BasePlayer):
