@@ -26,8 +26,10 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import time
 from typing import TYPE_CHECKING, Annotated, Any
 
+from relink import _registry
 from relink.gateway.player_new.handlers._autoplay import AutoPlayHandler
 from relink.gateway.player_new.handlers._events import EventsHandler
 from relink.gateway.player_new.handlers._incativity import InactivityHandler
@@ -155,6 +157,9 @@ class BasePlayer(abc.ABC):
     _ready: bool
     _volume: int
 
+    client: Any
+    _guild: Any
+
     def __init__(
         self,
         *,
@@ -174,8 +179,8 @@ class BasePlayer(abc.ABC):
         self._paused = paused or False
         self._volume = volume if volume is not None else 100
 
-        self._last_position: int = 0
-        self._last_update: float = 0.0
+        self._last_position = 0
+        self._last_update = 0.0
 
         self._autoplay_handler: AutoPlayHandler = AutoPlayHandler(
             self, settings=autoplay_settings
@@ -185,13 +190,31 @@ class BasePlayer(abc.ABC):
         self._lifecycle_handler: LifecycleHandler = LifecycleHandler(self)
         self._playback_handler: PlaybackHandler = PlaybackHandler(self)
 
-        self._ready: bool = False
+        self._ready = False
 
     @abc.abstractmethod
-    def __call__(self, client: Any, channel: Any) -> BasePlayer: ...
+    def __call__(self, client: Any, channel: Any) -> BasePlayer:
+        """
+        Called by libraries when a pre-configured **instance** is passed to
+        their ``connect`` methods.
+
+        Binds the VoiceProtocol attributes, resolves the guild  from the channel,
+        and registers the player with its node.
+
+        Parameters
+        ----------
+        client
+            The client instance.
+        channel
+            The voice channel being connected to.
+
+        Returns
+        -------
+        :class:`BasePlayer`
+            The player instance, fully initialised.
+        """
 
     @property
-    @abc.abstractmethod
     def autoplay(self) -> AutoPlayMode:
         """
         The current :class:`~relink.enums.AutoPlayMode` for this player.
@@ -205,14 +228,17 @@ class BasePlayer(abc.ABC):
             When setting, if the player's history is disabled (history is required
             for AutoPlay to function).
         """
-        ...
+        return self._autoplay_handler._settings.mode
 
     @autoplay.setter
-    @abc.abstractmethod
-    def autoplay(self, value: AutoPlayMode) -> None: ...
+    def autoplay(self, value: AutoPlayMode) -> None:
+        if not self._queue._history._settings.enabled:
+            raise RuntimeError(
+                f"Player {self.guild.id} has disabled history, which is required for AutoPlay."
+            )
+        self._autoplay_handler._settings.mode = value
 
     @property
-    @abc.abstractmethod
     def current(self) -> Playable | None:
         """
         The track that is currently playing, or ``None`` if the player is idle.
@@ -221,10 +247,9 @@ class BasePlayer(abc.ABC):
         -------
         :class:`~relink.models.track.Playable` | None
         """
-        ...
+        return self._queue.current_track
 
     @property
-    @abc.abstractmethod
     def filters(self) -> Filters:
         """
         The :class:`~relink.models.filters.Filters` currently applied to this player.
@@ -236,10 +261,9 @@ class BasePlayer(abc.ABC):
         -------
         :class:`~relink.models.filters.Filters`
         """
-        ...
+        return self._filters
 
     @property
-    @abc.abstractmethod
     def guild(self) -> Any:
         """
         The guild this player is associated with.
@@ -252,10 +276,11 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player has not yet been attached to a guild.
         """
-        ...
+        if self._guild is None:
+            raise RuntimeError("Player is not yet attached to a guild.")
+        return self._guild
 
     @property
-    @abc.abstractmethod
     def node(self) -> Node:
         """
         The :class:`~relink.node.Node` this player is currently attached to.
@@ -265,10 +290,11 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not currently attached to a node.
         """
-        ...
+        if self._node is None:
+            raise RuntimeError(f"Player {self.guild.id} is not attached to a node.")
+        return self._node
 
     @property
-    @abc.abstractmethod
     def paused(self) -> bool:
         """
         Whether the player is currently paused.
@@ -277,10 +303,9 @@ class BasePlayer(abc.ABC):
         -------
         :class:`bool`
         """
-        ...
+        return self._paused
 
     @property
-    @abc.abstractmethod
     def position(self) -> int:
         """
         The estimated current playback position in milliseconds.
@@ -294,10 +319,13 @@ class BasePlayer(abc.ABC):
         :class:`int`
             Position in milliseconds.
         """
-        ...
+        if self._paused or self._last_update == 0:
+            return self._last_position
+
+        delta = int((time.monotonic() - self._last_update) * 1000)
+        return self._last_position + delta
 
     @property
-    @abc.abstractmethod
     def queue(self) -> Queue:
         """
         The :class:`~relink.queue.queue.Queue` associated with this player.
@@ -310,10 +338,9 @@ class BasePlayer(abc.ABC):
         -------
         :class:`~relink.queue.queue.Queue`
         """
-        ...
+        return self._queue
 
     @property
-    @abc.abstractmethod
     def volume(self) -> int:
         """
         The current volume of the player as an integer in the range ``0``–``1000``.
@@ -325,9 +352,66 @@ class BasePlayer(abc.ABC):
         -------
         :class:`int`
         """
-        ...
+        return self._volume
 
-    @abc.abstractmethod
+    async def connect(
+        self,
+        *,
+        timeout: float = 10.0,
+        reconnect: bool = False,
+        self_deaf: bool = False,
+        self_mute: bool = False,
+    ) -> None:
+        """
+        Connect this player to its assigned voice channel.
+
+        Called automatically by libraries after the player is instantiated.
+        Manual invocation is not normally required.
+
+        Parameters
+        ----------
+        timeout : :class:`float`
+            Seconds to wait for the Discord gateway handshake before raising.
+            Defaults to ``10.0``.
+        reconnect : :class:`bool`
+            Whether to attempt reconnection on failure. Defaults to ``False``.
+        self_deaf : :class:`bool`
+            Whether to join the channel self-deafened. Defaults to ``False``.
+        self_mute : :class:`bool`
+            Whether to join the channel self-muted. Defaults to ``False``.
+        """
+        await self._lifecycle_handler.connect(
+            timeout=timeout,
+            reconnect=reconnect,
+            self_deaf=self_deaf,
+            self_mute=self_mute,
+        )
+
+    async def disconnect(self, *, force: bool = False) -> None:
+        """
+        Disconnect this player, destroy it on the Lavalink node, and clean up
+        all internal state.
+
+        Parameters
+        ----------
+        force : :class:`bool`
+            If ``True``, proceeds even if the player is not currently connected.
+            Defaults to ``False``.
+        """
+        await self._lifecycle_handler.disconnect(force=force)
+
+    async def move_to(self, node: Node, /) -> None:
+        """
+        Migrate this player to a different Lavalink node without interrumping
+        playback.
+
+        Parameters
+        ----------
+        node: :class:`~relink.node.Node`
+            The destination node.
+        """
+        await self._lifecycle_handler.move_to(node)
+
     async def play(
         self,
         track: Playable,
@@ -367,9 +451,14 @@ class BasePlayer(abc.ABC):
         :class:`~relink.models.track.Playable`
             The track that was dispatched to the Lavalink node for playback.
         """
-        ...
+        return await self._playback_handler.play(
+            track,
+            start=start,
+            end=end,
+            volume=volume,
+            paused=paused,
+        )
 
-    @abc.abstractmethod
     async def stop(
         self,
         /,
@@ -396,9 +485,11 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not connected to a node or an active session.
         """
-        ...
+        await self._playback_handler.stop(
+            clear_queue=clear_queue,
+            clear_history=clear_history,
+        )
 
-    @abc.abstractmethod
     async def pause(self, value: bool = True, /) -> None:
         """
         Set the pause state of the player.
@@ -414,9 +505,8 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not connected to a node or an active session.
         """
-        ...
+        await self._playback_handler.pause()
 
-    @abc.abstractmethod
     async def resume(self) -> None:
         """
         Resume playback if the player is currently paused.
@@ -428,9 +518,8 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not connected to a node or an active session.
         """
-        ...
+        await self._playback_handler.resume()
 
-    @abc.abstractmethod
     async def skip(self) -> Playable | None:
         """
         Skip the currently playing track and advance to the next one in the queue.
@@ -452,9 +541,8 @@ class BasePlayer(abc.ABC):
         QueueEmpty
             If the queue is empty and AutoPlay is disabled or yields no results.
         """
-        ...
+        return await self._playback_handler.skip()
 
-    @abc.abstractmethod
     async def previous(self) -> Playable:
         """
         Return to the most recently played track in the history.
@@ -475,9 +563,8 @@ class BasePlayer(abc.ABC):
         HistoryEmpty
             If there is no previous track in the history.
         """
-        ...
+        return await self._playback_handler.previous()
 
-    @abc.abstractmethod
     async def seek(self, position: int, /) -> None:
         """
         Seek to an arbitrary position within the current track.
@@ -493,9 +580,8 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not connected to a node or an active session.
         """
-        ...
+        await self._playback_handler.seek(position)
 
-    @abc.abstractmethod
     async def set_volume(self, value: int, /) -> None:
         """
         Set the player's output volume.
@@ -513,9 +599,8 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not connected to a node or an active session.
         """
-        ...
+        await self._playback_handler.set_volume(value)
 
-    @abc.abstractmethod
     async def set_filters(
         self,
         filters: Filters,
@@ -541,7 +626,7 @@ class BasePlayer(abc.ABC):
         RuntimeError
             If the player is not connected to a node or an active session.
         """
-        ...
+        await self._playback_handler.set_filters(filters.payload, seek=seek)
 
     @abc.abstractmethod
     async def on_voice_server_update(self, data: Any) -> None:
@@ -591,9 +676,6 @@ class BasePlayer(abc.ABC):
         """
         ...
 
-    @abc.abstractmethod
-    def _ensure_node(self) -> Node: ...
-
     def get_connection_state(self) -> PlayerConnectionState:
         """
         Return a :class:`~relink.player.player.PlayerConnectionState` instance
@@ -607,6 +689,27 @@ class BasePlayer(abc.ABC):
         :class:`~relink.player.player.PlayerConnectionState`
         """
         return PlayerConnectionState()
+
+    def _ensure_node(self) -> Node:
+        node = self._node
+
+        if node is None:
+            if not bool(self.client):
+                raise RuntimeError("Cannot ensure Node without a Client.")
+
+            rl_client = _registry.clients.get(self.client)
+            if rl_client is None:
+                raise RuntimeError(
+                    f"No relink.Client is associated with {self.client!r}"
+                )
+
+            node = rl_client.get_best_node()
+            self._node = node
+
+        if self.guild.id not in node._players:
+            node._add_player(self)
+
+        return node
 
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
         await self._events_handler._dispatch_event(data)

@@ -26,7 +26,6 @@ import time
 from typing import Any
 
 import msgspec
-from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink.rest.schemas.player import (
     PlayerVoiceState,
@@ -57,7 +56,7 @@ class EventsHandler(HandlerBase):
 
     __slots__ = ()
 
-    async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
+    async def on_voice_server_update(self, data: dict[str, Any]) -> None:
         _log.debug("Received VOICE_SERVER_UPDATE event")
         self._player._connection.token = data.get("token")
         self._player._connection.endpoint = data.get("endpoint")
@@ -170,7 +169,7 @@ class EventsHandler(HandlerBase):
             state.connected,
         )
 
-    async def on_voice_state_update(self, data: GuildVoiceState) -> None:
+    async def on_voice_state_update(self, data: dict[str, Any]) -> None:
         _log.debug("Received VOICE_STATE_UPDATE event")
 
         channel_id = data.get("channel_id")
