@@ -33,7 +33,7 @@ from typing_extensions import TypeVar
 
 from relink import _registry
 from relink._version import __version__
-from relink.gateway.player_new import FrameworkLiteral, PlayerFactory
+from relink.gateway.player import FrameworkLiteral, PlayerFactory
 from relink.models.settings import CacheSettings, InactivitySettings
 from relink.rest.enums import TrackSourceType
 
@@ -46,9 +46,9 @@ if TYPE_CHECKING:
     from relink.models.track import Playable
     from relink.network import SessionType
 
-    from ._disnake import DisnakeClientProto
-    from ._dpy import DpyClientProto
-    from ._pycord import PycordClientProto
+    from .adapters._disnake import DisnakeClientProto
+    from .adapters._dpy import DpyClientProto
+    from .adapters._pycord import PycordClientProto
 
 
 __all__ = ("Client",)
@@ -76,7 +76,7 @@ class Client(Generic[N]):
     _framework: FrameworkLiteral
     _nodes: dict[str, N]
     _session: SessionType | None
-    __node_tasks: dict[str, asyncio.Task[Any]]
+    _node_tasks: dict[str, asyncio.Task[Any]]
 
     @overload
     def __init__(
@@ -84,7 +84,7 @@ class Client(Generic[N]):
         client: DpyClientProto,
         *,
         node_cls: type[N] = ...,
-        framework: Literal["discord.py"],
+        framework: Literal["discord.py"] = ...,
     ) -> None: ...
 
     @overload
@@ -93,7 +93,7 @@ class Client(Generic[N]):
         client: PycordClientProto,
         *,
         node_cls: type[N] = ...,
-        framework: Literal["pycord"],
+        framework: Literal["pycord"] = ...,
     ) -> None: ...
 
     @overload
@@ -102,7 +102,7 @@ class Client(Generic[N]):
         client: DisnakeClientProto,
         *,
         node_cls: type[N] = ...,
-        framework: Literal["disnake"],
+        framework: Literal["disnake"] = ...,
     ) -> None: ...
 
     def __init__(
@@ -120,7 +120,7 @@ class Client(Generic[N]):
         self._framework = framework
         self._nodes = {}
         self._session = None
-        self.__node_tasks = {}
+        self._node_tasks = {}
         self._node_cls: type[N] = node_cls
 
         if self._client._client in _registry.clients:
@@ -364,14 +364,14 @@ class Client(Generic[N]):
         node = self.get_best_node()
         return await node.decode_tracks(*encoded)
 
-    def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
-        if node.id in self.__node_tasks:
-            return self.__node_tasks[node.id]
+    def _cleanup_node(self, node: N) -> asyncio.Task[None]:
+        if node.id in self._node_tasks:
+            return self._node_tasks[node.id]
 
         task = asyncio.create_task(node.close(), name=f"relink:node-close:{node.id}")
-        self.__node_tasks[node.id] = task
+        self._node_tasks[node.id] = task
 
-        task.add_done_callback(lambda _: self.__node_tasks.pop(node.id, None))
+        task.add_done_callback(lambda _: self._node_tasks.pop(node.id, None))
         return task
 
     def _dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:
