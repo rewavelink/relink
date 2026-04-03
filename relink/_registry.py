@@ -28,10 +28,9 @@ from typing import TYPE_CHECKING, Any
 from weakref import WeakKeyDictionary
 
 if TYPE_CHECKING:
-    import discord
-
     from .gateway.client import Client
+    from .gateway.client._base import DiscordClient
 
 __all__ = ("clients",)
 
-clients: WeakKeyDictionary[discord.Client, Client[Any]] = WeakKeyDictionary()
+clients: WeakKeyDictionary[DiscordClient[Any], Client[Any]] = WeakKeyDictionary()
