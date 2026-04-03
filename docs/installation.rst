@@ -25,5 +25,5 @@ With optional speed extras:
 
    pip install "rewavelink[speed]"
 
-The ``speed`` extra pulls in ``curl_cffi`` and ``orjson``. ReLink will prefer both
-automatically when they are available.
+The ``speed`` extra installs ``curl_cffi``. ReLink will use it automatically
+when available.

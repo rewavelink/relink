@@ -61,6 +61,7 @@ nitpick_ignore_regex = [
 autodoc_default_options = {
     "members": True,
     "undoc-members": False,
+    "inherited-members": True,
 }
 autodoc_typehints = "both"
 autodoc_class_signature = "mixed"
