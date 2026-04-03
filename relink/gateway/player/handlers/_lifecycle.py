@@ -27,10 +27,10 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, cast
 
-import discord
 import msgspec
 
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
+from relink.utils.snowflake import Snowflake
 
 from ._base import HandlerBase, _log
 
@@ -67,7 +67,7 @@ class LifecycleHandler(HandlerBase):
             node = self._player._ensure_node()
 
         await guild.change_voice_state(
-            channel=cast(discord.abc.Snowflake, channel),
+            channel=cast(Snowflake, channel),
             self_mute=self_mute,
             self_deaf=self_deaf,
         )

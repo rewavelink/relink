@@ -766,7 +766,7 @@ class Node:
         Returns
         -------
         :class:`Player`
-            The player. This can be passed to the ``cls=`` kwarg on :meth:`~discord.abc.Connectable.connect`
+            The player. This can be passed to the ``cls=`` kwarg on your library's ``connect`` method.
         """
         client = self._ensure_client()
         player_cls = self._player_factory.get_player(client.framework)

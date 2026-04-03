@@ -26,12 +26,10 @@ from __future__ import annotations
 
 from typing import Iterable
 
-import discord
-from discord.abc import Snowflake
-
 from relink.gateway.enums import AutoPlayMode, InactivityMode, SearchProvider
 
 from .base import BaseSettings
+from ..utils.snowflake import Snowflake
 
 __all__ = (
     "AutoPlaySettings",
@@ -90,7 +88,7 @@ class InactivitySettings(BaseSettings):
         The time in seconds to wait before disconnecting. Defaults to 300.
     mode: :class:`InactivityMode`
         The strategy used to determine if the channel is "inactive".
-    user_ids: ``Iterable[discord.abc.Snowflake | int]``
+    user_ids: ``Iterable[Snowflake | int]``
         An iterable of user IDs or Discord objects that act as "Keep Alive" members.
     """
 
@@ -105,7 +103,7 @@ class InactivitySettings(BaseSettings):
         *,
         timeout: int | None = 300,
         mode: InactivityMode = InactivityMode.ALL_BOTS,
-        user_ids: Iterable[discord.abc.Snowflake | int] | None = None,
+        user_ids: Iterable[Snowflake | int] | None = None,
     ) -> None:
         self.timeout: int | None = timeout
         self.mode: InactivityMode = mode

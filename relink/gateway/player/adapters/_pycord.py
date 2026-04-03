@@ -28,8 +28,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import discord
-from discord.raw_models import RawVoiceServerUpdateEvent as VoiceServerUpdate
-from discord.raw_models import RawVoiceStateUpdateEvent as VoiceStateUpdate
 from discord.voice import VoiceProtocol
 
 from relink.gateway.enums import QueueMode
@@ -38,11 +36,14 @@ from relink.models.filters import Filters
 from .._base import BasePlayer
 
 if TYPE_CHECKING:
+    from discord.raw_models import RawVoiceServerUpdateEvent as VoiceServerUpdate
+    from discord.raw_models import RawVoiceStateUpdateEvent as VoiceStateUpdate
+
     from relink.gateway.node import Node
     from relink.models.settings import AutoPlaySettings, HistorySettings
 
 _log = logging.getLogger(__name__)
-MISSING = discord.utils.MISSING
+UNSET = discord.utils.MISSING
 
 
 __all__ = ("PycordPlayer",)
@@ -130,8 +131,8 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
 
     def __init__(
         self,
-        client: discord.Client = MISSING,
-        channel: discord.abc.Connectable = MISSING,
+        client: discord.Client = UNSET,
+        channel: discord.abc.Connectable = UNSET,
         *,
         node: Node | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
@@ -153,7 +154,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
 
         self._guild = None
 
-        if client is not MISSING and channel is not MISSING:
+        if client is not UNSET and channel is not UNSET:
             VoiceProtocol.__init__(self, client=client, channel=channel)
             if isinstance(channel, discord.abc.GuildChannel):
                 self._guild = channel.guild

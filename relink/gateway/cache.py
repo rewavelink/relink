@@ -27,11 +27,11 @@ from __future__ import annotations
 import collections
 from typing import Any, Final
 
-import discord
+import msgspec
 
 from relink.models.settings import CacheSettings
 
-MISSING: Final = discord.utils.MISSING
+UNSET: Final = msgspec.UNSET
 
 
 class CacheNode[K, V]:
@@ -80,7 +80,7 @@ class LFUCache[K, V]:
         sentinel.prev.next = node
         sentinel.prev = node
 
-    def get(self, key: K, default: Any = MISSING) -> V | Any:
+    def get(self, key: K, default: Any = UNSET) -> V | Any:
         if not self._settings.enabled or (node := self._cache.get(key)) is None:
             return default
 
