@@ -27,9 +27,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
+import msgspec
 import disnake
-from disnake.types.voice import GuildVoiceState
 from disnake.types.gateway import VoiceServerUpdateEvent
+from disnake.types.voice import GuildVoiceState
 
 from relink.gateway.enums import QueueMode
 from relink.models.filters import Filters
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
     from relink.models.settings import AutoPlaySettings, HistorySettings
 
 _log = logging.getLogger(__name__)
-MISSING = disnake.utils.MISSING
+UNSET = msgspec.UNSET
 
 
 __all__ = ("DisnakePlayer",)
@@ -108,6 +109,7 @@ class DisnakePlayer(BasePlayer, disnake.VoiceProtocol):
     _guild: disnake.Guild | None
 
     if TYPE_CHECKING:
+
         @property
         def guild(self) -> disnake.Guild: ...
 
@@ -133,8 +135,8 @@ class DisnakePlayer(BasePlayer, disnake.VoiceProtocol):
 
     def __init__(
         self,
-        client: disnake.Client = MISSING,
-        channel: disnake.abc.Connectable = MISSING,
+        client: disnake.Client = UNSET,
+        channel: disnake.abc.Connectable = UNSET,
         *,
         node: Node | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
@@ -156,7 +158,7 @@ class DisnakePlayer(BasePlayer, disnake.VoiceProtocol):
 
         self._guild = None
 
-        if client is not MISSING and channel is not MISSING:
+        if client is not UNSET and channel is not UNSET:
             disnake.VoiceProtocol.__init__(self, client=client, channel=channel)
             if isinstance(channel, disnake.abc.GuildChannel):
                 self._guild = channel.guild
