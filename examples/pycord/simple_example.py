@@ -1,6 +1,8 @@
 # This example covers the procedure of creating a simple music bot using relink
 # and requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# 
+# This examples requires installing "py-cord[voice]", please make sure you've installed it!
 
 from typing import Annotated, Any
 
@@ -14,7 +16,7 @@ class Bot(discord.Bot):
     def __init__(self) -> None:
         super().__init__()
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.rl_client: relink.Client[Any] = relink.Client(self, framework="pycord")
         self.ready_ran: bool = False
 
     async def on_ready(self) -> None:
