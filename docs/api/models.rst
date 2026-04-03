@@ -7,15 +7,19 @@ Settings
 
 .. autoclass:: relink.models.AutoPlaySettings
    :no-members:
+   :no-index:
 
 .. autoclass:: relink.models.InactivitySettings
    :no-members:
+   :no-index:
 
 .. autoclass:: relink.models.HistorySettings
    :no-members:
+   :no-index:
 
 .. autoclass:: relink.models.CacheSettings
    :no-members:
+   :no-index:
 
 
 Tracks and playlists
