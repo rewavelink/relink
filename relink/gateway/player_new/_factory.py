@@ -85,8 +85,8 @@ class PlayerFactory:
 
         if len(available) > 1:
             _log.warning(
-                "Ambiguous environment: multiple frameworks detected: %s. "
-                "Using '%s'. Override this by passing 'framework' to Client.",
+                "Multiple frameworks detected: %s, using '%s'.\n"
+                "Override this by passing 'framework' to relink.Client.",
                 available,
                 available[0],
             )

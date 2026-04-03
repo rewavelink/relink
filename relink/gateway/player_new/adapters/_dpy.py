@@ -25,21 +25,18 @@ SOFTWARE.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Self, overload
+from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import discord
 from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
-from relink import _registry
 from relink.gateway.enums import QueueMode
 from relink.models.filters import Filters
-from relink.models.track import Playable
 
 from .._base import BasePlayer
 
 if TYPE_CHECKING:
     from relink.gateway.node import Node
-    from relink.gateway.queue.queue import Queue
     from relink.models.settings import AutoPlaySettings, HistorySettings
 
 _log = logging.getLogger(__name__)
@@ -110,6 +107,7 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
     _guild: discord.Guild | None
 
     if TYPE_CHECKING:
+
         @property
         def guild(self) -> discord.Guild: ...
 
@@ -208,7 +206,7 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
         data : :class:`discord.types.voice.VoiceServerUpdate`
             The raw payload received from the Discord gateway.
         """
-        await self._events_handler.on_voice_server_update(data)
+        await self._events_handler.on_voice_server_update(cast(dict[str, Any], data))
 
     async def on_voice_state_update(self, data: GuildVoiceState) -> None:
         """
@@ -222,4 +220,4 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
         data : :class:`discord.types.voice.GuildVoiceState`
             The raw payload received from the Discord gateway.
         """
-        await self._events_handler.on_voice_state_update(data)
+        await self._events_handler.on_voice_state_update(cast(dict[str, Any], data))
