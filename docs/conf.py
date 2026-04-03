@@ -83,8 +83,8 @@ html_title = f"{project} {release} documentation"
 templates_path = ["_templates"]
 
 html_theme_options = {
-    # "light_logo": "images/light-banner.svg",
-    # "dark_logo": "images/dark-banner.svg",
+    "light_logo": "images/logo.svg",
+    "dark_logo": "images/logo.svg",
     "sidebar_hide_name": True,
     "light_css_variables": {
         "color-brand-primary": "#d8ad37",

@@ -1,12 +1,14 @@
 <div align="center">
 
-**ReLink** is a high-performance Lavalink v4 wrapper for discord.py — a maintained, production-ready fork of WaveLink.
+![ReLink](https://raw.githubusercontent.com/rewavelink/relink/main/docs/_static/images/banner.png)
 
 [![PyPI](https://img.shields.io/pypi/v/rewavelink)](https://pypi.org/project/rewavelink)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
 [![License](https://img.shields.io/github/license/rewavelink/relink)](LICENSE)
 [![Lavalink](https://img.shields.io/badge/lavalink-4.x-orange)](https://lavalink.dev)
 [![Discord](https://img.shields.io/discord/1471146455002775624?label=discord)](https://discord.gg/tPHVWBPedt)
+
+**ReLink** is a high-performance Lavalink v4 wrapper for discord.py — a maintained, production-ready fork of WaveLink.
 
 [Documentation](https://relink.readthedocs.io/en/latest) · [Discord](https://discord.gg/tPHVWBPedt) · [Migration from WaveLink](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 
