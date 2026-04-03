@@ -27,9 +27,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
-import msgspec
 import discord
-from discord.types.voice import GuildVoiceState, VoiceServerUpdate
 
 from relink.gateway.enums import QueueMode
 from relink.models.filters import Filters
@@ -37,6 +35,8 @@ from relink.models.filters import Filters
 from .._base import BasePlayer
 
 if TYPE_CHECKING:
+    from discord.types.voice import GuildVoiceState, VoiceServerUpdate
+
     from relink.gateway.node import Node
     from relink.models.settings import AutoPlaySettings, HistorySettings
 

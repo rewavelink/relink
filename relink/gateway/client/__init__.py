@@ -105,9 +105,18 @@ class Client(Generic[N]):
         framework: Literal["disnake"] = ...,
     ) -> None: ...
 
+    @overload
     def __init__(
         self,
-        client: DpyClientProto | PycordClientProto | DisnakeClientProto,
+        client: Any,
+        *,
+        node_cls: type[N] = ...,
+        framework: None = ...,
+    ) -> None: ...
+
+    def __init__(
+        self,
+        client: Any,
         *,
         node_cls: type[N] = Node,
         framework: FrameworkLiteral | None = None,

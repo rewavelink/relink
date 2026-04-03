@@ -27,10 +27,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
-import msgspec
 import discord
-from discord.raw_models import RawVoiceServerUpdateEvent as VoiceServerUpdate
-from discord.raw_models import RawVoiceStateUpdateEvent as VoiceStateUpdate
 from discord.voice import VoiceProtocol
 
 from relink.gateway.enums import QueueMode
@@ -39,6 +36,9 @@ from relink.models.filters import Filters
 from .._base import BasePlayer
 
 if TYPE_CHECKING:
+    from discord.raw_models import RawVoiceServerUpdateEvent as VoiceServerUpdate
+    from discord.raw_models import RawVoiceStateUpdateEvent as VoiceStateUpdate
+
     from relink.gateway.node import Node
     from relink.models.settings import AutoPlaySettings, HistorySettings
 

@@ -26,12 +26,10 @@ from __future__ import annotations
 
 from typing import Iterable
 
-import discord
-
 from relink.gateway.enums import AutoPlayMode, InactivityMode, SearchProvider
 
 from .base import BaseSettings
-from utils.snowflake import Snowflake
+from ..utils.snowflake import Snowflake
 
 __all__ = (
     "AutoPlaySettings",

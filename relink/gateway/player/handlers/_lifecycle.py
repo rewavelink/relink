@@ -30,9 +30,9 @@ from typing import TYPE_CHECKING, cast
 import msgspec
 
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
+from relink.utils.snowflake import Snowflake
 
 from ._base import HandlerBase, _log
-from utils.snowflake import Snowflake
 
 if TYPE_CHECKING:
     from relink.gateway.node import Node
