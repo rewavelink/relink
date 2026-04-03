@@ -28,28 +28,14 @@ import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import discord
+from discord.raw_models import RawVoiceServerUpdateEvent as VoiceServerUpdate
+from discord.raw_models import RawVoiceStateUpdateEvent as VoiceStateUpdate
+from discord.voice import VoiceProtocol
 
 from relink.gateway.enums import QueueMode
 from relink.models.filters import Filters
 
 from .._base import BasePlayer
-
-use_raw_data: bool
-
-# py-cord >=2.8 changed the ``data`` on_voice_... events receive to RawModels, so we must pass
-# the model._raw_data to the functions instead of just the data (check the implementation to correctly
-# understand what this means)
-if discord.version_info >= (2, 8):
-    from discord.voice import VoiceProtocol
-    from discord.raw_models import (
-        RawVoiceServerUpdateEvent as VoiceServerUpdate,
-        RawVoiceStateUpdateEvent as VoiceStateUpdate,
-    )
-    use_raw_data = True
-else:
-    from discord.voice_client import VoiceProtocol  # pyright: ignore[reportMissingImports,reportUnknownVariableType]
-    from discord.types.voice import VoiceServerUpdate, GuildVoiceState as VoiceStateUpdate
-    use_raw_data = False
 
 if TYPE_CHECKING:
     from relink.gateway.node import Node
@@ -116,7 +102,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
     client : :class:`discord.Client`
         The py-cord client driving this player.
     """
-    
+
     channel: discord.abc.Connectable
     client: discord.Client
 
@@ -206,12 +192,11 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
         return self
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
-        # use_raw_data=False -> py-cord < 2,8
-        if not use_raw_data:
-            return await self._events_handler.on_voice_server_update(cast(dict[str, Any], data))
-        return await self._events_handler.on_voice_server_update(cast(dict[str, Any], data._raw_data))  # pyright: ignore[reportAttributeAccessIssue]
+        return await self._events_handler.on_voice_server_update(
+            cast(dict[str, Any], data._raw_data)
+        )  # pyright: ignore[reportAttributeAccessIssue]
 
     async def on_voice_state_update(self, data: VoiceStateUpdate) -> None:
-        if not use_raw_data:
-            return await self._events_handler.on_voice_state_update(cast(dict[str, Any], data))
-        return await self._events_handler.on_voice_state_update(cast(dict[str, Any], data._raw_data))  # pyright: ignore[reportAttributeAccessIssue]
+        return await self._events_handler.on_voice_state_update(
+            cast(dict[str, Any], data._raw_data)
+        )  # pyright: ignore[reportAttributeAccessIssue]
