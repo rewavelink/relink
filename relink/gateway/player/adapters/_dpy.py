@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from relink.models.settings import AutoPlaySettings, HistorySettings
 
 _log = logging.getLogger(__name__)
-UNSET = msgspec.UNSET
+UNSET = discord.utils.MISSING
 
 
 __all__ = ("DpyPlayer",)
