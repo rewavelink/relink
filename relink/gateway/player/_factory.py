@@ -30,6 +30,9 @@ import os
 from typing import Literal, cast, get_args
 
 from ._base import BasePlayer
+from .adapters._disnake import DisnakePlayer
+from .adapters._dpy import DpyPlayer
+from .adapters._pycord import PycordPlayer
 
 FrameworkLiteral = Literal["discord.py", "pycord", "disnake"]
 
@@ -57,15 +60,11 @@ class PlayerFactory:
 
         match framework:
             case "discord.py":
-                from .adapters._dpy import DpyPlayer
-
                 return DpyPlayer
             case "disnake":
-                # ! Should be replaced when corresponding implementation is ready
-                return BasePlayer  # type: ignore
+                return DisnakePlayer
             case "pycord":
-                # ! Should be replaced when corresponding implementation is ready
-                return BasePlayer  # type: ignore
+                return PycordPlayer
 
     def detect_framework(self) -> FrameworkLiteral | None:
         if env := os.environ.get("RELINK_FRAMEWORK"):
@@ -78,7 +77,7 @@ class PlayerFactory:
         ]
 
         if not available:
-            _log.warning(
+            _log.error(
                 "No supported framework exclusively detected (discord.py, py-cord, disnake)."
             )
             return None

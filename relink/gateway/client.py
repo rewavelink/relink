@@ -33,7 +33,7 @@ import discord
 
 from relink import _registry
 from relink._version import __version__
-from relink.gateway.player_new import FrameworkLiteral, PlayerFactory
+from relink.gateway.player import FrameworkLiteral, PlayerFactory
 from relink.models.settings import CacheSettings, InactivitySettings
 from relink.rest.enums import TrackSourceType
 

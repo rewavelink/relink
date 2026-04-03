@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 import msgspec
 
-from relink.gateway.player_new._factory import PlayerFactory
+from relink.gateway.player._factory import PlayerFactory
 from relink.models.filters import Filters
 from relink.models.info import ServerInfo
 from relink.models.player_info import PlayerInfo
@@ -58,7 +58,7 @@ from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player_new import Player, BasePlayer
+from .player import Player, BasePlayer
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
 
