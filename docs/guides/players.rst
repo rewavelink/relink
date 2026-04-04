@@ -8,7 +8,7 @@ Connecting a player
 -------------------
 
 For most bots, the simplest way to create a player is to pass :class:`relink.Player`
-to ``discord.py`` when connecting to a voice channel:
+to your Discord client when connecting to a voice channel:
 
 .. code-block:: python
 
@@ -25,8 +25,9 @@ short and predictable.
 
 If you need to configure the player before connecting, create it first, either by using an
 instance or by using :meth:`relink.Node.create_player`, and then pass the configured instance
-as ``cls`` to :meth:`discord.abc.Connectable.connect`. This is useful when you want custom
-defaults such as volume, filters, autoplay, or history settings.
+as ``cls`` to :meth:`discord:discord.abc.Connectable.connect` (discord.py),
+:meth:`pycord:discord.VoiceChannel.connect` (py-cord), or
+:meth:`disnake:disnake.VoiceChannel.connect`.
 
 .. code-block:: python
 
@@ -54,9 +55,10 @@ defaults such as volume, filters, autoplay, or history settings.
 Reusing an existing player
 --------------------------
 
-In command handlers, ``ctx.voice_client`` is usually the active voice connection.
-If your bot connected with :class:`relink.Player`, that value will normally already
-be the player you want:
+In command handlers, the active voice connection is available via ``ctx.voice_client`` —
+see :attr:`discord:discord.ext.commands.Context.voice_client` (discord.py),
+:attr:`pycord:discord.ext.commands.Context.voice_client` (py-cord), or
+:attr:`disnake:disnake.ext.commands.Context.voice_client` (disnake).
 
 .. code-block:: python
 

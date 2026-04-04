@@ -11,7 +11,7 @@ What stays familiar
 -------------------
 
 * Lavalink remains the backend.
-* ``discord.py`` voice integration still uses a custom ``discord.VoiceProtocol``.
+* All three supported Discord libraries (discord.py, py-cord, disnake) use a custom ``discord.VoiceProtocol`` for voice integration.
 * The main runtime objects are still a client-level coordinator, nodes, players, queues,
   tracks, playlists, and filters.
 
@@ -69,8 +69,10 @@ In ReLink, the equivalent flow is explicit and instance-based:
        await rl_client.start()
 
 .. note::
-   :meth:`relink.Client.start` belongs in :meth:`discord.ext.commands.Bot.setup_hook`,
-   not :func:`discord.on_ready`.
+   :meth:`relink.Client.start` should be called once your Discord client is ready,
+   typically in :meth:`discord:discord.Client.setup_hook` (discord.py), :func:`pycord:discord.on_connect` (py-cord)
+   or :func:`disnake:disnake.on_connect` (disnake)
+   rather than in the ``on_ready`` event.
    
 Settings
 --------
@@ -235,7 +237,7 @@ Events
 Wavelink has documented public event names such as ``on_wavelink_node_ready`` and
 ``on_wavelink_track_start`` in its docs.
 
-ReLink dispatches events through the underlying ``discord.py`` client using the ``relink_``
+ReLink dispatches events through the underlying Discord client using the ``relink_``
 prefix. The available events are:
 
 * :func:`on_relink_node_ready` — a node has connected and is ready to use.

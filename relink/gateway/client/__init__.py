@@ -67,10 +67,16 @@ class Client(Generic[N]):
 
     Parameters
     ----------
-    client: :class:`discord.Client`
-        The discord.py's client this ReLink client is attached to.
+    client: :class:`discord:discord.Client` (discord.py) | :class:`pycord:discord.Client` (py-cord) | :class:`disnake:disnake.Client`
+        The Discord client this ReLink client is attached to.
     node_cls: ``type[Node]``
         The class to use when creating new nodes. Defaults to :class:`Node`.
+    framework: :class:`str` | :data:`None`
+        The Discord framework to use. Accepted values are ``"discord.py"``,
+        ``"pycord"``, and ``"disnake"``. When ``None``, the framework is
+        detected automatically from whichever library is installed; if multiple
+        are present, precedence follows ``discord.py`` → ``pycord`` → ``disnake``.
+        Defaults to ``None``.
     """
 
     _framework: FrameworkLiteral

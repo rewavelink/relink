@@ -3,16 +3,20 @@
 ReLink Documentation
 ====================
 
-ReLink is a maintained Lavalink client library for ``discord.py``, providing a high-level
-voice player API while still exposing the underlying node, model, REST, and gateway
-primitives when you need them.
+ReLink is a high-performance Lavalink v4 wrapper for Python, inspired by WaveLink.
+It provides a high-level voice player API while still exposing the underlying node,
+model, REST, and gateway primitives when you need them.
 
 It is designed for bot authors who want a practical, queue-first player interface out of
 the box, without losing access to the runtime types and protocol details needed for
 debugging, customisation, or more advanced workflows.
 
-.. note::
+ReLink is compatible with **discord.py 2.7+**, **py-cord 2.8+**, and **disnake 2.12+**,
+and requires no additional Discord library dependency — it automatically detects whichever
+you have installed. If multiple are found, precedence follows: ``discord.py`` →
+``py-cord`` → ``disnake``.
 
+.. note::
    ReLink targets **Lavalink 4.x**. See :doc:`/guides/lavalink-setup` for instructions on
    setting up and self-hosting a Lavalink server.
 
@@ -36,7 +40,9 @@ Who should read what
 Typical flow
 ------------
 
-1. Create a :class:`relink.Client` attached to your ``discord.Client`` or ``commands.Bot``.
+1. Create a :class:`relink.Client` attached to your Discord client.
+
+   Pass ``framework`` explicitly if multiple Discord libraries are installed in the same environment.
 2. Register one or more Lavalink nodes with :meth:`relink.Client.create_node`.
 3. Start the ReLink client once your Discord client is ready.
 4. Connect to a voice channel using :class:`relink.Player`.
@@ -47,7 +53,7 @@ Core pieces
 
 The public API is easiest to understand from the outside in:
 
-* :class:`relink.Client` — attached to your ``discord.py`` client; owns all nodes and
+* :class:`relink.Client` — attached to your Discord client; owns all nodes and
   acts as the main entry point.
 * :class:`relink.Node` — represents a single Lavalink server connection.
 * :class:`relink.Player` — the Discord voice protocol implementation used per guild.
@@ -69,8 +75,6 @@ Resources
 Credits
 -------
 
-* `PythonistaGuild & EvieePy <https://github.com/PythonistaGuild>`_ for the original
-  `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_ library that ReLink builds upon.
 * `Paillat-dev <https://github.com/Paillat-dev>`_ for the
   `content width selector <https://github.com/Pycord-Development/pycord/pull/3040>`_.
 * `Rapptz <https://github.com/Rapptz>`_ for the original

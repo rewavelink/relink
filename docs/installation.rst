@@ -7,7 +7,9 @@ Requirements
 ------------
 
 * Python 3.12+
-* discord.py 2.6+
+* One of: `discord.py 2.7+ <https://github.com/Rapptz/discord.py>`_,
+  `py-cord 2.8+ <https://github.com/Pycord-Development/pycord>`_, or
+  `disnake 2.12+ <https://github.com/DisnakeDev/disnake>`_
 * A running Lavalink 4.x server — see :doc:`/guides/lavalink-setup`
 
 Installing ReLink
@@ -25,5 +27,5 @@ With optional speed extras:
 
    pip install "rewavelink[speed]"
 
-The ``speed`` extra pulls in ``curl_cffi`` and ``orjson``. ReLink will prefer both
-automatically when they are available.
+The ``speed`` extra pulls in ``curl_cffi``. ReLink will prefer it
+automatically when it is available.

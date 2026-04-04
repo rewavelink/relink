@@ -36,6 +36,8 @@ extensions = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "discord": ("https://discordpy.readthedocs.io/en/stable/", None),
+    "pycord": ("https://docs.pycord.dev/en/master/", None),
+    "disnake": ("https://docs.disnake.dev/en/stable/", None),
     "aiohttp": ("https://docs.aiohttp.org/en/stable/", None),
     "curl_cffi": ("https://curl-cffi.readthedocs.io/en/stable/", None),
     "msgspec": ("https://jcristharif.com/msgspec/", None),

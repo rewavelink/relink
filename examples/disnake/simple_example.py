@@ -20,7 +20,7 @@ class Bot(commands.InteractionBot):
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
-    async def on_ready(self) -> None:
+    async def on_connect(self) -> None:
         # disnake fires 'on_ready' once the bot is connected and ready.
         # We start the relink client here since setup_hook is not available.
         await self.rl_client.start()
