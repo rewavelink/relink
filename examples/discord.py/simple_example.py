@@ -129,7 +129,7 @@ async def stop(interaction: discord.Interaction) -> None:
     if not isinstance(vc, relink.Player):
         await interaction.response.send_message("Already disconnected!")
         return
-
+    
     await vc.disconnect()
     await interaction.response.send_message("Disconnected!")
 
