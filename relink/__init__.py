@@ -4,7 +4,7 @@ relink
 
 A high-performance Lavalink v4 wrapper for Python, inspired by WaveLink.
 
-:copyright: (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team
+:copyright: (c) 2026-present ReWaveLink Development Team
 :license: MIT
 """
 

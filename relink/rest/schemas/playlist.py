@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
+Copyright (c) 2026-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
