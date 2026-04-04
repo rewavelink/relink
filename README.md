@@ -22,7 +22,7 @@
 
 - Full Lavalink v4+ REST API support
 - Built on [msgspec](https://github.com/jcrist/msgspec) for rapid serialization and strict type validation
-- Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) and [orjson](https://github.com/ijl/orjson) for faster networking and serialization
+- Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) for faster networking
 - Drop-in familiarity for Wavelink users — [migration guide included](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 - Actively maintained, unlike the library you're probably migrating from
 - Async-first and Pyright strict-compliant

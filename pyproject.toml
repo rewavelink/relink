@@ -60,7 +60,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-speed = ["curl-cffi>=0.14.0,<1", "orjson>=3.11.7,<4"]
+speed = ["curl-cffi>=0.14.0,<1"]
 docs = [
     "sphinx>=9.1.0",
     "furo",
