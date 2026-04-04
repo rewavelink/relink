@@ -115,7 +115,7 @@ class Player(BasePlayer):
 
     def __new__(
         cls,
-        *,
+        *args: Any,
         node: Node | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
@@ -126,11 +126,10 @@ class Player(BasePlayer):
     ) -> Any:
         env_framework = os.getenv("RELINK_FRAMEWORK", "discord.py")
         framework = cast(FrameworkLiteral, env_framework)
-
         actual_class = _factory.get_player(framework)
 
-        instance = object.__new__(actual_class)
-        instance.__init__(
+        return actual_class(
+            *args,
             node=node,
             queue_mode=queue_mode,
             autoplay_settings=autoplay_settings,
@@ -140,11 +139,9 @@ class Player(BasePlayer):
             filters=filters,
         )
 
-        return instance
-
     def __init__(
         self,
-        *,
+        *args: Any,
         node: Node | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
@@ -169,7 +166,7 @@ class Player(BasePlayer):
         """Standardizes isinstance(vc_instance, Player) -> True."""
         return isinstance(instance, BasePlayer)
 
-    def __call__(self, client: Any, channel: Any) -> Player:
+    def __call__(self, client: Any, channel: Any) -> Any:
         raise NotImplementedError("Player is a proxy; this is never called directly.")
 
     async def on_voice_server_update(self, data: Any) -> None: ...

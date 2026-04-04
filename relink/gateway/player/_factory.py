@@ -111,7 +111,7 @@ class PlayerFactory:
         try:
             installed_version = importlib.metadata.version(pkg)
 
-            if Version(installed_version) < Version(min_ver):
+            if Version(installed_version).release < Version(min_ver).release:
                 _log.warning(
                     f"Found {pkg} v{installed_version}, but v{min_ver}+ is required."
                 )
