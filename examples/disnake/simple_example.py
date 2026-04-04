@@ -1,5 +1,12 @@
-# This example covers the procedure of creating a simple music bot using relink
-# and requires an active Lavalink server, for more information on setting up one
+# This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
+#
+# This example covers how to configure relink's settings objects and wire them
+# into your bot. Settings are split into two groups:
+#
+# - Node-level: CacheSettings, InactivitySettings (shared across all players)
+# - Player-level: AutoPlaySettings, HistorySettings (unique per player)
+#
+# This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any, cast
@@ -21,11 +28,10 @@ class Bot(commands.InteractionBot):
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
     async def on_connect(self) -> None:
-        # disnake fires 'on_ready' once the bot is connected and ready.
-        # We start the relink client here since setup_hook is not available.
+        await super().on_connect()
+
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
-        print("Slash commands are registered automatically by disnake!")
 
 
 bot = Bot()
@@ -155,6 +161,5 @@ async def skip(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
         )
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")

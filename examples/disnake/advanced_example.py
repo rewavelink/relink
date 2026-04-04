@@ -1,7 +1,10 @@
+# This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
+#
 # This example covers an advanced music bot using relink, featuring a full
 # queue system, volume control, track history, seeking, and playlist support.
-# It requires an active Lavalink server — for setup instructions see:
-# https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+#
+# This requires an active Lavalink server, for more information on setting up one
+# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any
 
@@ -25,8 +28,8 @@ class Bot(commands.InteractionBot):
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
     async def on_connect(self) -> None:
-        # disnake fires 'on_ready' once the bot is connected and ready.
-        # We start the relink client here since setup_hook is not available.
+        await super().on_connect()
+
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
@@ -414,6 +417,5 @@ async def nowplaying(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     )
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")

@@ -1,9 +1,11 @@
+# This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
+#
 # This example covers the procedure of handling filters with relink, allowing you to apply audio filters to your players.
 # It demonstrates full usage of every filter type: Equalizer, Timescale, Karaoke,
 # Tremolo, Vibrato, Rotation, Distortion, ChannelMix, and LowPass.
 # https://relink.readthedocs.io/en/latest/guides/filters.html
 #
-# It requires an active Lavalink server, for more information on setting up one
+# This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from enum import StrEnum
@@ -587,6 +589,5 @@ async def reset_filters(interaction: discord.Interaction) -> None:
     await interaction.response.send_message("All filters cleared!")
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")
