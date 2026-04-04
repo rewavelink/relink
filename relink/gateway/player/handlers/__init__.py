@@ -8,8 +8,8 @@ Submodule containing all the handlers used in the relink.Player.
 :license: MIT
 """
 
-from ._base import *
 from ._autoplay import *
+from ._base import *
 from ._events import *
 from ._incativity import *
 from ._lifecycle import *
