@@ -161,6 +161,7 @@ class BasePlayer(abc.ABC):
     _volume: int
 
     client: Any
+    channel: Any
     _guild: Any
 
     def __init__(
