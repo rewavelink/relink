@@ -11,6 +11,11 @@ It is designed for bot authors who want a practical, queue-first player interfac
 the box, without losing access to the runtime types and protocol details needed for
 debugging, customisation, or more advanced workflows.
 
+.. _framework-compatibility:
+
+Framework Compatibility
+-----------------------
+
 ReLink is compatible with **discord.py 2.7+**, **py-cord 2.8+**, and **disnake 2.12+**,
 and requires no additional Discord library dependency — it automatically detects whichever
 you have installed. If multiple are found, precedence follows: ``discord.py`` →
