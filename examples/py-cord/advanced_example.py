@@ -320,7 +320,7 @@ async def shuffle(ctx: discord.ApplicationContext) -> None:
 
 
 @bot.slash_command(name="loop", description="Sets the loop mode.")
-@discord.option("mode", description="Choose from: track, all, off")
+@discord.option("mode", description="Choose from: track, all, off", type=str)
 async def loop(
     ctx: discord.ApplicationContext, mode: Literal["track", "all", "off"] = "track"
 ) -> None:

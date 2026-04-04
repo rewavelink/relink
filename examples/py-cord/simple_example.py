@@ -9,11 +9,12 @@
 # This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
-from typing import Any
+from typing import Any, cast
 
 import discord
 
 import relink
+import relink.models
 
 
 # We subclass discord.Bot to hold our relink.Client instance cleanly.
