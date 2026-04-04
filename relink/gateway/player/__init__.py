@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 
     from ..node import Node
 
+
 __all__ = (
     "Player",
     "BasePlayer",
@@ -48,14 +49,73 @@ __all__ = (
 _log = logging.getLogger(__name__)
 
 
+_factory: PlayerFactory = PlayerFactory()
+
+
 class Player(BasePlayer):
     """
     A dynamic proxy class for ReLink players.
+
+    Automatically resolves the appropriate :class:`~relink.player.BasePlayer`
+    implementation for the detected or configured Discord library backend
+    (``discord.py``, ``disnake``, or ``py-cord``) at instantiation time.
+
+    The framework is resolved from the ``RELINK_FRAMEWORK`` environment variable,
+    falling back to ``"discord.py"`` if unset.
+
+    There are two primary ways to create a player:
+
+    1. **Class-pass** — pass the class itself to the voice channel's ``connect``
+       method. The library will instantiate it directly::
+
+           player = await voice_channel.connect(cls=Player)
+
+    2. **Instance-pass** — construct a pre-configured instance and pass it
+       instead. The library will call ``player(client, channel)`` which hits
+       the concrete adapter's :meth:`__call__`::
+
+           player = Player(node=some_node, volume=80)
+           await voice_channel.connect(cls=player)
+
+    Parameters
+    ----------
+    node : :class:`~relink.node.Node` | None
+        The Lavalink node to associate with this player. If ``None``, an
+        available node is resolved from the client's node pool at connection
+        time.
+    queue_mode : :class:`~relink.enums.QueueMode`
+        The initial queue looping mode. Defaults to ``QueueMode.NORMAL``.
+    autoplay_settings : :class:`~relink.models.settings.AutoPlaySettings` | None
+        AutoPlay configuration. ``None`` uses the default configuration.
+    history_settings : :class:`~relink.models.settings.HistorySettings` | None
+        History configuration. ``None`` uses the default configuration.
+        History must be enabled when AutoPlay is active.
+    volume : :class:`int` | None
+        Initial volume in the range ``0``–``1000``. Defaults to ``100``.
+    paused : :class:`bool` | None
+        Whether the player should start in a paused state. Defaults to
+        ``False``.
+    filters : :class:`~relink.models.filters.Filters` | None
+        Initial audio filters. Defaults to an empty
+        :class:`~relink.models.filters.Filters` instance.
+
+    Attributes
+    ----------
+    guild
+        The guild this player is attached to. The concrete type depends on
+        the underlying Discord library (e.g. ``discord.Guild``,
+        ``disnake.Guild``).
+    channel
+        The voice channel this player is currently connected to. The concrete
+        type depends on the underlying Discord library.
+    client
+        The Discord client instance driving this player. The concrete type
+        depends on the underlying Discord library.
     """
 
     def __new__(
         cls,
-        *args: Any,
+        *,
         node: Node | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
@@ -67,12 +127,10 @@ class Player(BasePlayer):
         env_framework = os.getenv("RELINK_FRAMEWORK", "discord.py")
         framework = cast(FrameworkLiteral, env_framework)
 
-        factory = PlayerFactory()
-        actual_class = factory.get_player(framework)
+        actual_class = _factory.get_player(framework)
 
         instance = object.__new__(actual_class)
         instance.__init__(
-            *args,
             node=node,
             queue_mode=queue_mode,
             autoplay_settings=autoplay_settings,
@@ -86,7 +144,7 @@ class Player(BasePlayer):
 
     def __init__(
         self,
-        *args: Any,
+        *,
         node: Node | None = None,
         queue_mode: QueueMode = QueueMode.NORMAL,
         autoplay_settings: AutoPlaySettings | None = None,
