@@ -11,10 +11,10 @@ Module that handles gateway-related objects.
 from .client import *
 from .enums import *
 from .errors import *
+from .event_models import *
 from .node import *
 from .player import *
 from .queue import *
-from .event_models import *
 
 __all__ = (
     "AutoPlayMode",

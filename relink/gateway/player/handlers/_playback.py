@@ -28,13 +28,13 @@ import time
 
 import msgspec
 
+from relink.gateway.enums import AutoPlayMode, QueueMode
+from relink.gateway.errors import QueueEmpty
 from relink.models.filters import Filters
 from relink.models.track import Playable
 from relink.rest.schemas.filters import PlayerFilters
 from relink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 
-from ..enums import AutoPlayMode, QueueMode
-from ..errors import QueueEmpty
 from ._base import HandlerBase, _log
 
 __all__ = ()

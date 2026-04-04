@@ -1,14 +1,17 @@
+# This example requires the py-cord[voice] (https://pypi.org/project/py-cord/) library to be installed.
+#
 # This example covers how to configure relink's settings objects and wire them
 # into your bot. Settings are split into two groups:
 #
 # - Node-level: CacheSettings, InactivitySettings (shared across all players)
 # - Player-level: AutoPlaySettings, HistorySettings (unique per player)
+#
+# This requires an active Lavalink server, for more information on setting up one
+# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any
 
 import discord
-from discord import app_commands
-from discord.ext import commands
 
 import relink
 import relink.models
@@ -21,28 +24,21 @@ from relink.models.settings import (
 )
 
 
-# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# We subclass discord.Bot to hold our relink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
-class Bot(commands.Bot):
+class Bot(discord.Bot):
     def __init__(self) -> None:
         intents = discord.Intents(guilds=True, voice_states=True)
 
-        super().__init__(
-            intents=intents,
-            command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
-        )
+        super().__init__(intents=intents)
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
-    async def setup_hook(self) -> None:
-        # discord.py will automatically call 'setup_hook', and is the
-        # safest place to start our client.
+    async def on_connect(self) -> None:
+        await super().on_connect()
+
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
-
-        # Sync slash commands to Discord
-        await self.tree.sync()
-        print("Slash commands synced!")
 
 
 bot = Bot()
@@ -65,17 +61,17 @@ bot.rl_client.create_node(
 )
 
 
-@bot.tree.command(name="play", description="Plays a song.")
-@app_commands.describe(query="The song name or URL to search for.")
-async def play(interaction: discord.Interaction, query: str) -> None:
-    await interaction.response.defer()
+@bot.slash_command(name="play", description="Plays a song.")
+@discord.option("query", description="The song name or URL to search for.")
+async def play(ctx: discord.ApplicationContext, query: str) -> None:
+    await ctx.defer()
 
-    assert isinstance(interaction.user, discord.Member)
-    vc = interaction.guild.voice_client if interaction.guild else None
+    assert isinstance(ctx.author, discord.Member)
+    vc = ctx.guild.voice_client if ctx.guild else None
 
     if vc is None:
-        if not interaction.user.voice or not interaction.user.voice.channel:
-            await interaction.followup.send("You must be in a voice channel!")
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.respond("You must be in a voice channel!")
             return
 
         # AutoPlaySettings and HistorySettings are per-player, so they are
@@ -99,14 +95,14 @@ async def play(interaction: discord.Interaction, query: str) -> None:
             ),
         )
 
-        vc = await interaction.user.voice.channel.connect(cls=player)
+        vc = await ctx.author.voice.channel.connect(cls=player)
 
     assert isinstance(vc, relink.Player)
 
     result = await bot.rl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
-        await interaction.followup.send("Could not find any tracks!")
+        await ctx.respond("Could not find any tracks!")
         return
 
     data = result.result
@@ -121,33 +117,28 @@ async def play(interaction: discord.Interaction, query: str) -> None:
     if not vc.current:
         to_play = vc.queue.get()
         await vc.play(to_play)
-        await interaction.followup.send(
-            f"Now playing `{to_play.title}` by `{to_play.author}`!"
-        )
+        await ctx.respond(f"Now playing `{to_play.title}` by `{to_play.author}`!")
     else:
-        await interaction.followup.send(
-            f"Added `{track.title}` by `{track.author}` to the queue!"
-        )
+        await ctx.respond(f"Added `{track.title}` by `{track.author}` to the queue!")
 
 
 # AutoPlay mode can also be changed on an existing player at any time.
 # Note: this raises RuntimeError if history is disabled on the player.
-@bot.tree.command(name="autoplay", description="Toggles AutoPlay on or off.")
-async def autoplay(interaction: discord.Interaction) -> None:
-    vc = interaction.guild.voice_client if interaction.guild else None
+@bot.slash_command(name="autoplay", description="Toggles AutoPlay on or off.")
+async def autoplay(ctx: discord.ApplicationContext) -> None:
+    vc = ctx.guild.voice_client if ctx.guild else None
 
     if not isinstance(vc, relink.Player):
-        await interaction.response.send_message("Not connected to a voice channel!")
+        await ctx.respond("Not connected to a voice channel!")
         return
 
     if vc.autoplay is AutoPlayMode.DISABLED:
         vc.autoplay = AutoPlayMode.ENABLED
-        await interaction.response.send_message("AutoPlay enabled!")
+        await ctx.respond("AutoPlay enabled!")
     else:
         vc.autoplay = AutoPlayMode.DISABLED
-        await interaction.response.send_message("AutoPlay disabled!")
+        await ctx.respond("AutoPlay disabled!")
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")

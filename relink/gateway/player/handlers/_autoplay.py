@@ -27,15 +27,15 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from relink.gateway.enums import AutoPlayMode
+from relink.models.playlist import Playlist
 from relink.models.settings import AutoPlaySettings
 from relink.models.track import Playable
-from relink.models.playlist import Playlist
 
-from ..enums import AutoPlayMode
 from ._base import HandlerBase, _log
 
 if TYPE_CHECKING:
-    from ..player import Player
+    from .._base import BasePlayer
 
 
 class AutoPlayHandler(HandlerBase):
@@ -49,7 +49,7 @@ class AutoPlayHandler(HandlerBase):
 
     def __init__(
         self,
-        player: Player,
+        player: BasePlayer,
         settings: AutoPlaySettings | None = None,
     ) -> None:
         super().__init__(player)

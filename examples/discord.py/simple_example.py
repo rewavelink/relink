@@ -1,8 +1,15 @@
-# This example covers the procedure of creating a simple music bot using relink
-# and requires an active Lavalink server, for more information on setting up one
+# This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
+#
+# This example covers how to configure relink's settings objects and wire them
+# into your bot. Settings are split into two groups:
+#
+# - Node-level: CacheSettings, InactivitySettings (shared across all players)
+# - Player-level: AutoPlaySettings, HistorySettings (unique per player)
+#
+# This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
-from typing import Any
+from typing import Any, cast
 
 import discord
 from discord import app_commands
@@ -130,7 +137,7 @@ async def stop(interaction: discord.Interaction) -> None:
         await interaction.response.send_message("Already disconnected!")
         return
 
-    await vc.disconnect()
+    await cast(relink.Player, vc).disconnect()
     await interaction.response.send_message("Disconnected!")
 
 
@@ -157,6 +164,5 @@ async def skip(interaction: discord.Interaction) -> None:
         )
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")

@@ -26,21 +26,29 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+import os
+from typing import TYPE_CHECKING, Any, Generic, Literal, overload
 
-import discord
+from typing_extensions import TypeVar
 
 from relink import _registry
 from relink._version import __version__
+from relink.gateway.player import FrameworkLiteral, PlayerFactory
 from relink.models.settings import CacheSettings, InactivitySettings
 from relink.rest.enums import TrackSourceType
 
-from .node import Node
+from ..node import Node
+from ._base import DiscordClient
+from ._factory import ClientFactory
 
 if TYPE_CHECKING:
     from relink.models.responses import SearchResult
     from relink.models.track import Playable
     from relink.network import SessionType
+
+    from .adapters._disnake import DisnakeClientProto
+    from .adapters._dpy import DpyClientProto
+    from .adapters._pycord import PycordClientProto
 
 
 __all__ = ("Client",)
@@ -48,7 +56,10 @@ __all__ = ("Client",)
 _log = logging.getLogger(__name__)
 
 
-class Client[N: Node]:
+N = TypeVar("N", bound=Node, default=Node)
+
+
+class Client(Generic[N]):
     """
     Represents a ReLink client.
 
@@ -56,33 +67,84 @@ class Client[N: Node]:
 
     Parameters
     ----------
-    client: :class:`discord.Client`
-        The discord.py's client this ReLink client is attached to.
+    client: :class:`discord:discord.Client` (discord.py) | :class:`pycord:discord.Client` (py-cord) | :class:`disnake:disnake.Client`
+        The Discord client this ReLink client is attached to.
     node_cls: ``type[Node]``
         The class to use when creating new nodes. Defaults to :class:`Node`.
+    framework: :class:`str` | :data:`None`
+        The Discord framework to use. Accepted values are ``"discord.py"``,
+        ``"pycord"``, and ``"disnake"``. When ``None``, the framework is
+        detected automatically from whichever library is installed; if multiple
+        are present, precedence follows ``discord.py`` → ``pycord`` → ``disnake``.
+        Defaults to ``None``.
     """
 
-    _client: discord.Client
+    _framework: FrameworkLiteral
     _nodes: dict[str, N]
     _session: SessionType | None
-    __node_tasks: dict[str, asyncio.Task[Any]]
+    _node_tasks: dict[str, asyncio.Task[Any]]
+
+    @overload
+    def __init__(
+        self,
+        client: DpyClientProto,
+        *,
+        node_cls: type[N] = ...,
+        framework: Literal["discord.py"] = ...,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        client: PycordClientProto,
+        *,
+        node_cls: type[N] = ...,
+        framework: Literal["pycord"] = ...,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        client: DisnakeClientProto,
+        *,
+        node_cls: type[N] = ...,
+        framework: Literal["disnake"] = ...,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        client: Any,
+        *,
+        node_cls: type[N] = ...,
+        framework: None = ...,
+    ) -> None: ...
 
     def __init__(
         self,
-        client: discord.Client,
+        client: Any,
         *,
         node_cls: type[N] = Node,
+        framework: FrameworkLiteral | None = None,
     ) -> None:
-        self._client = client
+        if framework is None:
+            framework = PlayerFactory().detect_framework() or "discord.py"
+
+        self._client: DiscordClient[Any] = ClientFactory.create(client, framework)
+
+        self._framework = framework
         self._nodes = {}
         self._session = None
-        self.__node_tasks = {}
+        self._node_tasks = {}
         self._node_cls: type[N] = node_cls
 
-        if client in _registry.clients:
-            raise RuntimeError("relink.Client already attached to this discord.Client")
+        if self._client._client in _registry.clients:
+            raise RuntimeError(
+                f"relink.Client already attached to this {framework}.Client"
+            )
 
-        _registry.clients[client] = self
+        os.environ["RELINK_FRAMEWORK"] = framework
+        _registry.clients[self._client._client] = self
 
     def __repr__(self) -> str:
         return f"<relink.Client nodes={len(self._nodes)}>"
@@ -91,6 +153,14 @@ class Client[N: Node]:
     def nodes(self) -> list[N]:
         """The active nodes attached to this client."""
         return list(self._nodes.values())
+
+    @property
+    def framework(self) -> FrameworkLiteral:
+        """
+        The Discord framework used by this client
+        (``"discord.py"``, ``"disnake"``, or ``"pycord"``).
+        """
+        return self._framework
 
     def create_node(
         self,
@@ -221,7 +291,7 @@ class Client[N: Node]:
 
         self._nodes.clear()
 
-    def get_best_node(self) -> Node:
+    def get_best_node(self) -> N:
         """
         Returns the best available :class:`Node` based on current load and connectivity.
 
@@ -309,14 +379,14 @@ class Client[N: Node]:
         node = self.get_best_node()
         return await node.decode_tracks(*encoded)
 
-    def _cleanup_node(self, node: Node) -> asyncio.Task[None]:
-        if node.id in self.__node_tasks:
-            return self.__node_tasks[node.id]
+    def _cleanup_node(self, node: N) -> asyncio.Task[None]:
+        if node.id in self._node_tasks:
+            return self._node_tasks[node.id]
 
         task = asyncio.create_task(node.close(), name=f"relink:node-close:{node.id}")
-        self.__node_tasks[node.id] = task
+        self._node_tasks[node.id] = task
 
-        task.add_done_callback(lambda _: self.__node_tasks.pop(node.id, None))
+        task.add_done_callback(lambda _: self._node_tasks.pop(node.id, None))
         return task
 
     def _dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:

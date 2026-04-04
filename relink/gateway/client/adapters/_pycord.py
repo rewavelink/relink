@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
+Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2025-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,32 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-from weakref import WeakKeyDictionary
+from typing import Any, ClassVar, Protocol
 
-if TYPE_CHECKING:
-    from .gateway.client import Client
+import discord
+
+from .._base import DiscordClient
+
+__all__ = (
+    "PycordClientProto",
+    "PycordClient",
+)
 
 
-__all__ = ("clients",)
+class PycordClientProto(Protocol):
+    def dispatch(self, event: str, *args: Any, **kwargs: Any) -> None: ...
 
-clients: WeakKeyDictionary[Any, Client[Any]] = WeakKeyDictionary()
+    @property
+    def user(self) -> discord.ClientUser | None: ...
+
+
+class PycordClient(DiscordClient[discord.Client]):
+    __slots__ = ()
+    cls: ClassVar[type[discord.Client]] = discord.Client
+
+    def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
+        self._client.dispatch(event_name, *args, **kwargs)
+
+    @property
+    def user(self) -> discord.ClientUser | None:
+        return self._client.user

@@ -2,18 +2,17 @@
 relink
 ~~~~~~
 
-An async-prepared, high performance, Lavalink wrapper for discord.py.
+A high-performance Lavalink v4 wrapper for Python, inspired by WaveLink.
 
 :copyright: (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team
 :license: MIT
 """
 
+from . import gateway, models, rest, utils
 from ._version import __version__, version_info
-
 from .gateway import *
 from .rest import *
 from .utils import *
-from . import gateway, models, rest, utils
 
 __all__ = (
     "__version__",

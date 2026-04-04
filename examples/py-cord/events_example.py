@@ -1,32 +1,32 @@
+# This example requires the py-cord[voice] (https://pypi.org/project/py-cord/) library to be installed.
+#
 # This example covers the procedure of creating a simple music bot using relink,
 # with event handlers for track lifecycle and node events.
-# It requires an active Lavalink server, for more information on setting up one
+#
+# This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+
 
 from typing import Any
 
 import discord
-from discord.ext import commands
 
 import relink
 
 
-# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# We subclass discord.Bot to hold our relink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
-class Bot(commands.Bot):
+class Bot(discord.Bot):
     def __init__(self) -> None:
         intents = discord.Intents(guilds=True, voice_states=True)
 
-        super().__init__(
-            intents=intents,
-            command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
-        )
+        super().__init__(intents=intents)
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
-    async def setup_hook(self) -> None:
-        # discord.py will automatically call 'setup_hook', and is the
-        # safest place to start our client.
+    async def on_connect(self) -> None:
+        await super().on_connect()
+
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
@@ -107,6 +107,5 @@ async def on_relink_track_stuck(
     )
 
 
-# Now, we can run our bot.
 if __name__ == "__main__":
     bot.run("TOKEN")

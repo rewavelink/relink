@@ -8,8 +8,8 @@ Submodule to handle queues for a player.
 :license: MIT
 """
 
-from .queue import Queue
 from .history import History
+from .queue import Queue
 
 __all__ = (
     "Queue",

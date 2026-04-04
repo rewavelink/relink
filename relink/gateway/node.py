@@ -25,17 +25,19 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
 import logging
 import os
 import urllib.parse
-from typing import TYPE_CHECKING, Any, Literal
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import msgspec
 
+from relink.gateway.player._factory import PlayerFactory
+from relink.models.filters import Filters
+from relink.models.info import ServerInfo
 from relink.models.player_info import PlayerInfo
 from relink.models.responses import SearchResult
-from relink.models.info import ServerInfo
 from relink.models.settings import (
     AutoPlaySettings,
     CacheSettings,
@@ -43,21 +45,20 @@ from relink.models.settings import (
     InactivitySettings,
 )
 from relink.models.track import Playable
-from relink.models.filters import Filters
 from relink.network import BaseWebsocketManager, HTTPFactory
 from relink.network.errors import WebSocketError
 from relink.network.message import MessageType
 from relink.rest.enums import TrackSourceType
+from relink.rest.errors import HTTPException
 from relink.rest.http import RESTClient
 from relink.rest.schemas.info import StatsResponse
 from relink.rest.schemas.session import UpdateSessionRequest
-from relink.rest.errors import HTTPException
 
 from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player import Player
+from .player import BasePlayer, Player
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
 
@@ -147,7 +148,8 @@ class Node:
         self._keep_alive = None
         self._stats = None
 
-        self._players: dict[int, Player] = {}
+        self._players: dict[int, BasePlayer] = {}
+        self._player_factory = PlayerFactory()
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
         self._cache: LFUCache[str, Any] = LFUCache(settings=cache_settings)
@@ -297,6 +299,57 @@ class Node:
 
         self._client._dispatch("node_close", self)
         await self.cleanup()
+
+    def create_player(
+        self,
+        *,
+        volume: int | None = None,
+        paused: bool | None = None,
+        filters: Filters | None = None,
+        queue_mode: QueueMode = QueueMode.NORMAL,
+        autoplay_settings: AutoPlaySettings | None = None,
+        history_settings: HistorySettings | None = None,
+    ) -> Player:
+        """
+        Creates a player with extra configuration bound to this node.
+
+        Parameters
+        ----------
+        volume: :class:`int` | :data:`None`
+            The volume of the player, in percentage from 0 to 1000. Defaults to ``None``.
+        paused: :class:`bool` | :data:`None`
+            Whether the player should start paused. Defaults to ``None``.
+        filters: :class:`PlayerFilters` | :data:`None`
+            The filters to apply to the player. Defaults to ``None``.
+        queue_mode: :class:`QueueMode`
+            The playback strategy for the queue. Defaults to :attr:`QueueMode.NORMAL`.
+        autoplay_settings: :class:`AutoPlaySettings` | :data:`None`
+            The autoplay settings to set to this player. Defaults to ``None``.
+        history_settings: :class:`HistorySettings` | :data:`None`
+            The history settings to set to this player. Defaults to ``None``.
+
+        Returns
+        -------
+        :class:`Player`
+            The player. This can be passed to the ``cls=`` kwarg on
+            :meth:`discord:discord.abc.Connectable.connect` (discord.py),
+            :meth:`pycord:discord.VoiceChannel.connect` (py-cord), or
+            :meth:`disnake:disnake.VoiceChannel.connect` (disnake).
+        """
+        client = self._ensure_client()
+        player_cls = self._player_factory.get_player(client.framework)
+
+        player = player_cls(
+            node=self,
+            volume=volume or 100,
+            paused=paused or False,
+            filters=filters,
+            queue_mode=queue_mode,
+            autoplay_settings=autoplay_settings,
+            history_settings=history_settings,
+        )
+
+        return cast(Player, player)
 
     async def search_track(
         self,
@@ -449,11 +502,11 @@ class Node:
             guild_id=str(guild_id),
         )
 
-    def get_player(self, guild_id: int, /) -> Player | None:
+    def get_player(self, guild_id: int, /) -> BasePlayer | None:
         """Gets a player connected to this node."""
         return self._players.get(guild_id)
 
-    def _add_player(self, player: Player) -> None:
+    def _add_player(self, player: BasePlayer) -> None:
         """Internal helper to register a player to this node."""
         self._players[player.guild.id] = player
 
@@ -725,52 +778,10 @@ class Node:
             return response
 
     async def cleanup(self) -> None:
-        """A function that may be overriden in order to add custom clean-up
+        """
+        A function that may be overriden in order to add custom clean-up
         logic to a node.
 
         This is automatically called by the library.
         """
         ...
-
-    def create_player(
-        self,
-        *,
-        volume: int | None = None,
-        paused: bool | None = None,
-        filters: Filters | None = None,
-        queue_mode: QueueMode = QueueMode.NORMAL,
-        autoplay_settings: AutoPlaySettings | None = None,
-        history_settings: HistorySettings | None = None,
-    ) -> Player:
-        """
-        Creates a player with extra configuration bound to this node.
-
-        Parameters
-        ----------
-        volume: :class:`int` | :data:`None`
-            The volume of the player, in percentage from 0 to 1000. Defaults to ``None``.
-        paused: :class:`bool` | :data:`None`
-            Whether the player should start paused. Defaults to ``None``.
-        filters: :class:`PlayerFilters` | :data:`None`
-            The filters to apply to the player. Defaults to ``None``.
-        queue_mode: :class:`QueueMode`
-            The playback strategy for the queue. Defaults to :attr:`QueueMode.NORMAL`.
-        autoplay_settings: :class:`AutoPlaySettings` | :data:`None`
-            The autoplay settings to set to this player. Defaults to ``None``.
-        history_settings: :class:`HistorySettings` | :data:`None`
-            The history settings to set to this player. Defaults to ``None``.
-
-        Returns
-        -------
-        :class:`Player`
-            The player. This can be passed to the ``cls=`` kwarg on :meth:`~discord.abc.Connectable.connect`
-        """
-        return Player(
-            node=self,
-            queue_mode=queue_mode,
-            autoplay_settings=autoplay_settings,
-            history_settings=history_settings,
-            volume=volume,
-            paused=paused,
-            filters=filters,
-        )

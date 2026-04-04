@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2019-2025 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
+Copyright (c) 2019-2026 PythonistaGuild, EvieePy; 2026-present ReWaveLink Development Team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,21 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-from weakref import WeakKeyDictionary
+import logging
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .gateway.client import Client
+    from .._base import BasePlayer
+
+__all__ = ()
+
+_log = logging.getLogger("relink.gateway.player")
 
 
-__all__ = ("clients",)
+class HandlerBase:
+    """Base class for all internal player handlers."""
 
-clients: WeakKeyDictionary[Any, Client[Any]] = WeakKeyDictionary()
+    __slots__ = ("_player",)
+
+    def __init__(self, player: BasePlayer, /) -> None:
+        self._player: BasePlayer = player

@@ -1,0 +1,400 @@
+# This example requires the py-cord[voice] (https://pypi.org/project/py-cord/) library to be installed.
+#
+# This example covers an advanced music bot using relink, featuring a full
+# queue system, volume control, track history, seeking, and playlist support.
+#
+# This requires an active Lavalink server, for more information on setting up one
+# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+
+from typing import Any, Literal
+
+import discord
+
+import relink
+import relink.models
+from relink.gateway.enums import QueueMode
+from relink.rest.enums import TrackSourceType
+
+
+# We subclass discord.Bot to hold our relink.Client instance cleanly.
+# This avoids relying on globals and makes the client easy to access anywhere.
+class Bot(discord.Bot):
+    def __init__(self) -> None:
+        intents = discord.Intents(guilds=True, voice_states=True)
+
+        super().__init__(intents=intents)
+
+        self.rl_client: relink.Client[Any] = relink.Client(self)
+
+    async def on_connect(self) -> None:
+        await super().on_connect()
+
+        await self.rl_client.start()
+        print("ReLink nodes connected successfully!")
+
+
+bot = Bot()
+
+# Register the node we want to connect to. You can register multiple nodes
+# and relink will automatically load-balance between them via 'get_best_node'.
+bot.rl_client.create_node(
+    uri="YOUR_LAVALINK_URI",
+    password="YOUR_LAVALINK_PASSWORD",
+)
+
+
+# Helper function for DRY (Don't Repeat Yourself)
+def _player_check(ctx: discord.ApplicationContext) -> relink.Player | None:
+    """Returns the active Player for this guild, or None if not connected."""
+    vc = ctx.guild.voice_client if ctx.guild else None
+    return vc if isinstance(vc, relink.Player) else None
+
+
+# -----------------
+# Playback commands
+# -----------------
+
+
+async def query_autocomplete(
+    ctx: discord.AutocompleteContext,
+) -> list[discord.OptionChoice]:
+    if not ctx.value:
+        return []
+
+    result = await bot.rl_client.search_track(ctx.value, source=TrackSourceType.YOUTUBE)
+
+    if result.is_error() or result.is_empty() or result.result is None:
+        return []
+
+    data = result.result
+
+    if isinstance(data, relink.models.Playlist):
+        return [discord.OptionChoice(name=data.name[:100], value=data.name)]
+
+    tracks = data if isinstance(data, list) else [data]
+    return [
+        discord.OptionChoice(
+            name=f"{t.title} - {t.author}"[:100], value=t.uri or t.title
+        )
+        for t in tracks
+        if t.title
+    ][:25]
+
+
+@bot.slash_command(name="play", description="Plays a track or playlist.")
+@discord.option(
+    "query",
+    description="The song name or URL to search for.",
+    autocomplete=query_autocomplete,
+)
+async def play(ctx: discord.ApplicationContext, query: str) -> None:
+    """
+    Plays a track or playlist, or adds it to the queue if something is already playing.
+
+    Supports plain search queries as well as direct URLs (YouTube, SoundCloud, etc.).
+    When a playlist URL is provided, all tracks are enqueued.
+    """
+    # Defer since searching/connecting can take longer than 3 seconds
+    await ctx.defer()
+
+    assert isinstance(ctx.author, discord.Member)
+    vc = ctx.voice_client
+
+    # Connect to the author's voice channel if we are not already in one.
+    if vc is None:
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.followup.send("You must be in a voice channel!")
+            return
+
+        vc = await ctx.author.voice.channel.connect(cls=relink.Player)
+
+    assert isinstance(vc, relink.Player)
+
+    # Search for the query. By default this searches YouTube; pass a
+    # 'source' kwarg (e.g. TrackSourceType.SOUNDCLOUD) to change that.
+    result = await bot.rl_client.search_track(query, source=TrackSourceType.YOUTUBE)
+
+    if result.is_error() or result.is_empty() or result.result is None:
+        await ctx.respond("Could not find any tracks!")
+        return
+
+    data = result.result
+
+    # Depending on the result type we either get a single track, a list of
+    # search results, or a full playlist. We handle all three cases here.
+    if isinstance(data, relink.models.Playlist):
+        # Playlist: play the first track immediately and queue the rest.
+        first, *rest = data.tracks
+        vc.queue.put(first)
+
+        if rest:
+            vc.queue.put(rest)
+
+        if not vc.current:
+            await vc.play(vc.queue.get())
+            await ctx.respond(
+                f"Now playing `{first.title}` and queued {len(rest)} more tracks "
+                f"from playlist `{data.name}`!"
+            )
+        else:
+            await ctx.respond(
+                f"Added `{data.name}` ({len(data.tracks)} tracks) to the queue!"
+            )
+        return
+
+    # Single track or top search result.
+    track = data[0] if isinstance(data, list) else data
+    vc.queue.put(track)
+
+    if not vc.current:
+        to_play = vc.queue.get()
+        await vc.play(to_play)
+        await ctx.respond(f"Now playing `{to_play.title}` by `{to_play.author}`!")
+    else:
+        await ctx.respond(f"Added `{track.title}` by `{track.author}` to the queue!")
+
+
+@bot.slash_command(name="pause", description="Pauses the current track.")
+async def pause(ctx: discord.ApplicationContext) -> None:
+    """Pauses the current track."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    if vc.paused:
+        await ctx.respond("Already paused! Use `/resume` to continue.")
+        return
+
+    await vc.pause()
+    await ctx.respond("Paused!")
+
+
+@bot.slash_command(name="resume", description="Resumes the player if it is paused.")
+async def resume(ctx: discord.ApplicationContext) -> None:
+    """Resumes the player if it is paused."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    if not vc.paused:
+        await ctx.respond("Not paused!")
+        return
+
+    await vc.resume()
+    await ctx.respond("Resumed!")
+
+
+@bot.slash_command(name="skip", description="Skips the current track.")
+async def skip(ctx: discord.ApplicationContext) -> None:
+    """Skips the current track and plays the next one in the queue."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    # 'skip' raises QueueEmpty when there are no further tracks to advance to.
+    try:
+        track = await vc.skip()
+    except relink.QueueEmpty:
+        await ctx.respond("The queue is empty — nothing to skip to!")
+        return
+
+    if track:
+        await ctx.respond(f"Skipped to `{track.title}` by `{track.author}`!")
+    else:
+        await ctx.respond("Skipped! Nothing left in the queue.")
+
+
+@bot.slash_command(name="previous", description="Goes back to the previous track.")
+async def previous(ctx: discord.ApplicationContext) -> None:
+    """Goes back to the previous track in the history."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    # 'previous' raises HistoryEmpty when there is no track to go back to.
+    try:
+        track = await vc.previous()
+    except relink.HistoryEmpty:
+        await ctx.respond("No previous track in history!")
+        return
+
+    await ctx.respond(f"Going back to `{track.title}` by `{track.author}`!")
+
+
+@bot.slash_command(name="seek", description="Seeks to a position (seconds).")
+@discord.option("seconds", description="The position in seconds to jump to.")
+async def seek(ctx: discord.ApplicationContext, seconds: int) -> None:
+    """
+    Seeks to a position in the current track (in seconds).
+
+    Example: /seek 90  →  jumps to the 1:30 mark.
+    """
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    if not vc.current:
+        await ctx.respond("Nothing is playing!")
+        return
+
+    await vc.seek(seconds * 1000)
+    await ctx.respond(f"Seeked to {seconds}s!")
+
+
+@bot.slash_command(name="stop", description="Stops playback and disconnects.")
+async def stop(ctx: discord.ApplicationContext) -> None:
+    """Stops playback, clears the queue, and disconnects the bot."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Already disconnected!")
+        return
+
+    await vc.disconnect()
+    await ctx.respond("Disconnected and cleared the queue!")
+
+
+# --------------
+# Queue commands
+# --------------
+
+
+@bot.slash_command(name="queue", description="Displays the current queue.")
+async def queue(ctx: discord.ApplicationContext) -> None:
+    """Displays the current queue (up to 10 upcoming tracks)."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    tracks = vc.queue.tracks
+
+    if not tracks and not vc.current:
+        await ctx.respond("The queue is empty!")
+        return
+
+    lines: list[str] = []
+
+    if vc.current:
+        lines.append(
+            f"**Now playing:** `{vc.current.title}` by `{vc.current.author}`\n"
+        )
+
+    if tracks:
+        lines.append("**Up next:**")
+        for i, track in enumerate(tracks[:10], start=1):
+            lines.append(f"`{i}.` `{track.title}` by `{track.author}`")
+
+        if len(tracks) > 10:
+            lines.append(f"\n*...and {len(tracks) - 10} more tracks.*")
+
+    await ctx.respond("\n".join(lines))
+
+
+@bot.slash_command(name="shuffle", description="Shuffles the current queue.")
+async def shuffle(ctx: discord.ApplicationContext) -> None:
+    """Shuffles the current queue in place."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    if not vc.queue.tracks:
+        await ctx.respond("The queue is empty!")
+        return
+
+    vc.queue.shuffle()
+    await ctx.respond("Queue shuffled!")
+
+
+@bot.slash_command(name="loop", description="Sets the loop mode.")
+@discord.option("mode", description="Choose from: track, all, off", type=str)
+async def loop(
+    ctx: discord.ApplicationContext, mode: Literal["track", "all", "off"] = "track"
+) -> None:
+    """
+    Sets the loop mode. Options: 'track', 'all', 'off'.
+
+    - track: repeats the current track indefinitely.
+    - all:   loops the entire queue once it finishes.
+    - off:   disables looping.
+    """
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    mapping = {
+        "track": QueueMode.LOOP,
+        "all": QueueMode.LOOP_ALL,
+        "off": QueueMode.NORMAL,
+    }
+
+    # Literal type ensures 'mode' is one of the valid strings
+    vc.queue.mode = mapping[mode]
+    await ctx.respond(f"Loop mode set to `{mode}`!")
+
+
+# ---------------
+# Player settings
+# ---------------
+
+
+@bot.slash_command(name="volume", description="Sets the player volume (0–1000).")
+@discord.option(
+    "value", description="Volume level between 0 and 1000", min_value=0, max_value=1000
+)
+async def volume(ctx: discord.ApplicationContext, value: int) -> None:
+    """Sets the player volume (0–1000). Default is 100."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    # app_commands.Range ensures the value stays between 0 and 1000 in the UI
+    await vc.set_volume(value)
+    await ctx.respond(f"Volume set to `{value}`!")
+
+
+@bot.slash_command(name="nowplaying", description="Shows current track info.")
+async def nowplaying(ctx: discord.ApplicationContext) -> None:
+    """Shows information about the currently playing track."""
+
+    vc = _player_check(ctx)
+    if not vc:
+        await ctx.respond("Not connected to a voice channel!")
+        return
+
+    track = vc.current
+    if not track:
+        await ctx.respond("Nothing is playing right now!")
+        return
+
+    # Convert milliseconds to a readable mm:ss position / duration.
+    def fmt(ms: int) -> str:
+        s = ms // 1000
+        return f"{s // 60}:{s % 60:02d}"
+
+    await ctx.respond(
+        f"**Now playing:** `{track.title}` by `{track.author}`\n"
+        f"**Position:** `{fmt(vc.position)}` / `{fmt(track.length)}`\n"
+        f"**Volume:** `{vc.volume}` | **Loop:** `{vc.queue.mode.name.lower()}`"
+    )
+
+
+if __name__ == "__main__":
+    bot.run("TOKEN")
