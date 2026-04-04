@@ -21,4 +21,5 @@ Player
 -------
 .. autoclass:: relink.Player
    :members:
-   
+   :inherited-members:
+
