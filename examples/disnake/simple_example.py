@@ -2,7 +2,7 @@
 # and requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
-from typing import Any
+from typing import Any, cast
 
 import disnake
 from disnake.ext import commands
@@ -128,7 +128,7 @@ async def stop(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
         await inter.response.send_message("Already disconnected!")
         return
 
-    await vc.disconnect()
+    await cast(relink.Player, vc).disconnect()
     await inter.response.send_message("Disconnected!")
 
 

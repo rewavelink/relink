@@ -2,7 +2,7 @@
 # and requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
-from typing import Any
+from typing import Any, cast
 
 import discord
 from discord import app_commands
@@ -129,8 +129,8 @@ async def stop(interaction: discord.Interaction) -> None:
     if not isinstance(vc, relink.Player):
         await interaction.response.send_message("Already disconnected!")
         return
-    
-    await vc.disconnect()
+
+    await cast(relink.Player, vc).disconnect()
     await interaction.response.send_message("Disconnected!")
 
 
