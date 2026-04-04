@@ -64,6 +64,7 @@ autodoc_default_options = {
     "members": True,
     "undoc-members": False,
 }
+autodoc_mock_imports = ["discord", "disnake", "py-cord"]
 autodoc_typehints = "both"
 autodoc_class_signature = "mixed"
 napoleon_preprocess_types = True

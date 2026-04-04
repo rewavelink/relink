@@ -55,16 +55,13 @@ All three classes inherit the full public API of :class:`~relink.player.BasePlay
    :members:
    :inherited-members:
    :show-inheritance:
-   :special-members: __call__
 
 .. autoclass:: relink.gateway.player.adapters._disnake.DisnakePlayer
    :members:
    :inherited-members:
    :show-inheritance:
-   :special-members: __call__
 
 .. autoclass:: relink.gateway.player.adapters._pycord.PycordPlayer
    :members:
    :inherited-members:
    :show-inheritance:
-   :special-members: __call__
