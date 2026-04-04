@@ -58,7 +58,7 @@ from .cache import LFUCache
 from .enums import NodeStatus, QueueMode
 from .errors import InvalidNodePassword, NodeURINotFound
 from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player import Player, BasePlayer
+from .player import BasePlayer, Player
 from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
 from .schemas.receive import ReadyEvent as ReadyPayload
 
@@ -299,6 +299,57 @@ class Node:
 
         self._client._dispatch("node_close", self)
         await self.cleanup()
+
+    def create_player(
+        self,
+        *,
+        volume: int | None = None,
+        paused: bool | None = None,
+        filters: Filters | None = None,
+        queue_mode: QueueMode = QueueMode.NORMAL,
+        autoplay_settings: AutoPlaySettings | None = None,
+        history_settings: HistorySettings | None = None,
+    ) -> Player:
+        """
+        Creates a player with extra configuration bound to this node.
+
+        Parameters
+        ----------
+        volume: :class:`int` | :data:`None`
+            The volume of the player, in percentage from 0 to 1000. Defaults to ``None``.
+        paused: :class:`bool` | :data:`None`
+            Whether the player should start paused. Defaults to ``None``.
+        filters: :class:`PlayerFilters` | :data:`None`
+            The filters to apply to the player. Defaults to ``None``.
+        queue_mode: :class:`QueueMode`
+            The playback strategy for the queue. Defaults to :attr:`QueueMode.NORMAL`.
+        autoplay_settings: :class:`AutoPlaySettings` | :data:`None`
+            The autoplay settings to set to this player. Defaults to ``None``.
+        history_settings: :class:`HistorySettings` | :data:`None`
+            The history settings to set to this player. Defaults to ``None``.
+
+        Returns
+        -------
+        :class:`Player`
+            The player. This can be passed to the ``cls=`` kwarg on
+            :meth:`discord:discord.abc.Connectable.connect` (discord.py),
+            :meth:`pycord:discord.VoiceChannel.connect` (py-cord), or
+            :meth:`disnake:disnake.VoiceChannel.connect` (disnake).
+        """
+        client = self._ensure_client()
+        player_cls = self._player_factory.get_player(client.framework)
+
+        player = player_cls(
+            node=self,
+            volume=volume or 100,
+            paused=paused or False,
+            filters=filters,
+            queue_mode=queue_mode,
+            autoplay_settings=autoplay_settings,
+            history_settings=history_settings,
+        )
+
+        return cast(Player, player)
 
     async def search_track(
         self,
@@ -734,51 +785,3 @@ class Node:
         This is automatically called by the library.
         """
         ...
-
-    def create_player(
-        self,
-        *,
-        volume: int | None = None,
-        paused: bool | None = None,
-        filters: Filters | None = None,
-        queue_mode: QueueMode = QueueMode.NORMAL,
-        autoplay_settings: AutoPlaySettings | None = None,
-        history_settings: HistorySettings | None = None,
-    ) -> Player:
-        """
-        Creates a player with extra configuration bound to this node.
-
-        Parameters
-        ----------
-        volume: :class:`int` | :data:`None`
-            The volume of the player, in percentage from 0 to 1000. Defaults to ``None``.
-        paused: :class:`bool` | :data:`None`
-            Whether the player should start paused. Defaults to ``None``.
-        filters: :class:`PlayerFilters` | :data:`None`
-            The filters to apply to the player. Defaults to ``None``.
-        queue_mode: :class:`QueueMode`
-            The playback strategy for the queue. Defaults to :attr:`QueueMode.NORMAL`.
-        autoplay_settings: :class:`AutoPlaySettings` | :data:`None`
-            The autoplay settings to set to this player. Defaults to ``None``.
-        history_settings: :class:`HistorySettings` | :data:`None`
-            The history settings to set to this player. Defaults to ``None``.
-
-        Returns
-        -------
-        :class:`Player`
-            The player. This can be passed to the ``cls=`` kwarg on your library's ``connect`` method.
-        """
-        client = self._ensure_client()
-        player_cls = self._player_factory.get_player(client.framework)
-
-        player = player_cls(
-            node=self,
-            volume=volume or 100,
-            paused=paused or False,
-            filters=filters,
-            queue_mode=queue_mode,
-            autoplay_settings=autoplay_settings,
-            history_settings=history_settings,
-        )
-
-        return cast(Player, player)
