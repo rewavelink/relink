@@ -9,7 +9,7 @@ dependencies = [
     "aiohttp>=3.11.0,<4",
     "msgspec>=0.20.0,<1",
     "typing_extensions>=4.0.0",
-    "packaging>=26.0,<27.0"
+    "packaging>=26.0,<27.0",
 ]
 requires-python = ">=3.12"
 authors = [
@@ -23,10 +23,26 @@ maintainers = [
     { name = "DA-344 (aka Developer Anonymous)" },
     { name = "Soheab" },
 ]
-description = "A maintained fork of WaveLink, a robust and powerful, fully asynchronous Lavalink wrapper built for discord.py in Python."
+description = "A high-performance Lavalink v4 wrapper for Python, inspired by WaveLink."
 readme = "README.md"
-license = {text = "MIT"}
-keywords = ["lavalink", "wavelink", "discord.py", "discord"]
+license = { text = "MIT" }
+keywords = [
+    "lavalink",
+    "wavelink",
+    "fork",
+    "rewavelink",
+    "discord.py",
+    "discord",
+    "music",
+    "audio",
+    "bot",
+    "library",
+    "python",
+    "asyncio",
+    "pycord",
+    "py-cord",
+    "disnake",
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Framework :: AsyncIO",
@@ -64,4 +80,4 @@ reportPrivateUsage = false
 ignore = ["F405", "F403"]
 
 [tool.setuptools.dynamic]
-version = {attr = "relink._version.__version__"}
+version = { attr = "relink._version.__version__" }
