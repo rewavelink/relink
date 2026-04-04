@@ -1,4 +1,4 @@
-# This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
+# This example requires the py-cord[voice] (https://pypi.org/project/py-cord/) library to be installed.
 #
 # This example covers the procedure of handling filters with relink, allowing you to apply audio filters to your players.
 # It demonstrates full usage of every filter type: Equalizer, Timescale, Karaoke,
@@ -12,35 +12,26 @@ from enum import StrEnum
 from typing import Any
 
 import discord
-from discord import app_commands
-from discord.ext import commands
 
 import relink
 from relink.models import filters
 
 
-# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# We subclass discord.Bot to hold our relink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
-class Bot(commands.Bot):
+class Bot(discord.Bot):
     def __init__(self) -> None:
         intents = discord.Intents(guilds=True, voice_states=True)
 
-        super().__init__(
-            intents=intents,
-            command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
-        )
+        super().__init__(intents=intents)
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
-    async def setup_hook(self) -> None:
-        # discord.py will automatically call 'setup_hook', and is the
-        # safest place to start our client.
+    async def on_connect(self) -> None:
+        await super().on_connect()
+
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
-
-        # Sync slash commands to Discord
-        await self.tree.sync()
-        print("Slash commands synced!")
 
 
 bot = Bot()
@@ -415,39 +406,38 @@ FILTERS: dict[Filter, filters.Filters] = {
 }
 
 
-def _get_player(interaction: discord.Interaction) -> relink.Player | None:
-    vc = interaction.guild.voice_client if interaction.guild else None
+def _get_player(ctx: discord.ApplicationContext) -> relink.Player | None:
+    vc = ctx.guild.voice_client if ctx.guild else None
     return vc if isinstance(vc, relink.Player) else None
 
 
 async def filter_autocomplete(
-    interaction: discord.Interaction,
-    current: str,
-) -> list[app_commands.Choice[str]]:
+    ctx: discord.AutocompleteContext,
+) -> list[discord.OptionChoice]:
     return [
-        app_commands.Choice(name=f.value, value=f.value)
+        discord.OptionChoice(name=f.value, value=f.value)
         for f in Filter
-        if current.lower() in f.value.lower()
+        if ctx.value.lower() in f.value.lower()
     ][:25]
 
 
-@bot.tree.command(name="play", description="Plays a song.")
-@app_commands.describe(query="The song name or URL to search for.")
-async def play(interaction: discord.Interaction, query: str) -> None:
-    await interaction.response.defer()
+@bot.slash_command(name="play", description="Plays a song.")
+@discord.option("query", description="The song name or URL to search for.")
+async def play(ctx: discord.ApplicationContext, query: str) -> None:
+    await ctx.defer()
 
     # Here we must check whether we have an active player on the guild
     # if we don't, we will connect to the author voice channel, if available.
 
-    assert isinstance(interaction.user, discord.Member)
-    vc = interaction.guild.voice_client if interaction.guild else None
+    assert isinstance(ctx.author, discord.Member)
+    vc = ctx.voice_client
 
     if vc is None:
-        if not interaction.user.voice or not interaction.user.voice.channel:
-            await interaction.followup.send("You must be in a voice channel!")
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.respond("You must be in a voice channel!")
             return
 
-        vc = await interaction.user.voice.channel.connect(cls=relink.Player)
+        vc = await ctx.author.voice.channel.connect(cls=relink.Player)
 
     assert isinstance(vc, relink.Player)
 
@@ -455,7 +445,7 @@ async def play(interaction: discord.Interaction, query: str) -> None:
     result = await bot.rl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
-        await interaction.followup.send("Could not find any tracks!")
+        await ctx.respond("Could not find any tracks!")
         return
 
     data = result.result
@@ -473,26 +463,25 @@ async def play(interaction: discord.Interaction, query: str) -> None:
     if not vc.current:
         to_play = vc.queue.get()
         await vc.play(to_play)
-        await interaction.followup.send(
-            f"Now playing `{to_play.title}` by `{to_play.author}`!"
-        )
+        await ctx.respond(f"Now playing `{to_play.title}` by `{to_play.author}`!")
     else:
-        await interaction.followup.send(
-            f"Added `{track.title}` by `{track.author}` to the queue!"
-        )
+        await ctx.respond(f"Added `{track.title}` by `{track.author}` to the queue!")
 
 
-@bot.tree.command(
-    name="apply-filter",
-    description="Applies a filter preset to the current player.",
+@bot.slash_command(
+    name="apply-filter", description="Applies a filter preset to the current player."
 )
-@app_commands.describe(
-    filter="The filter preset to apply.",
-    reset="Clear all existing filters before applying. Defaults to False (stacks on top).",
+@discord.option(
+    "filter",
+    description="The filter preset to apply.",
+    autocomplete=filter_autocomplete,
 )
-@app_commands.autocomplete(filter=filter_autocomplete)
+@discord.option(
+    "reset",
+    description="Clear all existing filters before applying. Defaults to False (stacks on top).",
+)
 async def apply_filter(
-    interaction: discord.Interaction,
+    ctx: discord.ApplicationContext,
     filter: str,
     reset: bool = False,
 ) -> None:
@@ -500,17 +489,17 @@ async def apply_filter(
     # By default, the new preset is stacked on top of existing filters via Filters.combine(),
     # which returns a new Filters instance without mutating either input.
     # Passing reset=True replaces all active filters with only the chosen preset instead.
-    await interaction.response.defer()
+    await ctx.defer()
 
-    vc = _get_player(interaction)
+    vc = _get_player(ctx)
     if not vc or not vc.current:
-        await interaction.followup.send("Nothing is currently playing!")
+        await ctx.respond("Nothing is currently playing!")
         return
 
     try:
         preset = Filter(filter)
     except ValueError:
-        await interaction.followup.send(f"`{filter}` is not a valid filter preset.")
+        await ctx.respond(f"`{filter}` is not a valid filter preset.")
         return
 
     new_filters = (
@@ -519,36 +508,39 @@ async def apply_filter(
         else (vc.filters or filters.Filters()).combine(FILTERS[preset])
     )
     await vc.set_filters(new_filters)
-    await interaction.followup.send(
+    await ctx.respond(
         f"{'Reset filters and applied' if reset else 'Applied'} `{preset.value}`!"
     )
 
 
-@bot.tree.command(
+@bot.slash_command(
     name="remove-filter",
     description="Removes a single active filter type.",
 )
-@app_commands.describe(filter="The filter preset whose filter types should be removed.")
-@app_commands.autocomplete(filter=filter_autocomplete)
+@discord.option(
+    "filter",
+    description="The filter preset whose filter types should be removed.",
+    autocomplete=filter_autocomplete,
+)
 async def remove_filter(
-    interaction: discord.Interaction,
+    ctx: discord.ApplicationContext,
     filter: str,
 ) -> None:
     # Rather than tracking which presets are active, we look at which filter types
     # the chosen preset uses and null those out on the current player state.
     # For example, removing 'nightcore' clears only the Timescale filter, leaving
     # any equalizer or rotation filters that may be active completely untouched.
-    await interaction.response.defer()
+    await ctx.defer()
 
-    vc = _get_player(interaction)
+    vc = _get_player(ctx)
     if not vc or not vc.current:
-        await interaction.followup.send("Nothing is currently playing!")
+        await ctx.respond("Nothing is currently playing!")
         return
 
     try:
         preset = Filter(filter)
     except ValueError:
-        await interaction.followup.send(f"`{filter}` is not a valid filter preset.")
+        await ctx.respond(f"`{filter}` is not a valid filter preset.")
         return
 
     current = vc.filters or filters.Filters()
@@ -572,21 +564,21 @@ async def remove_filter(
         current.equalizer = []
 
     await vc.set_filters(current)
-    await interaction.followup.send(f"Removed `{preset.value}` filter!")
+    await ctx.respond(f"Removed `{preset.value}` filter!")
 
 
-@bot.tree.command(
+@bot.slash_command(
     name="reset-filters", description="Clears all active filters from the player."
 )
-async def reset_filters(interaction: discord.Interaction) -> None:
+async def reset_filters(ctx: discord.ApplicationContext) -> None:
     # Applying an empty Filters() instance tells Lavalink to remove all active filters.
-    vc = _get_player(interaction)
+    vc = _get_player(ctx)
     if not vc or not vc.current:
-        await interaction.response.send_message("Nothing is currently playing!")
+        await ctx.respond("Nothing is currently playing!")
         return
 
     await vc.set_filters(filters.Filters())
-    await interaction.response.send_message("All filters cleared!")
+    await ctx.respond("All filters cleared!")
 
 
 if __name__ == "__main__":

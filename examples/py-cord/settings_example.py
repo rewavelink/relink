@@ -14,6 +14,14 @@ from typing import Any
 import discord
 
 import relink
+import relink.models
+from relink.gateway.enums import AutoPlayMode, InactivityMode, QueueMode, SearchProvider
+from relink.models.settings import (
+    AutoPlaySettings,
+    CacheSettings,
+    HistorySettings,
+    InactivitySettings,
+)
 
 
 # We subclass discord.Bot to hold our relink.Client instance cleanly.
@@ -35,24 +43,28 @@ class Bot(discord.Bot):
 
 bot = Bot()
 
-# Register the node we want to connect to. You can register multiple nodes
-# and relink will automatically load-balance between them via 'get_best_node'.
+# CacheSettings and InactivitySettings apply to every player on the node.
 bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
+    cache_settings=CacheSettings(
+        enabled=True,
+        max_items=500,
+    ),
+    inactivity_settings=InactivitySettings(
+        timeout=300,
+        mode=InactivityMode.ALL_BOTS,
+        # mode=InactivityMode.ONLY_SELF,
+        # mode=InactivityMode.IGNORED_USERS,
+        # user_ids=[discord.Object(id=YOUR_USER_ID)],  # required for IGNORED_USERS
+    ),
 )
-
-
-# Here we will define some simple play, pause, resume, stop and skip commands.
 
 
 @bot.slash_command(name="play", description="Plays a song.")
 @discord.option("query", description="The song name or URL to search for.")
 async def play(ctx: discord.ApplicationContext, query: str) -> None:
     await ctx.defer()
-
-    # Here we must check whether we have an active player on the guild
-    # if we don't, we will connect to the author voice channel, if available.
 
     assert isinstance(ctx.author, discord.Member)
     vc = ctx.guild.voice_client if ctx.guild else None
@@ -62,11 +74,31 @@ async def play(ctx: discord.ApplicationContext, query: str) -> None:
             await ctx.respond("You must be in a voice channel!")
             return
 
-        vc = await ctx.author.voice.channel.connect(cls=relink.Player)
+        # AutoPlaySettings and HistorySettings are per-player, so they are
+        # passed when creating the player via Node.create_player().
+        node = bot.rl_client.get_best_node()
+        player = node.create_player(
+            queue_mode=QueueMode.NORMAL,
+            autoplay_settings=AutoPlaySettings(
+                mode=AutoPlayMode.ENABLED,
+                # mode=AutoPlayMode.PARTIAL,
+                # mode=AutoPlayMode.DISABLED,
+                provider=SearchProvider.YOUTUBE,
+                # provider=SearchProvider.SPOTIFY,
+                # provider=SearchProvider.DEEZER,
+                max_seeds=100,
+                discovery_count=10,
+            ),
+            history_settings=HistorySettings(
+                enabled=True,
+                max_items=50,
+            ),
+        )
+
+        vc = await ctx.author.voice.channel.connect(cls=player)
 
     assert isinstance(vc, relink.Player)
 
-    # Now, we will search 'query' with Lavalink and play the obtained track, if available
     result = await bot.rl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
@@ -74,15 +106,12 @@ async def play(ctx: discord.ApplicationContext, query: str) -> None:
         return
 
     data = result.result
+    track = (
+        data[0]
+        if isinstance(data, list)
+        else (data.tracks[0] if isinstance(data, relink.models.Playlist) else data)
+    )
 
-    if isinstance(data, list):
-        track = data[0]
-    elif isinstance(data, relink.models.Playlist):
-        track = data.tracks[0]
-    else:
-        track = data
-
-    # Add our track to the queue, and play it if there is no current song
     vc.queue.put(track)
 
     if not vc.current:
@@ -93,61 +122,22 @@ async def play(ctx: discord.ApplicationContext, query: str) -> None:
         await ctx.respond(f"Added `{track.title}` by `{track.author}` to the queue!")
 
 
-@bot.slash_command(name="pause", description="Pauses the current playing song.")
-async def pause(ctx: discord.ApplicationContext) -> None:
-    vc = ctx.voice_client
+# AutoPlay mode can also be changed on an existing player at any time.
+# Note: this raises RuntimeError if history is disabled on the player.
+@bot.slash_command(name="autoplay", description="Toggles AutoPlay on or off.")
+async def autoplay(ctx: discord.ApplicationContext) -> None:
+    vc = ctx.guild.voice_client if ctx.guild else None
 
     if not isinstance(vc, relink.Player):
         await ctx.respond("Not connected to a voice channel!")
         return
 
-    await vc.pause()
-    await ctx.respond("Paused!")
-
-
-@bot.slash_command(name="resume", description="Resumes the current playing song.")
-async def resume(ctx: discord.ApplicationContext) -> None:
-    vc = ctx.voice_client if ctx.voice_client else None
-
-    if not isinstance(vc, relink.Player):
-        await ctx.respond("Not connected to a voice channel!")
-        return
-
-    await vc.resume()
-    await ctx.respond("Resumed!")
-
-
-@bot.slash_command(name="stop", description="Stops playback and disconnects the bot.")
-async def stop(ctx: discord.ApplicationContext) -> None:
-    vc = ctx.voice_client if ctx.voice_client else None
-
-    if not isinstance(vc, relink.Player):
-        await ctx.respond("Already disconnected!")
-        return
-
-    await cast(relink.Player, vc).disconnect()
-    await ctx.respond("Disconnected!")
-
-
-@bot.slash_command(name="skip", description="Skips the current song.")
-async def skip(ctx: discord.ApplicationContext) -> None:
-    vc = ctx.voice_client if ctx.voice_client else None
-
-    if not isinstance(vc, relink.Player):
-        await ctx.respond("Not connected to a voice channel!")
-        return
-
-    # 'skip' will raise 'QueueEmpty' if there are no tracks in queue
-    try:
-        track = await vc.skip()
-    except relink.QueueEmpty:
-        await ctx.respond("There is no track to skip to!")
+    if vc.autoplay is AutoPlayMode.DISABLED:
+        vc.autoplay = AutoPlayMode.ENABLED
+        await ctx.respond("AutoPlay enabled!")
     else:
-        if not track:
-            await ctx.respond("Skipped!")
-            return
-
-        await ctx.respond(f"Skipped to `{track.title}` by `{track.author}`!")
+        vc.autoplay = AutoPlayMode.DISABLED
+        await ctx.respond("AutoPlay disabled!")
 
 
 if __name__ == "__main__":

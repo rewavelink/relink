@@ -1,9 +1,11 @@
+# This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
+#
 # This example covers the procedure of handling filters with relink, allowing you to apply audio filters to your players.
 # It demonstrates full usage of every filter type: Equalizer, Timescale, Karaoke,
 # Tremolo, Vibrato, Rotation, Distortion, ChannelMix, and LowPass.
 # https://relink.readthedocs.io/en/latest/guides/filters.html
 #
-# It requires an active Lavalink server, for more information on setting up one
+# This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from enum import StrEnum
@@ -27,8 +29,8 @@ class Bot(commands.InteractionBot):
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
     async def on_connect(self) -> None:
-        # disnake fires 'on_ready' once the bot is connected and ready.
-        # We start the relink client here since setup_hook is not available.
+        await super().on_connect()
+
         await self.rl_client.start()
         print("ReLink nodes connected successfully!")
 
@@ -582,6 +584,5 @@ async def reset_filters(inter: disnake.ApplicationCommandInteraction[Bot]) -> No
     await inter.response.send_message("All filters cleared!")
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")

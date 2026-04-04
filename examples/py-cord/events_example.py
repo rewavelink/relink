@@ -1,4 +1,4 @@
-# This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
+# This example requires the py-cord[voice] (https://pypi.org/project/py-cord/) library to be installed.
 #
 # This example covers the procedure of creating a simple music bot using relink,
 # with event handlers for track lifecycle and node events.
@@ -6,19 +6,19 @@
 # This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
+
 from typing import Any
 
-import disnake
-from disnake.ext import commands
+import discord
 
 import relink
 
 
-# We subclass commands.InteractionBot to hold our relink.Client instance cleanly.
+# We subclass discord.Bot to hold our relink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
-class Bot(commands.InteractionBot):
+class Bot(discord.Bot):
     def __init__(self) -> None:
-        intents = disnake.Intents(guilds=True, voice_states=True)
+        intents = discord.Intents(guilds=True, voice_states=True)
 
         super().__init__(intents=intents)
 
@@ -43,20 +43,20 @@ bot.rl_client.create_node(
 
 # Fired when a node has successfully connected and is ready to accept players.
 # 'event.resumed' tells us whether this was a fresh connection or a resume.
-@bot.listen()
+@bot.event
 async def on_relink_node_ready(event: relink.gateway.ReadyEvent) -> None:
     print(f"Node {event.node.id!r} is ready! (resumed={event.resumed})")
 
 
 # Fired when a node connection is lost or manually closed.
-@bot.listen()
+@bot.event
 async def on_relink_node_close(node: relink.Node) -> None:
     print(f"Node {node.id!r} closed.")
 
 
 # Fired each time Lavalink sends a position/state update for a player.
 # This happens frequently (roughly every 5 seconds by default).
-@bot.listen()
+@bot.event
 async def on_relink_player_update(
     player: relink.Player, event: relink.gateway.PlayerUpdateEvent
 ) -> None:
@@ -65,7 +65,7 @@ async def on_relink_player_update(
 
 
 # Fired when a track begins playing.
-@bot.listen()
+@bot.event
 async def on_relink_track_start(
     player: relink.Player, event: relink.gateway.TrackStartEvent
 ) -> None:
@@ -76,7 +76,7 @@ async def on_relink_track_start(
 # 'event.reason' is a TrackEndReason enum describing why it ended.
 # NOTE: relink automatically calls 'player.skip()' internally when the reason
 # allows starting the next track, so you do not need to advance the queue here.
-@bot.listen()
+@bot.event
 async def on_relink_track_end(
     player: relink.Player, event: relink.gateway.TrackEndEvent
 ) -> None:
@@ -85,7 +85,7 @@ async def on_relink_track_end(
 
 # Fired when Lavalink encounters an error while playing a track.
 # 'event.exception.message' contains the error description from Lavalink.
-@bot.listen()
+@bot.event
 async def on_relink_track_exception(
     player: relink.Player, event: relink.gateway.TrackExceptionEvent
 ) -> None:
@@ -97,7 +97,7 @@ async def on_relink_track_exception(
 
 # Fired when a track gets stuck and stops progressing.
 # 'event.threshold' is the number of milliseconds Lavalink waited before giving up.
-@bot.listen()
+@bot.event
 async def on_relink_track_stuck(
     player: relink.Player, event: relink.gateway.TrackStuckEvent
 ) -> None:

@@ -1,7 +1,11 @@
+# This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
+#
 # This example covers the procedure of creating a simple music bot using relink,
 # with event handlers for track lifecycle and node events.
-# It requires an active Lavalink server, for more information on setting up one
+#
+# This requires an active Lavalink server, for more information on setting up one
 # you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+
 
 from typing import Any
 
@@ -107,6 +111,5 @@ async def on_relink_track_stuck(
     )
 
 
-# Now, we can run our bot.
 if __name__ == "__main__":
     bot.run("TOKEN")

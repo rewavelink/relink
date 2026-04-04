@@ -1,7 +1,10 @@
+# This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
+#
 # This example covers an advanced music bot using relink, featuring a full
 # queue system, volume control, track history, seeking, and playlist support.
-# It requires an active Lavalink server — for setup instructions see:
-# https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+#
+# This requires an active Lavalink server, for more information on setting up one
+# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any, Literal
 
@@ -412,6 +415,5 @@ async def nowplaying(interaction: discord.Interaction) -> None:
     )
 
 
-# Now, we can run our bot
 if __name__ == "__main__":
     bot.run("TOKEN")
