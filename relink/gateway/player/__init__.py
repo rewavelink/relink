@@ -110,3 +110,10 @@ class Player(BasePlayer):
     def __instancecheck__(cls, instance: Any) -> bool:
         """Standardizes isinstance(vc_instance, Player) -> True."""
         return isinstance(instance, BasePlayer)
+
+    def __call__(self, client: Any, channel: Any) -> Player:
+        raise NotImplementedError("Player is a proxy; this is never called directly.")
+
+    async def on_voice_server_update(self, data: Any) -> None: ...
+
+    async def on_voice_state_update(self, data: Any) -> None: ...
