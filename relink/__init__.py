@@ -8,12 +8,11 @@ A high-performance Lavalink v4 wrapper for Python, inspired by WaveLink.
 :license: MIT
 """
 
+from . import gateway, models, rest, utils
 from ._version import __version__, version_info
-
 from .gateway import *
 from .rest import *
 from .utils import *
-from . import gateway, models, rest, utils
 
 __all__ = (
     "__version__",
