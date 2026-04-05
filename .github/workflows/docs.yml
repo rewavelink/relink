@@ -12,15 +12,12 @@ on:
       - "docs/**"
       - "relink/**"
 
-  concurrency:
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
-
   schedule:
     - cron: "0 0 * * *"
 
-permissions:
-  contents: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   docs:
@@ -44,4 +41,4 @@ jobs:
       - name: Compile Docs
         run: |
             cd docs
-            make livehtml
+            make html
