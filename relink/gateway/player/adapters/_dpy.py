@@ -222,3 +222,6 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
             The raw payload received from the Discord gateway.
         """
         await self._events_handler.on_voice_state_update(cast(dict[str, Any], data))
+
+    def cleanup(self) -> None:
+        discord.VoiceProtocol.cleanup(self)

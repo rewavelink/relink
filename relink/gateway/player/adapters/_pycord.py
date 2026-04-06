@@ -201,3 +201,6 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
         return await self._events_handler.on_voice_state_update(
             cast(dict[str, Any], data._raw_data)
         )  # pyright: ignore[reportAttributeAccessIssue]
+
+    def cleanup(self) -> None:
+        discord.VoiceProtocol.cleanup(self)

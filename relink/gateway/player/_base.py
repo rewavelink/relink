@@ -680,6 +680,15 @@ class BasePlayer(abc.ABC):
         """
         ...
 
+    @abc.abstractmethod
+    def cleanup(self) -> None:
+        """
+        Cleans the internal state of the Player. This is automatically called by the library when failures
+        or disconnects occurr.
+
+        If this is overridden, it **must** call the original ``cleanup``.
+        """
+
     def get_connection_state(self) -> PlayerConnectionState:
         """
         Return a :class:`~relink.player.player.PlayerConnectionState` instance
