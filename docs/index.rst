@@ -21,7 +21,7 @@ and requires no additional Discord library dependency — it automatically detec
 you have installed. If multiple are found, precedence follows: ``discord.py`` →
 ``py-cord`` → ``disnake``.
 
-.. note::
+.. important::
    ReLink targets **Lavalink 4.x**. See :doc:`/guides/lavalink-setup` for instructions on
    setting up and self-hosting a Lavalink server.
 
@@ -30,11 +30,18 @@ Getting Started
 
 .. toctree::
    :maxdepth: 1
+   :caption: Main
 
    installation
    guides/index
    api/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Meta
+
    changelog
+   version_guarantees
 
 Who should read what
 --------------------

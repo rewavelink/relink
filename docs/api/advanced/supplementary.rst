@@ -34,4 +34,5 @@ Messages
 Utilities API
 -------------
 
+.. autoclass:: relink.utils.Snowflake
 .. autofunction:: relink.utils.cached_property
