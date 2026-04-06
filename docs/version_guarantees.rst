@@ -43,3 +43,4 @@ The following are **not** considered breaking and may occur in any release:
 - Adding a new optional parameter with a default value to an existing function.
 - Adding new public classes, functions, or attributes that did not previously exist.
 - Changing log messages or other output not considered part of the public API.
+- Changing type annotations as long as runtime behaviour is unaffected.
