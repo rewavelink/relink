@@ -74,6 +74,7 @@ Repository = "https://github.com/rewavelink/relink"
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportPrivateUsage = false
+reportUnnecessaryComparison = false
 
 [tool.ruff.lint]
 ignore = ["F405", "F403"]
