@@ -22,16 +22,9 @@ from relink.rest.enums import TrackSourceType
 class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
-
         super().__init__(intents=intents)
-
+        
         self.rl_client: relink.Client[Any] = relink.Client(self)
-
-    async def on_connect(self) -> None:
-        await super().on_connect()
-
-        await self.rl_client.start()
-        print("ReLink nodes connected successfully!")
 
 
 bot = Bot()
@@ -42,6 +35,13 @@ bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
+
+# Called when the bot has successfully connected to Discord.
+# We start the relink client here so nodes are ready before events fire.
+@bot.listen()
+async def on_connect() -> None:
+    await bot.rl_client.start()
+    print("ReLink nodes connected successfully!")
 
 
 # Helper function for DRY (Don't Repeat Yourself)
