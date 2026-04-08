@@ -765,6 +765,9 @@ class Node:
             _log.warning("Unexpected error while sending request to %r: %s", self, exc)
             return None
 
+        if response is None:
+            return None
+
         try:
             data = msgspec.json.decode(response)
         except msgspec.DecodeError:
