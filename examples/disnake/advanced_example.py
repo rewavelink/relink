@@ -23,7 +23,7 @@ class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
-        
+
         self.rl_client: relink.Client[Any] = relink.Client(self)
 
 
@@ -35,6 +35,7 @@ bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
+
 
 # Called when the bot has successfully connected to Discord.
 # We start the relink client here so nodes are ready before events fire.
