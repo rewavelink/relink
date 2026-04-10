@@ -214,7 +214,7 @@ class MutableQueueBase(ReadableCollection):
         for item in items:
             while True:
                 try:
-                    items.remove(item)
+                    self._items.remove(item)
                 except ValueError:
                     break
                 else:
