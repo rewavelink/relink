@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Iterable, Iterator
+from itertools import islice
 from typing import TYPE_CHECKING, TypeGuard, overload
 
 from relink.models.track import Playable
@@ -67,6 +68,13 @@ class ReadableCollection:
         if isinstance(index, int):
             return self._items[index]
 
+        start, stop, step = index.indices(len(self._items))
+        if step > 0:
+            return list(islice(self._items, start, stop, step))
+
+        # islice can't handle negative steps
+        # for simplicity, we create a list and slice it
+        # instead of using islice
         return list(self._items)[index]
 
     def _ensure_playable(self, value: object) -> TypeGuard[Playable]:
