@@ -123,10 +123,10 @@ class MutableQueueBase(ReadableCollection):
         :exc:`TypeError`
             When ``atomic=True`` and a non-Playable item is encountered.
         """
-        items = self._materialize_tracks(tracks, atomic=atomic)
-        count = len(items)
+        tracks = self._materialize_tracks(tracks, atomic=atomic)
+        count = len(tracks)
         if count != 0:
-            self._items.extend(items)
+            self._items.extend(tracks)
         return count
 
     def put_at(
@@ -161,13 +161,13 @@ class MutableQueueBase(ReadableCollection):
         :exc:`TypeError`
             When ``atomic=True`` and a non-Playable item is encountered.
         """
-        items = self._materialize_tracks(tracks, atomic=atomic)
-        count = len(items)
+        tracks = self._materialize_tracks(tracks, atomic=atomic)
+        count = len(tracks)
 
         deque_length = len(self._items)
 
         if count == 1:
-            self._items.insert(index, items[0])
+            self._items.insert(index, tracks[0])
         elif count > 1:
             # handle negative index
             if index < 0:
@@ -177,11 +177,11 @@ class MutableQueueBase(ReadableCollection):
             if index >= (deque_length - index): # index is closer to the right, so we rotate right instead
                 k = deque_length - index
                 self._items.rotate(k)
-                self._items.extend(items)
+                self._items.extend(tracks)
                 self._items.rotate(-k)
             else:
                 self._items.rotate(-index)
-                self._items.extendleft(reversed(items)) # extendleft inserts in reverse, so we have to re-reverse it
+                self._items.extendleft(reversed(tracks)) # extendleft inserts in reverse, so we have to re-reverse it
                 self._items.rotate(index)  
 
         return count
@@ -209,12 +209,12 @@ class MutableQueueBase(ReadableCollection):
         :class:`int`
             The number of tracks removed from the queue.
         """
-        items = self._materialize_tracks(tracks, atomic=False)
+        tracks = self._materialize_tracks(tracks, atomic=False)
         count = 0
-        for item in items:
+        for track in tracks:
             while True:
                 try:
-                    self._items.remove(item)
+                    self._items.remove(track)
                 except ValueError:
                     break
                 else:
