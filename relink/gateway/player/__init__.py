@@ -24,12 +24,19 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import abc
 import logging
 import os
-from typing import Any, cast, Self, Generic
+from typing import TYPE_CHECKING, Any, cast
+
+from ..enums import QueueMode
 from ._base import BasePlayer, PlayerConnectionState
 from ._factory import FrameworkLiteral, PlayerFactory
+
+if TYPE_CHECKING:
+    from relink.models.filters import Filters
+    from relink.models.settings import AutoPlaySettings, HistorySettings
+
+    from ..node import Node
 
 
 __all__ = (
@@ -40,13 +47,12 @@ __all__ = (
 )
 
 _log = logging.getLogger(__name__)
-_subclasses: dict[str, type] = {}
 
 
 _factory: PlayerFactory = PlayerFactory()
 
 
-class Player[**P](BasePlayer):
+class Player(BasePlayer):
     """
     A dynamic proxy class for ReLink players.
 
@@ -108,74 +114,41 @@ class Player[**P](BasePlayer):
     """
 
     def __new__(
-        cls: type[Self],
+        cls,
         *args: Any,
-        **kwargs: Any,
+        node: Node | None = None,
+        queue_mode: QueueMode = QueueMode.NORMAL,
+        autoplay_settings: AutoPlaySettings | None = None,
+        history_settings: HistorySettings | None = None,
+        volume: int | None = None,
+        paused: bool | None = None,
+        filters: Filters | None = None,
     ) -> Any:
         env_framework = os.getenv("RELINK_FRAMEWORK", "discord.py")
         framework = cast(FrameworkLiteral, env_framework)
         actual_class = _factory.get_player(framework)
-        bases = list(cls.__mro__)
 
-        if cls.__qualname__ in _subclasses:
-            subcls = _subclasses[cls.__qualname__]
-            self = object.__new__(subcls)
-            subcls.__init__(
-                self,
-                *args,
-                **kwargs,
-            )
-            return self
-
-        if len(bases) > 4:
-            for base in (Player, abc.ABC, object, cls, Generic):
-                try:
-                    bases.remove(base)
-                except ValueError:
-                    pass
-
-            print("Building subclass")
-
-            new_cls = _subclasses.get(cls.__qualname__)
-            print("Cached subclass is", new_cls)
-            if new_cls is None:
-                print("There was no cached subclass, caching and creating")
-                attrs: dict[str, Any] = {}
-                actual_bases = (actual_class, *bases)
-
-                for base in reversed(actual_bases):
-                    if not hasattr(base, "__slots__"):
-                        attrs.update(base.__dict__)
-                    else:
-                        attrs.update({k: getattr(base, k) for k in base.__slots__})
-
-                attrs["__module__"] = cls.__module__
-
-                _subclasses[cls.__qualname__] = new_cls = type(
-                    cls.__name__,
-                    actual_bases,
-                    attrs,  # idk what to put here, honestly
-                )
-
-            print("This subclass will have bases", new_cls.__mro__)
-        else:
-            new_cls = actual_class
-
-        print("Building with type", new_cls)
-
-        # TODO: fix which __init__ is getting called...
-        self = object.__new__(new_cls)
-        new_cls.__init__(
-            self,
+        return actual_class(
             *args,
-            **kwargs,
+            node=node,
+            queue_mode=queue_mode,
+            autoplay_settings=autoplay_settings,
+            history_settings=history_settings,
+            volume=volume,
+            paused=paused,
+            filters=filters,
         )
-        return self
 
     def __init__(
-        self: P,
-        *args: P.args,
-        **kwargs: P.kwargs,
+        self,
+        *args: Any,
+        node: Node | None = None,
+        queue_mode: QueueMode = QueueMode.NORMAL,
+        autoplay_settings: AutoPlaySettings | None = None,
+        history_settings: HistorySettings | None = None,
+        volume: int | None = None,
+        paused: bool | None = None,
+        filters: Filters | None = None,
     ) -> None:
         """
         Shadow init to satisfy type checkers.
@@ -199,5 +172,3 @@ class Player[**P](BasePlayer):
     async def on_voice_server_update(self, data: Any) -> None: ...
 
     async def on_voice_state_update(self, data: Any) -> None: ...
-
-    def cleanup(self) -> None: ...
