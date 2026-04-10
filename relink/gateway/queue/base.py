@@ -182,15 +182,19 @@ class MutableQueueBase(ReadableCollection):
                 index += items_length
             index = max(0, min(index, items_length))
 
-            if index >= (items_length - index): # index is closer to the right, so we rotate right instead
+            if index >= (
+                items_length - index
+            ):  # index is closer to the right, so we rotate right instead
                 k = items_length - index
                 self._items.rotate(k)
                 self._items.extend(tracks)
                 self._items.rotate(-k)
             else:
                 self._items.rotate(-index)
-                self._items.extendleft(reversed(tracks)) # extendleft inserts in reverse, so we have to re-reverse it
-                self._items.rotate(index)  
+                self._items.extendleft(
+                    reversed(tracks)
+                )  # extendleft inserts in reverse, so we have to re-reverse it
+                self._items.rotate(index)
 
         return count
 
