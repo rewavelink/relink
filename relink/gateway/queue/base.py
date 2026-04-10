@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Iterable, Iterator
-from itertools import islice
 from typing import TYPE_CHECKING, TypeGuard, overload
 
 from relink.models.track import Playable
@@ -68,14 +67,7 @@ class ReadableCollection:
         if isinstance(index, int):
             return self._items[index]
 
-        size = len(self._items)
-        start, stop, step = index.indices(size)
-        if step > 0:
-            return list(islice(self._items, start, stop, step))
-
-        reverse_start = size - 1 - start
-        reverse_stop = size - 1 - stop
-        return list(islice(reversed(self._items), reverse_start, reverse_stop, -step))
+        return list(self._items)[index]
 
     def _ensure_playable(self, value: object) -> TypeGuard[Playable]:
         if not isinstance(value, Playable):
@@ -93,16 +85,14 @@ class MutableQueueBase(ReadableCollection):
         tracks: Iterable[Playable] | Playable | Playlist,
         *,
         atomic: bool,
-    ) -> tuple[list[Playable], int]:
+    ) -> list[Playable]:
         if isinstance(tracks, Playable):
-            return [tracks], 1
-
-        if atomic:
-            validated = [t for t in tracks if self._ensure_playable(t)]
-            return validated, len(validated)
-
-        items = list(tracks)
-        return items, len(items)
+            ret = [tracks]
+        elif atomic:
+            ret = [t for t in tracks if self._ensure_playable(t)]
+        else:
+            ret = list(tracks)
+        return ret
 
     def put(
         self,
@@ -133,7 +123,8 @@ class MutableQueueBase(ReadableCollection):
         :exc:`TypeError`
             When ``atomic=True`` and a non-Playable item is encountered.
         """
-        items, count = self._materialize_tracks(tracks, atomic=atomic)
+        items = self._materialize_tracks(tracks, atomic=atomic)
+        count = len(items)
         if count != 0:
             self._items.extend(items)
         return count
@@ -153,7 +144,7 @@ class MutableQueueBase(ReadableCollection):
         ----------
         index: :class:`int`
             The index to insert the track(s) to.
-        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iteraeble[:class:`relink.models.Playable`]
+        tracks: :class:`relink.models.Playable` | :class:`relink.models.Playlist` | Iterable[:class:`relink.models.Playable`]
             The track(s) or playlist to add to the queue.
         atomic: :class:`bool`
             Whether to insert the items atomically. If ``True``, all items must be
@@ -170,14 +161,29 @@ class MutableQueueBase(ReadableCollection):
         :exc:`TypeError`
             When ``atomic=True`` and a non-Playable item is encountered.
         """
-        items, count = self._materialize_tracks(tracks, atomic=atomic)
+        items = self._materialize_tracks(tracks, atomic=atomic)
+        count = len(items)
+
+        deque_length = len(self._items)
+
         if count == 1:
             self._items.insert(index, items[0])
         elif count > 1:
-            l = list(self._items)
-            prev = l[:index]
-            post = l[index:]
-            self._items = deque(prev + items + post)
+            # handle negative index
+            if index < 0:
+                index += deque_length
+            index = max(0, min(index, deque_length))
+
+            if index >= (deque_length - index): # index is closer to the right, so we rotate right instead
+                k = deque_length - index
+                self._items.rotate(k)
+                self._items.extend(items)
+                self._items.rotate(-k)
+            else:
+                self._items.rotate(-index)
+                self._items.extendleft(reversed(items)) # extendleft inserts in reverse, so we have to re-reverse it
+                self._items.rotate(index)  
+
         return count
 
     def remove(
@@ -203,23 +209,18 @@ class MutableQueueBase(ReadableCollection):
         :class:`int`
             The number of tracks removed from the queue.
         """
-        items, _ = self._materialize_tracks(tracks, atomic=False)
+        items = self._materialize_tracks(tracks, atomic=False)
         count = 0
-        for i in items:
-            if remove_all:
-                while i in self._items:
-                    self._items.remove(i)
-                    count += 1
-
-                    if i not in self._items:
-                        break
-            else:
+        for item in items:
+            while True:
                 try:
-                    self._items.remove(i)
+                    items.remove(item)
                 except ValueError:
-                    continue
+                    break
                 else:
                     count += 1
+                    if not remove_all:
+                        break
         return count
 
     def clear(self) -> None:
