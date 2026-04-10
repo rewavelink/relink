@@ -1,0 +1,107 @@
+name: PR Follows Template
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+  issues: read
+  contents: read
+
+jobs:
+  template-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get PR Number
+        id: pr
+        run: |
+          echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce Template
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = Number('${{ steps.pr.outputs.number }}');
+            const invalid = 'status: invalid';
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const author = pr.user.login;
+
+            if ( pr.locked ) {
+              core.info(`The PR #${prNumber} is locked, skipping template enforcement.`);
+              return;
+            };
+
+            const prLabels = pr.labels;
+
+            for (const label in prLabels) {
+              if (label.name === invalid) {
+                core.info(`The PR #${prNumber} is flagged as invalid, skipping template enforcement.`);
+                return;
+              };
+            };
+
+            const prContent = (pr.body || '').trim();
+
+            if (prContent.length === 0) {
+              core.setFailed('There is no PR description.');
+              return;
+            };
+
+            const problems = [];
+
+            const requiredHeadings = [
+              '## Summary',
+              '## Type of change',
+              '## Checklist',
+              '### Code & Review',
+              '### Documentation & Compatiblity',
+              '### Validation',
+            ];
+
+            for (const heading in requiredHeadings) {
+              if (!body.includes(heading)) {
+                problems.push(`Missing required section "${heading}".`);
+              };
+            };
+
+            if (problems.length === 0) {
+              core.info(`PR #${prNumber} follows the template.`);
+              return;
+            };
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: contex.repo.repo,
+              issue_number: prNumber,
+              labels: [invalid],
+            });
+            const fmt = problems.join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: [
+                'This PR does not follow the template provided by the repository.',
+                '',
+                'Please make sure you use & fill our pull request template with all required sections provided.'
+                '(You can go to [.github/pull_request_template.md](https://github.com/ReWaveLink/relink/blob/main/.github/pull_request_template.md) for more information on how this template is built.)',
+                '',
+                'The problems detected were:',
+                '',
+                '```',
+                fmt,
+                '```',
+              ].join('\n')
+            });
+
+            core.setFailed(`PR #${prNumber} does not follow the template.`);
