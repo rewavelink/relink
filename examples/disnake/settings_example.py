@@ -30,16 +30,9 @@ from relink.models.settings import (
 class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
-
         super().__init__(intents=intents)
 
         self.rl_client: relink.Client[Any] = relink.Client(self)
-
-    async def on_connect(self) -> None:
-        await super().on_connect()
-
-        await self.rl_client.start()
-        print("ReLink nodes connected successfully!")
 
 
 bot = Bot()
@@ -60,6 +53,14 @@ bot.rl_client.create_node(
         # user_ids=[disnake.Object(id=YOUR_USER_ID)],  # required for IGNORED_USERS
     ),
 )
+
+
+# Called when the bot has successfully connected to Discord.
+# We start the relink client here so nodes are ready before events fire.
+@bot.listen()
+async def on_connect() -> None:
+    await bot.rl_client.start()
+    print("ReLink nodes connected successfully!")
 
 
 @bot.slash_command(name="play", description="Plays a song.")

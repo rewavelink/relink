@@ -28,6 +28,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import discord
+from discord.client import Client
 from discord.voice import VoiceProtocol
 
 from relink.gateway.enums import QueueMode
@@ -49,7 +50,7 @@ UNSET = discord.utils.MISSING
 __all__ = ("PycordPlayer",)
 
 
-class PycordPlayer(BasePlayer, VoiceProtocol):
+class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
     """
     A py-cord implementation of :class:`~relink.player.base_player.BasePlayer`.
 
@@ -105,7 +106,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
     """
 
     channel: discord.abc.Connectable
-    client: discord.Client
+    client: Client
 
     _guild: discord.Guild | None
 
@@ -125,13 +126,13 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
     @overload
     def __init__(
         self,
-        client: discord.Client,
+        client: Client,
         channel: discord.abc.Connectable,
     ) -> None: ...
 
     def __init__(
         self,
-        client: discord.Client = UNSET,
+        client: Client = UNSET,
         channel: discord.abc.Connectable = UNSET,
         *,
         node: Node | None = None,
@@ -155,14 +156,14 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
         self._guild = None
 
         if client is not UNSET and channel is not UNSET:
-            VoiceProtocol.__init__(self, client=client, channel=channel)
+            VoiceProtocol[Client].__init__(self, client=client, channel=channel)
             if isinstance(channel, discord.abc.GuildChannel):
                 self._guild = channel.guild
             self._ready = True
 
     def __call__(
         self,
-        client: discord.Client,
+        client: Client,
         channel: discord.abc.Connectable,
     ) -> Self:
         """
@@ -184,7 +185,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
         :class:`Player`
             This player instance, fully initialised.
         """
-        VoiceProtocol.__init__(self, client=client, channel=channel)
+        VoiceProtocol[Client].__init__(self, client=client, channel=channel)
 
         if isinstance(channel, (discord.VoiceChannel, discord.StageChannel)):
             self._guild = channel.guild
@@ -195,12 +196,12 @@ class PycordPlayer(BasePlayer, VoiceProtocol):
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         return await self._events_handler.on_voice_server_update(
             cast(dict[str, Any], data._raw_data)
-        )  # pyright: ignore[reportAttributeAccessIssue]
+        )
 
     async def on_voice_state_update(self, data: VoiceStateUpdate) -> None:
         return await self._events_handler.on_voice_state_update(
             cast(dict[str, Any], data._raw_data)
-        )  # pyright: ignore[reportAttributeAccessIssue]
+        )
 
     def cleanup(self) -> None:
-        discord.VoiceProtocol.cleanup(self)
+        VoiceProtocol[Client].cleanup(self)

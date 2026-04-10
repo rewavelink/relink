@@ -94,7 +94,7 @@ class HTTPException(ReLinkException):
         return self._underlying.trace
 
     @property
-    def message(self) -> str:
+    def message(self) -> str | None:
         """The error message."""
         return self._underlying.message
 

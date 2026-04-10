@@ -137,7 +137,7 @@ class CurlWebsocketManager(
             self._ws = None
             raise ConnectionResetError("Websocket connection was closed.")
 
-        if payload is None:
+        if not payload:
             self._ws = None
             raise ConnectionResetError(
                 "Websocket received an empty payload/close frame."
