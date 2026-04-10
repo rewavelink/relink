@@ -77,6 +77,14 @@ class Client(Generic[N]):
         detected automatically from whichever library is installed; if multiple
         are present, precedence follows ``discord.py`` → ``pycord`` → ``disnake``.
         Defaults to ``None``.
+
+        .. warning::
+
+            If you reference framework-bound objects (like :class:`~relink.Player`) before setting
+            this framework, you might end up with an adapter that differs from the one you expect, if you
+            want to use the framework before setting it with this parameter, you can set the ``RELINK_FRAMEWORK`` environment
+            variable to any of the available frameworks **before any import to ``relink`` is done**. If you reference these
+            objects _after_ creating a client with a custom framework, you can safely ignore this warning.
     """
 
     _framework: FrameworkLiteral
