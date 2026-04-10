@@ -83,7 +83,7 @@ class PlayerConnectionState:
         return all((self.token, self.endpoint, self.session_id, self.channel_id))
 
 
-class BasePlayer(abc.ABC):
+class BasePlayer:
     """
     Abstract base class that defines the interface for a Lavalink player.
 
@@ -202,7 +202,7 @@ class BasePlayer(abc.ABC):
         Called by libraries when a pre-configured **instance** is passed to
         their ``connect`` methods.
 
-        Binds the VoiceProtocol attributes, resolves the guild  from the channel,
+        Binds the VoiceProtocol attributes, resolves the guild from the channel,
         and registers the player with its node.
 
         Parameters
