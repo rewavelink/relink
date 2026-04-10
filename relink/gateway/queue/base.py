@@ -164,18 +164,18 @@ class MutableQueueBase(ReadableCollection):
         tracks = self._materialize_tracks(tracks, atomic=atomic)
         count = len(tracks)
 
-        deque_length = len(self._items)
+        items_length = len(self._items)
 
         if count == 1:
             self._items.insert(index, tracks[0])
         elif count > 1:
             # handle negative index
             if index < 0:
-                index += deque_length
-            index = max(0, min(index, deque_length))
+                index += items_length
+            index = max(0, min(index, items_length))
 
-            if index >= (deque_length - index): # index is closer to the right, so we rotate right instead
-                k = deque_length - index
+            if index >= (items_length - index): # index is closer to the right, so we rotate right instead
+                k = items_length - index
                 self._items.rotate(k)
                 self._items.extend(tracks)
                 self._items.rotate(-k)
