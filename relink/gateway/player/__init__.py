@@ -24,9 +24,10 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import abc
 import logging
 import os
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 from ..enums import QueueMode
 from ._base import BasePlayer, PlayerConnectionState
@@ -50,9 +51,71 @@ _log = logging.getLogger(__name__)
 
 
 _factory: PlayerFactory = PlayerFactory()
+Player: type["Player"] = None  # type: ignore # sadly required, meh
 
 
-class Player(BasePlayer):
+def get_bases(cls: type) -> tuple[type, ...]:
+    wb = list(cls.__bases__)
+
+    try:
+        wb.remove(object)
+    except ValueError:
+        pass
+
+    return tuple(wb)
+
+
+class PlayerMeta(abc.ABCMeta):
+    def __new__(cls, name: str, bases: tuple[type, ...], attrs: dict[str, Any], **kwargs: Any) -> type:
+        # a lil hack to check whether this is just the Player class
+        # if so, just return. Player will be removed later anyways
+        if len(bases) == 1 and bases[0] is BasePlayer:
+            return super().__new__(cls, name, bases, attrs, **kwargs)
+
+        fw = cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
+        new_cls = _factory.get_player(fw)
+        wbases = list(bases)
+
+        try:
+            wbases.remove(BasePlayer)
+        except ValueError:
+            pass
+
+        try:
+            idx = wbases.index(Player)
+        except ValueError:
+            wbases.insert(1, new_cls)
+        else:
+            wbases.insert(idx, new_cls)
+            wbases.remove(Player)
+
+        try:
+            wbases.remove(cls)
+        except ValueError:
+            pass
+        else:
+            wbases.insert(0, cls)
+
+        bases = tuple(wbases)
+        return super().__new__(cls, name, bases, attrs, **kwargs)
+
+    # just in case
+    def __instancecheck__(self, instance: Any) -> bool:
+        if self is Player:
+            return isinstance(instance, BasePlayer)
+        else:
+            return isinstance(instance, get_bases(self))
+
+    def __subclasscheck__(self, subclass: type) -> bool:
+        if self is Player:
+            return issubclass(subclass, BasePlayer)
+        else:
+            return issubclass(subclass, get_bases(self))
+
+
+# All methods are already available and documented thanks to the
+# BasePlayer subclass
+class Player(BasePlayer, metaclass=PlayerMeta):  # ruff: noqa: F811
     """
     A dynamic proxy class for ReLink players.
 
@@ -113,31 +176,37 @@ class Player(BasePlayer):
         depends on the underlying Discord library.
     """
 
-    def __new__(
-        cls,
-        *args: Any,
-        node: Node | None = None,
-        queue_mode: QueueMode = QueueMode.NORMAL,
-        autoplay_settings: AutoPlaySettings | None = None,
-        history_settings: HistorySettings | None = None,
-        volume: int | None = None,
-        paused: bool | None = None,
-        filters: Filters | None = None,
-    ) -> Any:
-        env_framework = os.getenv("RELINK_FRAMEWORK", "discord.py")
-        framework = cast(FrameworkLiteral, env_framework)
-        actual_class = _factory.get_player(framework)
+    if TYPE_CHECKING:
+        @overload
+        def __new__(
+            cls,
+            client: Any,
+            channel: Any,
+        ) -> Any: ...
 
-        return actual_class(
-            *args,
-            node=node,
-            queue_mode=queue_mode,
-            autoplay_settings=autoplay_settings,
-            history_settings=history_settings,
-            volume=volume,
-            paused=paused,
-            filters=filters,
-        )
+        @overload
+        def __new__(
+            cls,
+            *,
+            node: Node | None = None,
+            queue_mode: QueueMode = QueueMode.NORMAL,
+            autoplay_settings: AutoPlaySettings | None = None,
+            history_settings: HistorySettings | None = None,
+            volume: int | None = None,
+            paused: bool | None = None,
+            filters: Filters | None = None,
+            **kwargs: Any,
+        ) -> Self: ...
+
+        def __new__(cls, *args: Any, **kwargs: Any) -> Any: ...
+    else:
+        # this __new__ method will only be called when doing something like ``cls=relink.Player`` because
+        # when a subclass is created, Player is removed from its bases to inject the adapter.
+        # So we can just safely return the adapter class.
+        def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+            fw = cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
+            new_cls = _factory.get_player(fw)
+            return new_cls(*args, **kwargs)
 
     def __init__(
         self,
@@ -150,21 +219,7 @@ class Player(BasePlayer):
         paused: bool | None = None,
         filters: Filters | None = None,
     ) -> None:
-        """
-        Shadow init to satisfy type checkers.
-        The actual initialization happens in __new__ via the factory.
-        """
         pass
-
-    @classmethod
-    def __subclasscheck__(cls, subclass: type) -> bool:
-        """Standardizes issubclass(DpyPlayer, Player) -> True."""
-        return issubclass(subclass, BasePlayer)
-
-    @classmethod
-    def __instancecheck__(cls, instance: Any) -> bool:
-        """Standardizes isinstance(vc_instance, Player) -> True."""
-        return isinstance(instance, BasePlayer)
 
     def __call__(self, client: Any, channel: Any) -> Any:
         raise NotImplementedError("Player is a proxy; this is never called directly.")
