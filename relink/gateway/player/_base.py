@@ -83,7 +83,7 @@ class PlayerConnectionState:
         return all((self.token, self.endpoint, self.session_id, self.channel_id))
 
 
-class BasePlayer:
+class BasePlayer(abc.ABC):
     """
     Abstract base class that defines the interface for a Lavalink player.
 
