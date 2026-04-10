@@ -24,5 +24,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const prNumber = Numer('${{ steps.pr.outputs.number }}');
             const script = require('./pr-template.js');
-            await script({github, context})
+            await script({github, context, core, prNumber})

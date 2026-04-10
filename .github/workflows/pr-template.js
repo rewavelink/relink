@@ -1,5 +1,4 @@
-module.exports = async ({ github, context }) => {
-  const prNumber = Number('${{ steps.pr.outputs.number }}');
+module.exports = async ({ github, context, core, prNumber }) => {
   const invalid = 'status: invalid';
 
   const { data: pr } = await github.rest.pulls.get({
@@ -55,7 +54,7 @@ module.exports = async ({ github, context }) => {
   
   await github.rest.issues.addLabels({
     owner: context.repo.owner,
-    repo: contex.repo.repo,
+    repo: context.repo.repo,
     issue_number: prNumber,
     labels: [invalid],
   });
