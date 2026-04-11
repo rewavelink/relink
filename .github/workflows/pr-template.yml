@@ -1,0 +1,29 @@
+name: PR Follows Template
+
+on:
+    pull_request_target:
+        types: [opened, edited, synchronize, reopened]
+
+permissions:
+    pull-requests: write
+    issues: write
+    contents: read
+
+jobs:
+    template-check:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout base branch
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.base.sha }}
+
+            - name: Enforce Template
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const path = require('path');
+                      const script = require(path.resolve('.github/scripts/pr-template.js'));
+                      await script({ github, context, core, prNumber: context.payload.pull_request.number });
