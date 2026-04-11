@@ -1,29 +1,29 @@
 name: PR Follows Template
 
 on:
-  pull_request_target:
-    types: [opened, edited, synchronize, reopened]
+    pull_request_target:
+        types: [opened, edited, synchronize, reopened]
 
 permissions:
-  pull-requests: read
-  issues: read
-  contents: read
+    pull-requests: read
+    issues: read
+    contents: read
 
 jobs:
-  template-check:
-    runs-on: ubuntu-latest
+    template-check:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Get PR Number
-        id: pr
-        run: |
-          echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+        steps:
+            - name: Checkout base branch
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Enforce Template
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = Numer('${{ steps.pr.outputs.number }}');
-            const script = require('./pr-template.js');
-            await script({github, context, core, prNumber})
+            - name: Enforce Template
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const path = require('path');
+                      const script = require(path.resolve('.github/scripts/pr-template.js'));
+                      await script({ github, context, core, prNumber: context.payload.pull_request.number });
