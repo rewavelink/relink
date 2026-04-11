@@ -256,13 +256,13 @@ class Node:
         This can only be done when the node has been attached to a pool.
         """
         if self._client is None:
-            raise RuntimeError("Cannot connect a node that is bound to a client.")
-
-        await self._manager.setup()
-        self._status = NodeStatus.CONNECTING
+            raise RuntimeError("Cannot connect a node that is not bound to a client.")
 
         if self._keep_alive is not None:
             raise RuntimeError("This node is already connected.")
+
+        await self._manager.setup()
+        self._status = NodeStatus.CONNECTING
 
         await self._attempt_connect()
 
