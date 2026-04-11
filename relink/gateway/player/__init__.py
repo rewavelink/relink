@@ -50,72 +50,51 @@ __all__ = (
 _log = logging.getLogger(__name__)
 
 
-_factory: PlayerFactory = PlayerFactory()
-Player: type["Player"] = None  # type: ignore # sadly required, meh
+class _PlayerMeta(abc.ABCMeta):
+    _factory: PlayerFactory = PlayerFactory()
 
+    @classmethod
+    def _adapter(cls) -> type:
+        return cls._factory.get_player(
+            cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
+        )
 
-def get_bases(cls: type) -> tuple[type, ...]:
-    wb = list(cls.__bases__)
-
-    try:
-        wb.remove(object)
-    except ValueError:
-        pass
-
-    return tuple(wb)
-
-
-class PlayerMeta(abc.ABCMeta):
-    def __new__(cls, name: str, bases: tuple[type, ...], attrs: dict[str, Any], **kwargs: Any) -> type:
-        # a lil hack to check whether this is just the Player class
-        # if so, just return. Player will be removed later anyways
-        if len(bases) == 1 and bases[0] is BasePlayer:
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        attrs: dict[str, Any],
+        **kwargs: Any,
+    ) -> type:
+        if bases == (BasePlayer,):
             return super().__new__(cls, name, bases, attrs, **kwargs)
 
-        fw = cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
-        new_cls = _factory.get_player(fw)
-        wbases = list(bases)
+        adapter = cls._adapter()
+        rewritten = tuple(
+            adapter if base is Player else base
+            for base in bases
+            if base is not BasePlayer
+        )
 
-        try:
-            wbases.remove(BasePlayer)
-        except ValueError:
-            pass
+        if adapter not in rewritten:
+            rewritten = (
+                (rewritten[0], adapter) + rewritten[1:] if rewritten else (adapter,)
+            )
 
-        try:
-            idx = wbases.index(Player)
-        except ValueError:
-            wbases.insert(1, new_cls)
-        else:
-            wbases.insert(idx, new_cls)
-            wbases.remove(Player)
+        return super().__new__(cls, name, rewritten, attrs, **kwargs)
 
-        try:
-            wbases.remove(cls)
-        except ValueError:
-            pass
-        else:
-            wbases.insert(0, cls)
-
-        bases = tuple(wbases)
-        return super().__new__(cls, name, bases, attrs, **kwargs)
-
-    # just in case
-    def __instancecheck__(self, instance: Any) -> bool:
-        if self is Player:
+    def __instancecheck__(cls, instance: Any) -> bool:
+        if cls is Player:
             return isinstance(instance, BasePlayer)
-        else:
-            return isinstance(instance, get_bases(self))
+        return super().__instancecheck__(instance)
 
-    def __subclasscheck__(self, subclass: type) -> bool:
-        if self is Player:
+    def __subclasscheck__(cls, subclass: type) -> bool:
+        if cls is Player:
             return issubclass(subclass, BasePlayer)
-        else:
-            return issubclass(subclass, get_bases(self))
+        return super().__subclasscheck__(subclass)
 
 
-# All methods are already available and documented thanks to the
-# BasePlayer subclass
-class Player(BasePlayer, metaclass=PlayerMeta):  # ruff: noqa: F811
+class Player(BasePlayer, metaclass=_PlayerMeta):
     """
     A dynamic proxy class for ReLink players.
 
@@ -123,13 +102,13 @@ class Player(BasePlayer, metaclass=PlayerMeta):  # ruff: noqa: F811
     implementation for the detected or configured Discord library backend
     (``discord.py``, ``disnake``, or ``py-cord``) at instantiation time.
 
-    The framework is resolved from the ``RELINK_FRAMEWORK`` environment variable,
-    falling back to ``"discord.py"`` if unset.
+    The framework is resolved from the ``RELINK_FRAMEWORK`` environment
+    variable, falling back to ``"discord.py"`` if unset.
 
     There are two primary ways to create a player:
 
-    1. **Class-pass** — pass the class itself to the voice channel's ``connect``
-       method. The library will instantiate it directly::
+    1. **Class-pass** — pass the class itself to the voice channel's
+       ``connect`` method. The library will instantiate it directly::
 
            player = await voice_channel.connect(cls=Player)
 
@@ -177,12 +156,9 @@ class Player(BasePlayer, metaclass=PlayerMeta):  # ruff: noqa: F811
     """
 
     if TYPE_CHECKING:
+
         @overload
-        def __new__(
-            cls,
-            client: Any,
-            channel: Any,
-        ) -> Any: ...
+        def __new__(cls, client: Any, channel: Any) -> Any: ...
 
         @overload
         def __new__(
@@ -199,27 +175,11 @@ class Player(BasePlayer, metaclass=PlayerMeta):  # ruff: noqa: F811
         ) -> Self: ...
 
         def __new__(cls, *args: Any, **kwargs: Any) -> Any: ...
-    else:
-        # this __new__ method will only be called when doing something like ``cls=relink.Player`` because
-        # when a subclass is created, Player is removed from its bases to inject the adapter.
-        # So we can just safely return the adapter class.
-        def __new__(cls, *args: Any, **kwargs: Any) -> Any:
-            fw = cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
-            new_cls = _factory.get_player(fw)
-            return new_cls(*args, **kwargs)
 
-    def __init__(
-        self,
-        *args: Any,
-        node: Node | None = None,
-        queue_mode: QueueMode = QueueMode.NORMAL,
-        autoplay_settings: AutoPlaySettings | None = None,
-        history_settings: HistorySettings | None = None,
-        volume: int | None = None,
-        paused: bool | None = None,
-        filters: Filters | None = None,
-    ) -> None:
-        pass
+    else:
+
+        def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+            return _PlayerMeta._adapter()(*args, **kwargs)
 
     def __call__(self, client: Any, channel: Any) -> Any:
         raise NotImplementedError("Player is a proxy; this is never called directly.")
