@@ -174,9 +174,9 @@ class MutableQueueBase(ReadableCollection):
         if count == 1:
             self._items.insert(index, items[0])
         elif count > 1:
-            l = list(self._items)
-            prev = l[:index]
-            post = l[index:]
+            queue_list = list(self._items)
+            prev = queue_list[:index]
+            post = queue_list[index:]
             self._items = deque(prev + items + post)
         return count
 
