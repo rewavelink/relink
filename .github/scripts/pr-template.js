@@ -31,7 +31,7 @@ module.exports = async ({ github, context, core, prNumber }) => {
         '## Type of change',
         '## Checklist',
         '### Code & Review',
-        '### Documentation & Compatiblity',
+        '### Documentation & Compatibility',
         '### Validation',
     ];
 
