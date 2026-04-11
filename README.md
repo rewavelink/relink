@@ -24,7 +24,6 @@
 - Built on [msgspec](https://github.com/jcrist/msgspec) for rapid serialization and strict type validation
 - Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) for faster networking
 - Drop-in familiarity for Wavelink users — [migration guide included](https://sonolink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
-- Actively maintained, unlike the library you're probably migrating from
 - Async-first and [Basedpyright](https://docs.basedpyright.com/latest/) strict-compliant
 - Built-in support for [discord.py](https://github.com/Rapptz/discord.py), [pycord](https://github.com/Pycord-Development/pycord), and [disnake](https://github.com/DisnakeDev/disnake)
 
