@@ -24,9 +24,10 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import abc
 import logging
 import os
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 from ..enums import QueueMode
 from ._base import BasePlayer, PlayerConnectionState
@@ -49,10 +50,51 @@ __all__ = (
 _log = logging.getLogger(__name__)
 
 
-_factory: PlayerFactory = PlayerFactory()
+class _PlayerMeta(abc.ABCMeta):
+    _factory: PlayerFactory = PlayerFactory()
+
+    @classmethod
+    def _adapter(cls) -> type:
+        return cls._factory.get_player(
+            cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
+        )
+
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        attrs: dict[str, Any],
+        **kwargs: Any,
+    ) -> type:
+        if bases == (BasePlayer,):
+            return super().__new__(cls, name, bases, attrs, **kwargs)
+
+        adapter = cls._adapter()
+        rewritten = tuple(
+            adapter if base is Player else base
+            for base in bases
+            if base is not BasePlayer
+        )
+
+        if adapter not in rewritten:
+            rewritten = (
+                (rewritten[0], adapter) + rewritten[1:] if rewritten else (adapter,)
+            )
+
+        return super().__new__(cls, name, rewritten, attrs, **kwargs)
+
+    def __instancecheck__(cls, instance: Any) -> bool:
+        if cls is Player:
+            return isinstance(instance, BasePlayer)
+        return super().__instancecheck__(instance)
+
+    def __subclasscheck__(cls, subclass: type) -> bool:
+        if cls is Player:
+            return issubclass(subclass, BasePlayer)
+        return super().__subclasscheck__(subclass)
 
 
-class Player(BasePlayer):
+class Player(BasePlayer, metaclass=_PlayerMeta):
     """
     A dynamic proxy class for ReLink players.
 
@@ -60,13 +102,13 @@ class Player(BasePlayer):
     implementation for the detected or configured Discord library backend
     (``discord.py``, ``disnake``, or ``py-cord``) at instantiation time.
 
-    The framework is resolved from the ``RELINK_FRAMEWORK`` environment variable,
-    falling back to ``"discord.py"`` if unset.
+    The framework is resolved from the ``RELINK_FRAMEWORK`` environment
+    variable, falling back to ``"discord.py"`` if unset.
 
     There are two primary ways to create a player:
 
-    1. **Class-pass** — pass the class itself to the voice channel's ``connect``
-       method. The library will instantiate it directly::
+    1. **Class-pass** — pass the class itself to the voice channel's
+       ``connect`` method. The library will instantiate it directly::
 
            player = await voice_channel.connect(cls=Player)
 
@@ -113,58 +155,31 @@ class Player(BasePlayer):
         depends on the underlying Discord library.
     """
 
-    def __new__(
-        cls,
-        *args: Any,
-        node: Node | None = None,
-        queue_mode: QueueMode = QueueMode.NORMAL,
-        autoplay_settings: AutoPlaySettings | None = None,
-        history_settings: HistorySettings | None = None,
-        volume: int | None = None,
-        paused: bool | None = None,
-        filters: Filters | None = None,
-    ) -> Any:
-        env_framework = os.getenv("RELINK_FRAMEWORK", "discord.py")
-        framework = cast(FrameworkLiteral, env_framework)
-        actual_class = _factory.get_player(framework)
+    if TYPE_CHECKING:
 
-        return actual_class(
-            *args,
-            node=node,
-            queue_mode=queue_mode,
-            autoplay_settings=autoplay_settings,
-            history_settings=history_settings,
-            volume=volume,
-            paused=paused,
-            filters=filters,
-        )
+        @overload
+        def __new__(cls, client: Any, channel: Any) -> Any: ...
 
-    def __init__(
-        self,
-        *args: Any,
-        node: Node | None = None,
-        queue_mode: QueueMode = QueueMode.NORMAL,
-        autoplay_settings: AutoPlaySettings | None = None,
-        history_settings: HistorySettings | None = None,
-        volume: int | None = None,
-        paused: bool | None = None,
-        filters: Filters | None = None,
-    ) -> None:
-        """
-        Shadow init to satisfy type checkers.
-        The actual initialization happens in __new__ via the factory.
-        """
-        pass
+        @overload
+        def __new__(
+            cls,
+            *,
+            node: Node | None = None,
+            queue_mode: QueueMode = QueueMode.NORMAL,
+            autoplay_settings: AutoPlaySettings | None = None,
+            history_settings: HistorySettings | None = None,
+            volume: int | None = None,
+            paused: bool | None = None,
+            filters: Filters | None = None,
+            **kwargs: Any,
+        ) -> Self: ...
 
-    @classmethod
-    def __subclasscheck__(cls, subclass: type) -> bool:
-        """Standardizes issubclass(DpyPlayer, Player) -> True."""
-        return issubclass(subclass, BasePlayer)
+        def __new__(cls, *args: Any, **kwargs: Any) -> Any: ...
 
-    @classmethod
-    def __instancecheck__(cls, instance: Any) -> bool:
-        """Standardizes isinstance(vc_instance, Player) -> True."""
-        return isinstance(instance, BasePlayer)
+    else:
+
+        def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+            return _PlayerMeta._adapter()(*args, **kwargs)
 
     def __call__(self, client: Any, channel: Any) -> Any:
         raise NotImplementedError("Player is a proxy; this is never called directly.")
@@ -172,3 +187,5 @@ class Player(BasePlayer):
     async def on_voice_server_update(self, data: Any) -> None: ...
 
     async def on_voice_state_update(self, data: Any) -> None: ...
+
+    def cleanup(self) -> None: ...

@@ -77,6 +77,12 @@ class Client(Generic[N]):
         detected automatically from whichever library is installed; if multiple
         are present, precedence follows ``discord.py`` → ``pycord`` → ``disnake``.
         Defaults to ``None``.
+
+        .. warning::
+            If you are using a custom :class:`~relink.Player` subclass, ensure it is defined **after**
+            constructing the :class:`Client`, otherwise the framework adapter may not be resolved correctly.
+            Alternatively, set the ``RELINK_FRAMEWORK`` environment variable before any imports to
+            force a specific framework ahead of time.
     """
 
     _framework: FrameworkLiteral
@@ -130,6 +136,8 @@ class Client(Generic[N]):
         if framework is None:
             framework = PlayerFactory().detect_framework() or "discord.py"
 
+        os.environ["RELINK_FRAMEWORK"] = framework
+
         self._client: DiscordClient[Any] = ClientFactory.create(client, framework)
 
         self._framework = framework
@@ -143,7 +151,6 @@ class Client(Generic[N]):
                 f"relink.Client already attached to this {framework}.Client"
             )
 
-        os.environ["RELINK_FRAMEWORK"] = framework
         _registry.clients[self._client._client] = self
 
     def __repr__(self) -> str:

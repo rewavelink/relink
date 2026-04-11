@@ -202,7 +202,7 @@ class BasePlayer(abc.ABC):
         Called by libraries when a pre-configured **instance** is passed to
         their ``connect`` methods.
 
-        Binds the VoiceProtocol attributes, resolves the guild  from the channel,
+        Binds the VoiceProtocol attributes, resolves the guild from the channel,
         and registers the player with its node.
 
         Parameters
