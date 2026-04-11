@@ -1,67 +1,67 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Gateway API
 ===========
 
 The gateway layer contains the queue, enum, error, and event-related runtime types.
-The top-level :class:`relink.Client`, :class:`relink.Node`, and :class:`relink.Player`
+The top-level :class:`sonolink.Client`, :class:`sonolink.Node`, and :class:`sonolink.Player`
 classes are documented on :doc:`/api/core`.
 
 Voice state
 -----------
 
-.. autoclass:: relink.PlayerConnectionState
+.. autoclass:: sonolink.PlayerConnectionState
    :members:   
 
 
 Websocket payloads
 ------------------
 
-.. autoclass:: relink.gateway.schemas.PlayerState
+.. autoclass:: sonolink.gateway.schemas.PlayerState
    :members:
 
-.. autoclass:: relink.gateway.schemas.MemoryStats
+.. autoclass:: sonolink.gateway.schemas.MemoryStats
    :members:
 
-.. autoclass:: relink.gateway.schemas.CPUStats
+.. autoclass:: sonolink.gateway.schemas.CPUStats
    :members:
    
-.. autoclass:: relink.gateway.schemas.FrameStats
+.. autoclass:: sonolink.gateway.schemas.FrameStats
    :members:
 
-.. autoclass:: relink.gateway.schemas.StatsEvent
+.. autoclass:: sonolink.gateway.schemas.StatsEvent
    :members:
 
-.. autoclass:: relink.gateway.schemas.WebSocketClosedEvent
+.. autoclass:: sonolink.gateway.schemas.WebSocketClosedEvent
    :members:   
 
 Library adapters
 ----------------
 
-These classes are the concrete :class:`~relink.Player` implementations for each
+These classes are the concrete :class:`~sonolink.Player` implementations for each
 supported Discord library. You will not normally instantiate them directly —
-:class:`~relink.Player` resolves the correct adapter automatically at runtime via
+:class:`~sonolink.Player` resolves the correct adapter automatically at runtime via
 the ``RELINK_FRAMEWORK`` environment variable. They are documented here for
 completeness and for users who need to type-annotate their voice channel references
 precisely.
 
-All three classes inherit the full public API of :class:`~relink.player.BasePlayer`
+All three classes inherit the full public API of :class:`~sonolink.player.BasePlayer`
 (playback, queue, filters, volume, etc.) in addition to the members listed below.
 
-.. autoclass:: relink.gateway.player._base.BasePlayer
+.. autoclass:: sonolink.gateway.player._base.BasePlayer
    :members:
 
-.. autoclass:: relink.gateway.player.adapters._dpy.DpyPlayer
-   :members:
-   :inherited-members:
-   :show-inheritance:
-
-.. autoclass:: relink.gateway.player.adapters._disnake.DisnakePlayer
+.. autoclass:: sonolink.gateway.player.adapters._dpy.DpyPlayer
    :members:
    :inherited-members:
    :show-inheritance:
 
-.. autoclass:: relink.gateway.player.adapters._pycord.PycordPlayer
+.. autoclass:: sonolink.gateway.player.adapters._disnake.DisnakePlayer
+   :members:
+   :inherited-members:
+   :show-inheritance:
+
+.. autoclass:: sonolink.gateway.player.adapters._pycord.PycordPlayer
    :members:
    :inherited-members:
    :show-inheritance:

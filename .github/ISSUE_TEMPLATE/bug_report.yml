@@ -17,7 +17,7 @@ body:
       description: Provide a small, self-contained code snippet that demonstrates the issue.
       render: python
       placeholder: |
-        import relink
+        import sonolink
         # Your code here
     validations:
       required: true
@@ -37,7 +37,7 @@ body:
       label: Python Version
       description: >
         Select the Python version you are using. 
-        **Note:** Any version not listed here is not officially supported by ReLink.
+        **Note:** Any version not listed here is not officially supported by SonoLink.
       options:
         - "3.12"
         - "3.13"
@@ -45,9 +45,9 @@ body:
     validations:
       required: true
   - type: input
-    id: relink_version
+    id: sonolink_version
     attributes:
-      label: ReLink Version
+      label: SonoLink Version
       placeholder: "e.g., v1.0.0"
     validations:
       required: true
@@ -56,7 +56,7 @@ body:
     attributes:
       label: Preliminary Checks
       options:
-        - label: I have verified I am on the latest version of ReLink.
+        - label: I have verified I am on the latest version of SonoLink.
           required: true
         - label: I have checked existing issues to ensure this isn't a duplicate.
           required: true

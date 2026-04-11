@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Installation
 ============
@@ -12,7 +12,7 @@ Requirements
   `disnake 2.12+ <https://github.com/DisnakeDev/disnake>`_
 * A running Lavalink 4.x server — see :doc:`/guides/lavalink-setup`
 
-Installing ReLink
+Installing SonoLink
 -----------------
 
 Base install:
@@ -27,5 +27,5 @@ With optional speed extras:
 
    pip install "rewavelink[speed]"
 
-The ``speed`` extra installs ``curl_cffi``. ReLink will prefer it
+The ``speed`` extra installs ``curl_cffi``. SonoLink will prefer it
 automatically when available.

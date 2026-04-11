@@ -1,5 +1,5 @@
 
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 API Reference
 =============

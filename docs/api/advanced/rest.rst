@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 REST API
 ========
@@ -7,168 +7,168 @@ REST API
 Filter payloads
 ---------------
 
-.. autoclass:: relink.rest.schemas.PlayerFilters
+.. autoclass:: sonolink.rest.schemas.PlayerFilters
    :members:
    
 
-.. autoclass:: relink.rest.schemas.EqualizerFilter
+.. autoclass:: sonolink.rest.schemas.EqualizerFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.KaraokeFilter
+.. autoclass:: sonolink.rest.schemas.KaraokeFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.TimescaleFilter
+.. autoclass:: sonolink.rest.schemas.TimescaleFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.TremoloFilter
+.. autoclass:: sonolink.rest.schemas.TremoloFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.VibratoFilter
+.. autoclass:: sonolink.rest.schemas.VibratoFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.RotationFilter
+.. autoclass:: sonolink.rest.schemas.RotationFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.DistortionFilter
+.. autoclass:: sonolink.rest.schemas.DistortionFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.ChannelMixFilter
+.. autoclass:: sonolink.rest.schemas.ChannelMixFilter
    :members:
    
 
-.. autoclass:: relink.rest.schemas.LowPassFilter
+.. autoclass:: sonolink.rest.schemas.LowPassFilter
    :members:
    
 
 Info payloads
 -------------
 
-.. autoclass:: relink.rest.schemas.InfoResponse
+.. autoclass:: sonolink.rest.schemas.InfoResponse
    :members:
    
 
-.. autoclass:: relink.rest.schemas.VersionObject
+.. autoclass:: sonolink.rest.schemas.VersionObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.GitObject
+.. autoclass:: sonolink.rest.schemas.GitObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.PluginObject
+.. autoclass:: sonolink.rest.schemas.PluginObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.MemoryObject
+.. autoclass:: sonolink.rest.schemas.MemoryObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.CPUObject
+.. autoclass:: sonolink.rest.schemas.CPUObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.FrameStatsObject
+.. autoclass:: sonolink.rest.schemas.FrameStatsObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.StatsResponse
+.. autoclass:: sonolink.rest.schemas.StatsResponse
    :members:
    
 
-.. autodata:: relink.rest.schemas.VersionResponse
+.. autodata:: sonolink.rest.schemas.VersionResponse
 
 Route planner payloads
 ----------------------
 
-.. autoclass:: relink.rest.schemas.DetailsObject
+.. autoclass:: sonolink.rest.schemas.DetailsObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.IPBlockObject
+.. autoclass:: sonolink.rest.schemas.IPBlockObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.FailingAddressObject
+.. autoclass:: sonolink.rest.schemas.FailingAddressObject
    :members:
    
 
-.. autoclass:: relink.rest.schemas.RoutePlannerStatusResponse
+.. autoclass:: sonolink.rest.schemas.RoutePlannerStatusResponse
    :members:
    
 
-.. autoclass:: relink.rest.schemas.UnmarkFailedAddressRequest
+.. autoclass:: sonolink.rest.schemas.UnmarkFailedAddressRequest
    :members:
    
 
 Player payloads
 ---------------
 
-.. autoclass:: relink.rest.schemas.Player
+.. autoclass:: sonolink.rest.schemas.Player
    :members:
    
 
-.. autoclass:: relink.rest.schemas.PlayerState
+.. autoclass:: sonolink.rest.schemas.PlayerState
    :members:
    
 
-.. autoclass:: relink.rest.schemas.PlayerVoiceState
+.. autoclass:: sonolink.rest.schemas.PlayerVoiceState
    :members:
    
 
-.. autoclass:: relink.rest.schemas.UpdatePlayerTrackRequest
+.. autoclass:: sonolink.rest.schemas.UpdatePlayerTrackRequest
    :members:
    
 
-.. autoclass:: relink.rest.schemas.UpdatePlayerRequest
+.. autoclass:: sonolink.rest.schemas.UpdatePlayerRequest
    :members:
    
 
-.. autodata:: relink.rest.schemas.GetPlayersResponse
+.. autodata:: sonolink.rest.schemas.GetPlayersResponse
 
-.. autodata:: relink.rest.schemas.GetPlayerResponse
+.. autodata:: sonolink.rest.schemas.GetPlayerResponse
 
-.. autodata:: relink.rest.schemas.UpdatePlayerResponse
+.. autodata:: sonolink.rest.schemas.UpdatePlayerResponse
 
-.. autodata:: relink.rest.schemas.DestroyPlayerResponse
+.. autodata:: sonolink.rest.schemas.DestroyPlayerResponse
 
 Playlist and session payloads
 -----------------------------
 
-.. autoclass:: relink.rest.schemas.PlaylistInfo
+.. autoclass:: sonolink.rest.schemas.PlaylistInfo
    :members:
    
 
-.. autoclass:: relink.rest.schemas.UpdateSessionRequest
+.. autoclass:: sonolink.rest.schemas.UpdateSessionRequest
    :members:
    
 
 Track payloads
 --------------
 
-.. autoclass:: relink.rest.schemas.TrackInfo
+.. autoclass:: sonolink.rest.schemas.TrackInfo
    :members:
    
 
-.. autoclass:: relink.rest.schemas.Track
+.. autoclass:: sonolink.rest.schemas.Track
    :members:
    
 
-.. autoclass:: relink.rest.schemas.TrackLoadingResponse
+.. autoclass:: sonolink.rest.schemas.TrackLoadingResponse
    :members:
    
 
-.. autoclass:: relink.rest.schemas.PlaylistData
+.. autoclass:: sonolink.rest.schemas.PlaylistData
    :members:
    
 
-.. autodata:: relink.rest.schemas.TrackDecodeResponse
+.. autodata:: sonolink.rest.schemas.TrackDecodeResponse
 
-.. autodata:: relink.rest.schemas.TracksDecodeResponse
+.. autodata:: sonolink.rest.schemas.TracksDecodeResponse
 

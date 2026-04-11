@@ -68,7 +68,7 @@ docs = [
 ]
 
 [project.urls]
-Repository = "https://github.com/rewavelink/relink"
+Repository = "https://github.com/rewavelink/sonolink"
 
 [tool.basedpyright]
 pythonVersion = "3.12"
@@ -84,4 +84,4 @@ exclude = ["docs/"]
 ignore = ["F405", "F403"]
 
 [tool.setuptools.dynamic]
-version = { attr = "relink._version.__version__" }
+version = { attr = "sonolink._version.__version__" }
