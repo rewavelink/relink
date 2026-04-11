@@ -119,7 +119,7 @@ that means they are the methods you will call from command handlers, button
 callbacks, or playback services.
 
 :meth:`sonolink.Player.play`
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.play` to start a specific track right away.
 
