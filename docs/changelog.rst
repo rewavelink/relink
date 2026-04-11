@@ -33,8 +33,8 @@ Miscellaneous
 
 .. _vp1p0p0:
 
-v1.0.0 - 2026-03-29
---------------------
+v1.0.0 - 2026-04-11
+-------------------
 
 Initial release. For more information on what this added, consider referring to the API Reference or the examples.
 
