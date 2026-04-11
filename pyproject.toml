@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["version"]
+name = "sonolink"
+dependencies = [
+    "aiohttp>=3.11.0,<4",
+    "msgspec>=0.20.0,<1",
+    "typing_extensions>=4.0.0",
+    "packaging>=26.0,<27.0",
+]
+requires-python = ">=3.12"
+authors = [
+    { name = "vmphase" },
+    { name = "Soheab" },
+    { name = "DA-344 (aka Developer Anonymous)" },
+]
+maintainers = [
+    { name = "vmphase" },
+    { name = "DA-344 (aka Developer Anonymous)" },
+    { name = "Soheab" },
+]
+description = "A high-performance Lavalink v4 wrapper for Python, inspired by WaveLink."
+readme = "README.md"
+license = { text = "MIT" }
+keywords = [
+    "lavalink",
+    "wavelink",
+    "fork",
+    "sonolink",
+    "discord.py",
+    "discord",
+    "music",
+    "audio",
+    "bot",
+    "library",
+    "python",
+    "asyncio",
+    "pycord",
+    "py-cord",
+    "disnake",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: AsyncIO",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+speed = ["curl-cffi>=0.14.0,<1"]
+docs = [
+    "sphinx>=9.1.0",
+    "furo",
+    "sphinx-copybutton",
+    "sphinx-autobuild>=2024.10.3",
+    "py-cord[voice]>=2.8.0rc1,<3",
+    "disnake>=2.12,<3",
+]
+
+[project.urls]
+Repository = "https://github.com/sonolink/sonolink"
+
+[tool.basedpyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+reportPrivateUsage = false
+reportUnnecessaryComparison = false
+exclude = ["docs/"]
+
+[tool.ruff]
+exclude = ["docs/"]
+
+[tool.ruff.lint]
+ignore = ["F405", "F403"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sonolink._version.__version__" }

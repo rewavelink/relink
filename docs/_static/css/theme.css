@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap');
+
+body {
+    --font-stack--headings: "Saira", "Segoe UI", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Saira", sans-serif;
+}
+
+.sidebar-brand {
+    border-bottom: 1px solid var(--color-sidebar-background-border);
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-logo {
+    filter: drop-shadow(0 0.8rem 1.4rem rgba(0, 0, 0, 0.14));
+    max-width: 12.75rem;
+}
+
+.sidebar-search-container {
+    border-radius: 0.8rem;
+    overflow: hidden;
+}
+
+.sidebar-tree .current>.reference,
+.sidebar-tree .current-page>.reference {
+    font-weight: 600;
+    padding-left: calc(var(--sidebar-item-spacing-horizontal) - 0.2rem);
+}
+
+.sidebar-tree .reference {
+    border-radius: 0.7rem 0 0 0.7rem;
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.sidebar-tree .caption,
+.sidebar-tree :not(.caption)>.caption-text,
+.toc-title {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+article h1 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+}
+
+article h2 {
+    border-bottom: 1px solid var(--color-background-border);
+    padding-bottom: 0.2rem;
+    font-weight: 600;
+}
+
+a code.literal,
+p code.literal,
+.sig-inline {
+    border-radius: 0.4rem;
+}
+
+.highlight,
+table.docutils,
+article .sidebar,
+.admonition,
+div.versionadded,
+div.versionchanged,
+div.deprecated,
+div.versionremoved {
+    box-shadow: 0 0.8rem 2rem rgba(15, 23, 32, 0.06);
+}
+
+.admonition,
+div.versionadded,
+div.versionchanged,
+div.deprecated,
+div.versionremoved,
+article .sidebar {
+    backdrop-filter: blur(8px);
+}
+
+dl.py.class,
+dl.py.method,
+dl.py.attribute,
+dl.py.function,
+dl.py.exception {
+    border-radius: 0.8rem;
+    padding: 0.35rem 0.65rem 0.55rem;
+    transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+
+dl.py.class:hover,
+dl.py.method:hover,
+dl.py.attribute:hover,
+dl.py.function:hover,
+dl.py.exception:hover {
+    background: rgba(47, 108, 149, 0.05);
+    box-shadow: inset 0 0 0 1px rgba(47, 108, 149, 0.10);
+}
+
+body[data-theme="dark"] dl.py.class:hover,
+body[data-theme="dark"] dl.py.method:hover,
+body[data-theme="dark"] dl.py.attribute:hover,
+body[data-theme="dark"] dl.py.function:hover,
+body[data-theme="dark"] dl.py.exception:hover {
+    background: rgba(105, 167, 209, 0.07);
+    box-shadow: inset 0 0 0 1px rgba(105, 167, 209, 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+
+    body:not([data-theme="light"]) dl.py.class:hover,
+    body:not([data-theme="light"]) dl.py.method:hover,
+    body:not([data-theme="light"]) dl.py.attribute:hover,
+    body:not([data-theme="light"]) dl.py.function:hover,
+    body:not([data-theme="light"]) dl.py.exception:hover {
+        background: rgba(105, 167, 209, 0.07);
+        box-shadow: inset 0 0 0 1px rgba(105, 167, 209, 0.16);
+    }
+}
+
+.sig-name,
+.sig-name.descname {
+    color: var(--color-api-name);
+    font-weight: 600;
+}

@@ -1,0 +1,20 @@
+.. currentmodule:: sonolink
+
+.. _whats_new:
+
+Changelog
+=========
+
+This page keeps a detailed human friendly rendering of what's new and changed
+in specific versions.
+
+.. _vp1p0p0:
+
+v1.0.0 - 2026-04-11
+-------------------
+
+Initial release. For more information on what this added, consider referring to the API Reference or the examples.
+
+
+
+.. _unreleased: https://github.com/sonolink/sonolink/compare/v1.1.0...HEAD
