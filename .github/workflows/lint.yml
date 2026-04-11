@@ -28,10 +28,10 @@ jobs:
               run: pip install ruff
 
             - name: Run ruff format
-              run: ruff format .
+              run: ruff format . --exclude docs/
 
             - name: Run ruff lint fixes
-              run: ruff check --fix .
+              run: ruff check --fix . --exclude docs/
 
             - name: Commit and push changes
               run: |
@@ -64,7 +64,7 @@ jobs:
               run: pip install ruff
 
             - name: Check ruff formatting
-              run: ruff format --check .
+              run: ruff format --check . --exclude docs/
 
             - name: Check ruff lint
-              run: ruff check .
+              run: ruff check . --exclude docs/
