@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 dynamic = ["version"]
-name = "rewavelink"
+name = "sonolink"
 dependencies = [
     "aiohttp>=3.11.0,<4",
     "msgspec>=0.20.0,<1",
@@ -29,7 +29,7 @@ keywords = [
     "lavalink",
     "wavelink",
     "fork",
-    "rewavelink",
+    "sonolink",
     "discord.py",
     "discord",
     "music",
@@ -68,7 +68,7 @@ docs = [
 ]
 
 [project.urls]
-Repository = "https://github.com/rewavelink/sonolink"
+Repository = "https://github.com/sonolink/sonolink"
 
 [tool.basedpyright]
 pythonVersion = "3.12"

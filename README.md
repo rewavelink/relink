@@ -1,6 +1,6 @@
 <div align="center">
 
-![SonoLink](https://raw.githubusercontent.com/rewavelink/sonolink/main/docs/_static/images/banner.png)
+![SonoLink](https://raw.githubusercontent.com/sonolink/sonolink/main/docs/_static/images/banner.png)
 
 **SonoLink** is a high-performance Lavalink v4 wrapper for Python, inspired by [WaveLink](https://github.com/PythonistaGuild/Wavelink).
 
@@ -8,9 +8,9 @@
 
 
 
-[![PyPI](https://img.shields.io/pypi/v/rewavelink)](https://pypi.org/project/rewavelink)
+[![PyPI](https://img.shields.io/pypi/v/sonolink)](https://pypi.org/project/sonolink)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
-[![License](https://img.shields.io/github/license/rewavelink/sonolink)](LICENSE)
+[![License](https://img.shields.io/github/license/sonolink/sonolink)](LICENSE)
 [![Lavalink](https://img.shields.io/badge/lavalink-4.x-orange)](https://lavalink.dev)
 [![Discord](https://img.shields.io/discord/1471146455002775624?label=discord)](https://discord.gg/tPHVWBPedt)
 
@@ -44,19 +44,19 @@
 To install the stable version from PyPI:
 ```sh
 # Linux/macOS
-python3 -m pip install -U rewavelink
+python3 -m pip install -U sonolink
 
 # Windows
-py -3 -m pip install -U rewavelink
+py -3 -m pip install -U sonolink
 ```
 
 To install with optional speed improvements:
 ```sh
 # Linux/macOS
-python3 -m pip install -U "rewavelink[speed]"
+python3 -m pip install -U "sonolink[speed]"
 
 # Windows
-py -3 -m pip install -U "rewavelink[speed]"
+py -3 -m pip install -U "sonolink[speed]"
 ```
 
 <br>
@@ -66,5 +66,5 @@ py -3 -m pip install -U "rewavelink[speed]"
 </p>
 
 <p align="center">
-        <i><code>&copy 2026 <a href="https://github.com/rewavelink">SonoLink Development Team</a></code></i>
+        <i><code>&copy 2026 <a href="https://github.com/sonolink">SonoLink Development Team</a></code></i>
 </p>

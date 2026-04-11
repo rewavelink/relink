@@ -19,13 +19,13 @@ Base install:
 
 .. code-block:: bash
 
-   pip install rewavelink
+   pip install sonolink
 
 With optional speed extras:
 
 .. code-block:: bash
 
-   pip install "rewavelink[speed]"
+   pip install "sonolink[speed]"
 
 The ``speed`` extra installs ``curl_cffi``. SonoLink will prefer it
 automatically when available.

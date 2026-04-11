@@ -107,4 +107,4 @@ Initial release.
 
 
 
-.. _unreleased: https://github.com/rewavelink/sonolink/compare/v1.1.0...HEAD
+.. _unreleased: https://github.com/sonolink/sonolink/compare/v1.1.0...HEAD

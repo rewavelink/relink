@@ -75,13 +75,13 @@ The public API is easiest to understand from the outside in:
 License
 -------
 
-SonoLink is released under the `MIT License <https://github.com/rewavelink/sonolink/blob/main/LICENSE>`_.
+SonoLink is released under the `MIT License <https://github.com/sonolink/sonolink/blob/main/LICENSE>`_.
 
 Resources
 ---------
 
-* `GitHub repository <https://github.com/rewavelink/sonolink>`_
-* `PyPI package <https://pypi.org/project/rewavelink/>`_
+* `GitHub repository <https://github.com/sonolink/sonolink>`_
+* `PyPI package <https://pypi.org/project/sonolink/>`_
 * `Discord community <https://discord.gg/tPHVWBPedt>`_
 
 Credits
