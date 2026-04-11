@@ -17,7 +17,12 @@ from discord.ext import commands
 
 import sonolink
 import sonolink.models
-from sonolink.gateway.enums import AutoPlayMode, InactivityMode, QueueMode, SearchProvider
+from sonolink.gateway.enums import (
+    AutoPlayMode,
+    InactivityMode,
+    QueueMode,
+    SearchProvider,
+)
 from sonolink.models.settings import (
     AutoPlaySettings,
     CacheSettings,
