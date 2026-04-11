@@ -1,23 +1,26 @@
 .. currentmodule:: sonolink
 
-Migrating From Wavelink
-=======================
+Moving From Wavelink
+=====================
 
-This guide is for users coming from `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_.
+This guide is for anyone moving over from `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_.
+
+It walks through the main differences between SonoLink and Wavelink 3.x, so you can get a feel for what
+changes and what stays familiar.
 
 What stays familiar
 -------------------
 
 * Lavalink remains the backend.
-* All three supported Discord libraries (discord.py, py-cord, disnake) use a custom ``discord.VoiceProtocol`` for voice integration.
+* SonoLink supports discord.py, py-cord, and disnake, each using a custom ``discord.VoiceProtocol`` for voice integration.
 * The main runtime objects are still a client-level coordinator, nodes, players, queues,
   tracks, playlists, and filters.
 
 What changes
 ------------
 
-The migration is mostly about replacing the old global Wavelink entry points with explicit SonoLink
-objects and adapting to different return types.
+Most of the work comes down to replacing Wavelink's top-level helper APIs with explicit SonoLink objects and
+adjusting for the return types used in Wavelink 3.x.
 
 Concept mapping
 ---------------
@@ -119,7 +122,7 @@ over behavior that Wavelink left to ad-hoc configuration:
 Searching
 ---------
 
-In Wavelink 3, the documented search flow is usually:
+In Wavelink, the search flow is usually:
 
 .. code-block:: python
 
@@ -232,11 +235,13 @@ See :doc:`/guides/filters` for the full filter reference.
 Events
 ------
 
-Wavelink has documented public event names such as ``on_wavelink_node_ready`` and
-``on_wavelink_track_start`` in its docs.
+Wavelink has event names such as ``on_wavelink_node_ready`` and
+``on_wavelink_track_start`` that are dispatched through the underlying Discord client.
 
-SonoLink dispatches events through the underlying Discord client using the ``sonolink_``
-prefix. The available events are:
+SonoLink does the same, but with the `_sonolink_` prefix instead of ``_wavelink_``. 
+The event system is otherwise similar, with the same dispatch mechanism and handler signature.
+
+The available events are:
 
 * :func:`on_sonolink_node_ready` — a node has connected and is ready to use.
 * :func:`on_sonolink_node_close` — a node connection was closed.
@@ -247,13 +252,13 @@ prefix. The available events are:
 * :func:`on_sonolink_track_stuck` — a track stalled and could not continue.
 * :func:`on_sonolink_unknown_event` — an unrecognized event type was received from the node.
 
-When migrating, keep playback flow explicit in commands and services first, then reintroduce
+When moving, keep playback flow explicit in commands and services first, then reintroduce
 event-driven logic where still needed.
 
 Autoplay
 --------
 
-Wavelink exposes an ``auto_queue`` concept in its public docs. SonoLink's autoplay is configured
+Wavelink exposes an ``auto_queue`` concept SonoLink's autoplay is configured
 through :class:`sonolink.models.AutoPlaySettings` at player creation time and toggled via
 :attr:`sonolink.Player.autoplay`, which accepts an :class:`sonolink.AutoPlayMode` value:
 
@@ -289,5 +294,5 @@ Useful references
 -----------------
 
 * `Wavelink repository <https://github.com/PythonistaGuild/Wavelink>`_
-* `Wavelink migrating guide <https://wavelink.readthedocs.io/en/v3.1.0/migrating.html>`_
-* `Wavelink API reference <https://wavelink.readthedocs.io/en/v3.4.0/wavelink.html>`_
+* `Wavelink migrating guide <https://wavelink.readthedocs.io/en/v3.4.1/migrating.html>`_
+* `Wavelink API reference <https://wavelink.readthedocs.io/en/v3.4.1/wavelink.html>`_
