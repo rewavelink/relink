@@ -65,7 +65,7 @@ docs = [
     "furo",
     "sphinx-copybutton",
     "sphinx-autobuild>=2024.10.3",
-    "py-cord>=2.8.0rc1,<3",
+    "py-cord[voice]>=2.8.0rc1,<3",
     "disnake>=2.12,<3",
 ]
 
