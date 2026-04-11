@@ -70,10 +70,15 @@ docs = [
 [project.urls]
 Repository = "https://github.com/rewavelink/relink"
 
-[tool.pyright]
+[tool.basedpyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportPrivateUsage = false
+reportUnnecessaryComparison = false
+exclude = ["docs/"]
+
+[tool.ruff]
+exclude = ["docs/"]
 
 [tool.ruff.lint]
 ignore = ["F405", "F403"]
