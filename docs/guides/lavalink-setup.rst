@@ -284,9 +284,9 @@ With Lavalink running locally on port 2333, connect SonoLink as follows:
 
    import sonolink
 
-   rl_client = sonolink.Client(bot)
+   sl_client = sonolink.Client(bot)
 
-   rl_client.create_node(
+   sl_client.create_node(
        uri="http://localhost:2333",
        password="youshallnotpass",
        id="main",
@@ -294,7 +294,7 @@ With Lavalink running locally on port 2333, connect SonoLink as follows:
 
    @bot.event
    async def on_ready() -> None:
-       await rl_client.start()
+       await sl_client.start()
 
 If Lavalink is on a remote machine, replace ``localhost`` with the server's IP address or
 hostname. Make sure the port is open in your firewall if the bot and server are on different

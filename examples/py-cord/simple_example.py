@@ -25,12 +25,12 @@ class Bot(discord.Bot):
 
         super().__init__(intents=intents)
 
-        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
     async def on_connect(self) -> None:
         await super().on_connect()
 
-        await self.rl_client.start()
+        await self.sl_client.start()
         print("SonoLink nodes connected successfully!")
 
 
@@ -38,7 +38,7 @@ bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
 # and sonolink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
@@ -68,7 +68,7 @@ async def play(ctx: discord.ApplicationContext, query: str) -> None:
     assert isinstance(vc, sonolink.Player)
 
     # Now, we will search 'query' with Lavalink and play the obtained track, if available
-    result = await bot.rl_client.search_track(query)
+    result = await bot.sl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
         await ctx.respond("Could not find any tracks!")

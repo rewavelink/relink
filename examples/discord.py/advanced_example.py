@@ -29,12 +29,12 @@ class Bot(commands.Bot):
             command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
         )
 
-        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
     async def setup_hook(self) -> None:
         # discord.py will automatically call 'setup_hook', and is the
         # safest place to start our client.
-        await self.rl_client.start()
+        await self.sl_client.start()
         print("SonoLink nodes connected successfully!")
 
         # Sync slash commands to Discord
@@ -46,7 +46,7 @@ bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
 # and sonolink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
@@ -71,7 +71,7 @@ async def query_autocomplete(
     if not current:
         return []
 
-    result = await bot.rl_client.search_track(current, source=TrackSourceType.YOUTUBE)
+    result = await bot.sl_client.search_track(current, source=TrackSourceType.YOUTUBE)
 
     if result.is_error() or result.is_empty() or result.result is None:
         return []
@@ -119,7 +119,7 @@ async def play(interaction: discord.Interaction, query: str) -> None:
 
     # Search for the query. By default this searches YouTube; pass a
     # 'source' kwarg (e.g. TrackSourceType.SOUNDCLOUD) to change that.
-    result = await bot.rl_client.search_track(query, source=TrackSourceType.YOUTUBE)
+    result = await bot.sl_client.search_track(query, source=TrackSourceType.YOUTUBE)
 
     if result.is_error() or result.is_empty() or result.result is None:
         await interaction.followup.send("Could not find any tracks!")

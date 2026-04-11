@@ -710,13 +710,13 @@ class BasePlayer(abc.ABC):
             if not bool(self.client):
                 raise RuntimeError("Cannot ensure Node without a Client.")
 
-            rl_client = _registry.clients.get(self.client)
-            if rl_client is None:
+            sl_client = _registry.clients.get(self.client)
+            if sl_client is None:
                 raise RuntimeError(
                     f"No sonolink.Client is associated with {self.client!r}"
                 )
 
-            node = rl_client.get_best_node()
+            node = sl_client.get_best_node()
             self._node = node
 
         if self.guild.id not in node._players:

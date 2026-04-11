@@ -238,7 +238,7 @@ A common playback flow is:
 
 .. code-block:: python
 
-   result = await rl_client.search_track("never gonna give you up")
+   result = await sl_client.search_track("never gonna give you up")
    if result.is_error() or result.is_empty() or result.result is None:
        return
 

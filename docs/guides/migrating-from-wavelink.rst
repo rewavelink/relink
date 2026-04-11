@@ -57,16 +57,16 @@ In SonoLink, the equivalent flow is explicit and instance-based:
 
    import sonolink
 
-   rl_client = sonolink.Client(bot)
+   sl_client = sonolink.Client(bot)
    
-   rl_client.create_node(
+   sl_client.create_node(
        uri="http://localhost:2333",
        password="youshallnotpass",
        id="main",
    )
 
    async def setup_hook() -> None:
-       await rl_client.start()
+       await sl_client.start()
 
 .. note::
    :meth:`sonolink.Client.start` should be called once your Discord client is ready,
@@ -94,7 +94,7 @@ over behavior that Wavelink left to ad-hoc configuration:
    from sonolink.models.settings import AutoPlaySettings, CacheSettings, HistorySettings, InactivitySettings
    from sonolink.gateway.enums import AutoPlayMode, InactivityMode
 
-   rl_client.create_node(
+   sl_client.create_node(
        uri="http://localhost:2333",
        password="youshallnotpass",
        inactivity_settings=InactivitySettings(
@@ -107,7 +107,7 @@ over behavior that Wavelink left to ad-hoc configuration:
        ),
    )
 
-   player = rl_client.get_best_node().create_player(
+   player = sl_client.get_best_node().create_player(
        autoplay_settings=AutoPlaySettings(
            mode=AutoPlayMode.ENABLED,
            discovery_count=10,
@@ -140,7 +140,7 @@ In SonoLink, searching returns a wrapper object that makes the result type expli
 .. code-block:: python
 
    # SonoLink
-   result = await rl_client.search_track(query)
+   result = await sl_client.search_track(query)
    if result.is_error() or result.is_empty() or result.result is None:
        return
 

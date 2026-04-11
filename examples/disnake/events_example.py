@@ -21,14 +21,14 @@ class Bot(commands.InteractionBot):
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
 # and sonolink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
@@ -38,7 +38,7 @@ bot.rl_client.create_node(
 # We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
-    await bot.rl_client.start()
+    await bot.sl_client.start()
     print("SonoLink nodes connected successfully!")
 
 

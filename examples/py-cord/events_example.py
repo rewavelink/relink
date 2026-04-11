@@ -22,12 +22,12 @@ class Bot(discord.Bot):
 
         super().__init__(intents=intents)
 
-        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
     async def on_connect(self) -> None:
         await super().on_connect()
 
-        await self.rl_client.start()
+        await self.sl_client.start()
         print("SonoLink nodes connected successfully!")
 
 
@@ -35,7 +35,7 @@ bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
 # and sonolink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )

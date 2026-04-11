@@ -24,14 +24,14 @@ class Bot(commands.InteractionBot):
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
 # and sonolink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
@@ -41,7 +41,7 @@ bot.rl_client.create_node(
 # We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
-    await bot.rl_client.start()
+    await bot.sl_client.start()
     print("SonoLink nodes connected successfully!")
 
 
@@ -66,7 +66,7 @@ async def query_autocomplete(
     if not string:
         return []
 
-    result = await bot.rl_client.search_track(string, source=TrackSourceType.YOUTUBE)
+    result = await bot.sl_client.search_track(string, source=TrackSourceType.YOUTUBE)
 
     if result.is_error() or result.is_empty() or result.result is None:
         return []
@@ -115,7 +115,7 @@ async def play(
 
     # Search for the query. By default this searches YouTube; pass a
     # 'source' kwarg (e.g. TrackSourceType.SOUNDCLOUD) to change that.
-    result = await bot.rl_client.search_track(query, source=TrackSourceType.YOUTUBE)
+    result = await bot.sl_client.search_track(query, source=TrackSourceType.YOUTUBE)
 
     if result.is_error() or result.is_empty() or result.result is None:
         await inter.followup.send("Could not find any tracks!")

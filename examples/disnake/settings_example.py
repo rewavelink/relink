@@ -32,13 +32,13 @@ class Bot(commands.InteractionBot):
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
 
 # CacheSettings and InactivitySettings apply to every player on the node.
-bot.rl_client.create_node(
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
     cache_settings=CacheSettings(
@@ -59,7 +59,7 @@ bot.rl_client.create_node(
 # We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
-    await bot.rl_client.start()
+    await bot.sl_client.start()
     print("SonoLink nodes connected successfully!")
 
 
@@ -84,7 +84,7 @@ async def play(
 
         # AutoPlaySettings and HistorySettings are per-player, so they are
         # passed when creating the player via Node.create_player().
-        node = bot.rl_client.get_best_node()
+        node = bot.sl_client.get_best_node()
         player = node.create_player(
             queue_mode=QueueMode.NORMAL,
             autoplay_settings=AutoPlaySettings(
@@ -107,7 +107,7 @@ async def play(
 
     assert isinstance(vc, sonolink.Player)
 
-    result = await bot.rl_client.search_track(query)
+    result = await bot.sl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
         await inter.followup.send("Could not find any tracks!")
