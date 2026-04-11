@@ -90,4 +90,4 @@ Credits
 * `Paillat-dev <https://github.com/Paillat-dev>`_ for the
   `content width selector <https://github.com/Pycord-Development/pycord/pull/3040>`_.
 * `Rapptz <https://github.com/Rapptz>`_ for the original
-  `attributetable Sphinx extension <https://github.com/Rapptz/discord.py/blob/5d74ed3e0ce5178cf454825bd5a71f0248738f54/docs/extensions/attributetable.py>`_.
+  `attributetable Sphinx extension <https://github.com/Rapptz/discord.py/blob/master/docs/extensions/attributetable.py>`_.

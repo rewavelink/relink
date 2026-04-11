@@ -1,0 +1,24 @@
+NOTICE
+======
+
+This project (SonoLink) may contain fragments of code that were
+inspired by — in terms of structure or functionality, not source code — the
+following third-party open source projects. No code was copied or derived from
+these projects; inspiration was drawn solely from their design, architecture,
+and feature set.
+
+-------------------------------------------------------------------------------
+
+WaveLink
+https://github.com/PythonistaGuild/Wavelink/
+
+Copyright (c) 2019-Current PythonistaGuild, EvieePy
+All Rights Reserved.
+Licensed under the MIT License.
+See https://github.com/PythonistaGuild/Wavelink/blob/main/LICENSE for license
+details.
+
+-------------------------------------------------------------------------------
+
+This NOTICE file is provided for informational purposes only and does not
+modify the terms of the license under which this project is distributed.
