@@ -36,7 +36,7 @@ class ClientFactory:
                 from .adapters._pycord import PycordClient as Client
             case "disnake":
                 from .adapters._disnake import DisnakeClient as Client
-            case _:
+            case _:  # pyright: ignore[reportUnnecessaryComparison]
                 raise ValueError(f"Unsupported framework: {framework}")
 
         expected_type = Client.cls

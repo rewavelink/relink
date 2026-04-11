@@ -79,12 +79,8 @@ class Client(Generic[N]):
         Defaults to ``None``.
 
         .. warning::
-
-            If you reference framework-bound objects (like :class:`~relink.Player`) before setting
-            this framework, you might end up with an adapter that differs from the one you expect, if you
-            want to use the framework before setting it with this parameter, you can set the ``RELINK_FRAMEWORK`` environment
-            variable to any of the available frameworks **before any import to ``relink`` is done**. If you reference these
-            objects _after_ creating a client with a custom framework, you can safely ignore this warning.
+            If you are using a custom :class:`~relink.Player` subclass, ensure it is defined **after**
+            constructing the :class:`Client`, otherwise the framework adapter may not be resolved correctly.
     """
 
     _framework: FrameworkLiteral
@@ -138,6 +134,8 @@ class Client(Generic[N]):
         if framework is None:
             framework = PlayerFactory().detect_framework() or "discord.py"
 
+        os.environ["RELINK_FRAMEWORK"] = framework
+
         self._client: DiscordClient[Any] = ClientFactory.create(client, framework)
 
         self._framework = framework
@@ -151,7 +149,6 @@ class Client(Generic[N]):
                 f"relink.Client already attached to this {framework}.Client"
             )
 
-        os.environ["RELINK_FRAMEWORK"] = framework
         _registry.clients[self._client._client] = self
 
     def __repr__(self) -> str:
