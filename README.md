@@ -4,7 +4,7 @@
 
 **SonoLink** is a high-performance Lavalink v4 wrapper for Python, inspired by [WaveLink](https://github.com/PythonistaGuild/Wavelink).
 
-[Documentation](https://sonolink.readthedocs.io/en/latest) · [Discord](https://discord.gg/tPHVWBPedt) · [Migration from WaveLink](https://sonolink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
+[Documentation](https://sonolink.readthedocs.io/en/latest) · [Discord](https://discord.gg/tPHVWBPedt)
 
 
 
@@ -23,9 +23,14 @@
 - Full Lavalink v4+ REST API support
 - Built on [msgspec](https://github.com/jcrist/msgspec) for rapid serialization and strict type validation
 - Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) for faster networking
-- Drop-in familiarity for Wavelink users — [migration guide included](https://sonolink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 - Async-first and [Basedpyright](https://docs.basedpyright.com/latest/) strict-compliant
 - Built-in support for [discord.py](https://github.com/Rapptz/discord.py), [pycord](https://github.com/Pycord-Development/pycord), and [disnake](https://github.com/DisnakeDev/disnake)
+
+## Documentation
+
+The full documentation is available at https://sonolink.readthedocs.io/en/latest. It includes guides on getting started, Lavalink setup and moving from other libraries, as well as a comprehensive API reference.
+
+Examples may be found in the [examples](https://github.com/sonolink/sonolink/tree/main/examples) directory.
 
 ## Installation
 
