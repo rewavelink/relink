@@ -1,36 +1,36 @@
 # This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
 #
-# This example covers how to configure relink's settings objects and wire them
+# This example covers how to configure sonolink's settings objects and wire them
 # into your bot. Settings are split into two groups:
 #
 # - Node-level: CacheSettings, InactivitySettings (shared across all players)
 # - Player-level: AutoPlaySettings, HistorySettings (unique per player)
 #
 # This requires an active Lavalink server, for more information on setting up one
-# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# you can check the guide at: https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any, cast
 
 import disnake
 from disnake.ext import commands
 
-import relink
+import sonolink
 
 
-# We subclass commands.InteractionBot to hold our relink.Client instance cleanly.
+# We subclass commands.InteractionBot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
-# and relink will automatically load-balance between them via 'get_best_node'.
+# and sonolink will automatically load-balance between them via 'get_best_node'.
 bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
@@ -38,11 +38,11 @@ bot.rl_client.create_node(
 
 
 # Called when the bot has successfully connected to Discord.
-# We start the relink client here so nodes are ready before events fire.
+# We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
     await bot.rl_client.start()
-    print("ReLink nodes connected successfully!")
+    print("SonoLink nodes connected successfully!")
 
 
 # We will define some simple play, pause, resume, stop and skip commands.
@@ -69,9 +69,9 @@ async def play(
             await inter.followup.send("You must be in a voice channel!")
             return
 
-        vc = await inter.author.voice.channel.connect(cls=relink.Player)
+        vc = await inter.author.voice.channel.connect(cls=sonolink.Player)
 
-    assert isinstance(vc, relink.Player)
+    assert isinstance(vc, sonolink.Player)
 
     # Now, we will search 'query' with Lavalink and play the obtained track, if available
     result = await bot.rl_client.search_track(query)
@@ -84,7 +84,7 @@ async def play(
 
     if isinstance(data, list):
         track = data[0]
-    elif isinstance(data, relink.models.Playlist):
+    elif isinstance(data, sonolink.models.Playlist):
         track = data.tracks[0]
     else:
         track = data
@@ -108,7 +108,7 @@ async def play(
 async def pause(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     vc = inter.guild.voice_client if inter.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await inter.response.send_message("Not connected to a voice channel!")
         return
 
@@ -120,7 +120,7 @@ async def pause(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
 async def resume(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     vc = inter.guild.voice_client if inter.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await inter.response.send_message("Not connected to a voice channel!")
         return
 
@@ -132,11 +132,11 @@ async def resume(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
 async def stop(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     vc = inter.guild.voice_client if inter.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await inter.response.send_message("Already disconnected!")
         return
 
-    await cast(relink.Player, vc).disconnect()
+    await cast(sonolink.Player, vc).disconnect()
     await inter.response.send_message("Disconnected!")
 
 
@@ -144,14 +144,14 @@ async def stop(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
 async def skip(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     vc = inter.guild.voice_client if inter.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await inter.response.send_message("Not connected to a voice channel!")
         return
 
     # 'skip' will raise 'QueueEmpty' if there are no tracks in queue
     try:
         track = await vc.skip()
-    except relink.QueueEmpty:
+    except sonolink.QueueEmpty:
         await inter.response.send_message("There is no track to skip to!")
     else:
         if not track:

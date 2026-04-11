@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Guides
 ======

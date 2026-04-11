@@ -1,10 +1,10 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Lavalink Setup
 ==============
 
 This guide covers how to download, configure, and run a Lavalink server on your own
-infrastructure. Lavalink is the audio backend that ReLink (and Wavelink) connect to. You
+infrastructure. Lavalink is the audio backend that SonoLink (and Wavelink) connect to. You
 manage it as a separate process from your bot.
 
 What Lavalink is
@@ -12,7 +12,7 @@ What Lavalink is
 
 Lavalink is a standalone Java audio-streaming server that your bot connects to over a local or
 remote WebSocket. It handles decoding, buffering, and source routing so your bot process does not
-need to. It exposes a REST and WebSocket API that client libraries such as ReLink speak to
+need to. It exposes a REST and WebSocket API that client libraries such as SonoLink speak to
 directly.
 
 * `Lavalink GitHub repository <https://github.com/lavalink-devs/Lavalink>`_
@@ -93,7 +93,7 @@ A minimal working configuration:
        root: INFO
        lavalink: INFO
 
-The ``password`` value must match what you pass to ``relink.Client.create_node``. Change it
+The ``password`` value must match what you pass to ``sonolink.Client.create_node``. Change it
 to something strong before exposing Lavalink to any non-localhost interface.
 
 For a full reference of every configuration option, see the official documentation:
@@ -275,16 +275,16 @@ Or with Docker Compose alongside your bot. An example ``compose.yml``:
 When running both containers in the same Compose project, use ``lavalink`` (the service name)
 as the hostname in your bot's node URI rather than ``localhost``.
 
-Connecting ReLink to your server
+Connecting SonoLink to your server
 ---------------------------------
 
-With Lavalink running locally on port 2333, connect ReLink as follows:
+With Lavalink running locally on port 2333, connect SonoLink as follows:
 
 .. code-block:: python
 
-   import relink
+   import sonolink
 
-   rl_client = relink.Client(bot)
+   rl_client = sonolink.Client(bot)
 
    rl_client.create_node(
        uri="http://localhost:2333",

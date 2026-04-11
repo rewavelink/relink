@@ -1,23 +1,23 @@
 # This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
 #
-# This example covers how to configure relink's settings objects and wire them
+# This example covers how to configure sonolink's settings objects and wire them
 # into your bot. Settings are split into two groups:
 #
 # - Node-level: CacheSettings, InactivitySettings (shared across all players)
 # - Player-level: AutoPlaySettings, HistorySettings (unique per player)
 #
 # This requires an active Lavalink server, for more information on setting up one
-# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# you can check the guide at: https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any
 
 import disnake
 from disnake.ext import commands
 
-import relink
-import relink.models
-from relink.gateway.enums import AutoPlayMode, InactivityMode, QueueMode, SearchProvider
-from relink.models.settings import (
+import sonolink
+import sonolink.models
+from sonolink.gateway.enums import AutoPlayMode, InactivityMode, QueueMode, SearchProvider
+from sonolink.models.settings import (
     AutoPlaySettings,
     CacheSettings,
     HistorySettings,
@@ -25,14 +25,14 @@ from relink.models.settings import (
 )
 
 
-# We subclass commands.InteractionBot to hold our relink.Client instance cleanly.
+# We subclass commands.InteractionBot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
@@ -56,11 +56,11 @@ bot.rl_client.create_node(
 
 
 # Called when the bot has successfully connected to Discord.
-# We start the relink client here so nodes are ready before events fire.
+# We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
     await bot.rl_client.start()
-    print("ReLink nodes connected successfully!")
+    print("SonoLink nodes connected successfully!")
 
 
 @bot.slash_command(name="play", description="Plays a song.")
@@ -105,7 +105,7 @@ async def play(
 
         vc = await inter.author.voice.channel.connect(cls=player)
 
-    assert isinstance(vc, relink.Player)
+    assert isinstance(vc, sonolink.Player)
 
     result = await bot.rl_client.search_track(query)
 
@@ -117,7 +117,7 @@ async def play(
     track = (
         data[0]
         if isinstance(data, list)
-        else (data.tracks[0] if isinstance(data, relink.models.Playlist) else data)
+        else (data.tracks[0] if isinstance(data, sonolink.models.Playlist) else data)
     )
 
     vc.queue.put(track)
@@ -140,7 +140,7 @@ async def play(
 async def autoplay(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     vc = inter.guild.voice_client if inter.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await inter.response.send_message("Not connected to a voice channel!")
         return
 

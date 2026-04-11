@@ -17,7 +17,7 @@
 
 ### Code & Review
 - [ ] I have performed a self-review of my code.
-- [ ] My code follows the **strict typing** standards of ReLink.
+- [ ] My code follows the **strict typing** standards of SonoLink.
 - [ ] I have commented complex logic, especially in hard-to-understand areas.
 ### Documentation & Compatibility
 - [ ] I have updated the documentation/docstrings to reflect these changes.

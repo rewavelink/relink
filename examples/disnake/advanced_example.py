@@ -1,36 +1,36 @@
 # This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
 #
-# This example covers an advanced music bot using relink, featuring a full
+# This example covers an advanced music bot using sonolink, featuring a full
 # queue system, volume control, track history, seeking, and playlist support.
 #
 # This requires an active Lavalink server, for more information on setting up one
-# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# you can check the guide at: https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any
 
 import disnake
 from disnake.ext import commands
 
-import relink
-import relink.models
-from relink.gateway.enums import QueueMode
-from relink.rest.enums import TrackSourceType
+import sonolink
+import sonolink.models
+from sonolink.gateway.enums import QueueMode
+from sonolink.rest.enums import TrackSourceType
 
 
-# We subclass commands.InteractionBot to hold our relink.Client instance cleanly.
+# We subclass commands.InteractionBot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
-# and relink will automatically load-balance between them via 'get_best_node'.
+# and sonolink will automatically load-balance between them via 'get_best_node'.
 bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
@@ -38,20 +38,20 @@ bot.rl_client.create_node(
 
 
 # Called when the bot has successfully connected to Discord.
-# We start the relink client here so nodes are ready before events fire.
+# We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
     await bot.rl_client.start()
-    print("ReLink nodes connected successfully!")
+    print("SonoLink nodes connected successfully!")
 
 
 # Helper function for DRY (Don't Repeat Yourself)
 def _player_check(
     inter: disnake.ApplicationCommandInteraction[Bot],
-) -> relink.Player | None:
+) -> sonolink.Player | None:
     """Returns the active Player for this guild, or None if not connected."""
     vc = inter.guild.voice_client if inter.guild else None
-    return vc if isinstance(vc, relink.Player) else None
+    return vc if isinstance(vc, sonolink.Player) else None
 
 
 # -----------------
@@ -73,7 +73,7 @@ async def query_autocomplete(
 
     data = result.result
 
-    if isinstance(data, relink.models.Playlist):
+    if isinstance(data, sonolink.models.Playlist):
         return [data.name[:100]]
 
     tracks = data if isinstance(data, list) else [data]
@@ -109,9 +109,9 @@ async def play(
             await inter.followup.send("You must be in a voice channel!")
             return
 
-        vc = await inter.author.voice.channel.connect(cls=relink.Player)
+        vc = await inter.author.voice.channel.connect(cls=sonolink.Player)
 
-    assert isinstance(vc, relink.Player)
+    assert isinstance(vc, sonolink.Player)
 
     # Search for the query. By default this searches YouTube; pass a
     # 'source' kwarg (e.g. TrackSourceType.SOUNDCLOUD) to change that.
@@ -125,7 +125,7 @@ async def play(
 
     # Depending on the result type we either get a single track, a list of
     # search results, or a full playlist. We handle all three cases here.
-    if isinstance(data, relink.models.Playlist):
+    if isinstance(data, sonolink.models.Playlist):
         # Playlist: play the first track immediately and queue the rest.
         first, *rest = data.tracks
         vc.queue.put(first)
@@ -207,7 +207,7 @@ async def skip(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     # 'skip' raises QueueEmpty when there are no further tracks to advance to.
     try:
         track = await vc.skip()
-    except relink.QueueEmpty:
+    except sonolink.QueueEmpty:
         await inter.response.send_message("The queue is empty — nothing to skip to!")
         return
 
@@ -231,7 +231,7 @@ async def previous(inter: disnake.ApplicationCommandInteraction[Bot]) -> None:
     # 'previous' raises HistoryEmpty when there is no track to go back to.
     try:
         track = await vc.previous()
-    except relink.HistoryEmpty:
+    except sonolink.HistoryEmpty:
         await inter.response.send_message("No previous track in history!")
         return
 

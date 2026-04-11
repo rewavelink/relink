@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Events
 ======
@@ -9,66 +9,66 @@ Track
 Track Start
 +++++++++++
 
-.. function:: on_relink_track_start(player: relink.Player, payload: relink.gateway.TrackStartEvent)
+.. function:: on_sonolink_track_start(player: sonolink.Player, payload: sonolink.gateway.TrackStartEvent)
 
    Called when a track starts playing.
 
    Parameters
    ----------
-   player: :class:`relink.Player`
+   player: :class:`sonolink.Player`
        The player that is playing the track.
-   payload: :class:`relink.gateway.TrackStartEvent`
+   payload: :class:`sonolink.gateway.TrackStartEvent`
        The event payload containing information about the track that started playing.
 
-.. autoclass:: relink.gateway.TrackStartEvent()
+.. autoclass:: sonolink.gateway.TrackStartEvent()
 
 Track End
 +++++++++
 
-.. function:: on_relink_track_end(player: relink.Player, payload: relink.gateway.TrackEndEvent)
+.. function:: on_sonolink_track_end(player: sonolink.Player, payload: sonolink.gateway.TrackEndEvent)
 
    Called when a track ends.
 
    Parameters
    ----------
-   player: :class:`relink.Player`
+   player: :class:`sonolink.Player`
        The player that was playing the track.
-   payload: :class:`relink.gateway.TrackEndEvent`
+   payload: :class:`sonolink.gateway.TrackEndEvent`
        The event payload containing information about the track that finished playing and the reason it ended.
 
-.. autoclass:: relink.gateway.TrackEndEvent()
+.. autoclass:: sonolink.gateway.TrackEndEvent()
 
 Track Exception
 +++++++++++++++
 
-.. function:: on_relink_track_exception(player: relink.Player, payload: relink.gateway.TrackExceptionEvent)
+.. function:: on_sonolink_track_exception(player: sonolink.Player, payload: sonolink.gateway.TrackExceptionEvent)
 
    Called when an exception occurs while playing a track.
 
    Parameters
    ----------
-   player: :class:`relink.Player`
+   player: :class:`sonolink.Player`
        The player that was playing the track.
-   payload: :class:`relink.gateway.TrackExceptionEvent`
+   payload: :class:`sonolink.gateway.TrackExceptionEvent`
        The event payload containing information about the track that caused the exception and the exception.
 
-.. autoclass:: relink.gateway.TrackExceptionEvent()
+.. autoclass:: sonolink.gateway.TrackExceptionEvent()
 
 Track Stuck
 +++++++++++
 
-.. function:: on_relink_track_stuck(player: relink.Player, payload: relink.gateway.TrackStuckEvent)
+.. function:: on_sonolink_track_stuck(player: sonolink.Player, payload: sonolink.gateway.TrackStuckEvent)
 
    Called when a track gets stuck while playing.
 
    Parameters
    ----------
-   player: :class:`relink.Player`
+   player: :class:`sonolink.Player`
        The player that was playing the track.
-   payload: :class:`relink.gateway.TrackStuckEvent`
+   payload: :class:`sonolink.gateway.TrackStuckEvent`
        The event payload containing information about the track that got stuck and the threshold that was exceeded.
 
-.. autoclass:: relink.gateway.TrackStuckEvent()
+.. autoclass:: sonolink.gateway.TrackStuckEvent()
 
 Node
 ----
@@ -76,27 +76,27 @@ Node
 Node Ready
 ++++++++++
 
-.. function:: on_relink_node_ready(payload: relink.gateway.ReadyEvent)
+.. function:: on_sonolink_node_ready(payload: sonolink.gateway.ReadyEvent)
 
    Called when a node is ready.
 
    Parameters
    ----------
-   payload: :class:`relink.gateway.ReadyEvent`
+   payload: :class:`sonolink.gateway.ReadyEvent`
        The event payload containing information about the node that is ready.
 
-.. autoclass:: relink.gateway.ReadyEvent()
+.. autoclass:: sonolink.gateway.ReadyEvent()
 
 Node Close
 ++++++++++
 
-.. function:: on_relink_node_close(node: relink.Node)
+.. function:: on_sonolink_node_close(node: sonolink.Node)
 
    Called when a node is closed.
 
    Parameters
    ----------
-   node: :class:`relink.Node`
+   node: :class:`sonolink.Node`
        The node that was closed.
 
 Player
@@ -105,18 +105,18 @@ Player
 Player Update
 +++++++++++++
 
-.. function:: on_relink_player_update(player: relink.Player, payload: relink.gateway.PlayerUpdateEvent)
+.. function:: on_sonolink_player_update(player: sonolink.Player, payload: sonolink.gateway.PlayerUpdateEvent)
 
    Called when a player is updated.
 
    Parameters
    ----------
-   player: :class:`relink.Player`
+   player: :class:`sonolink.Player`
        The player that was updated.
-   payload: :class:`relink.gateway.PlayerUpdateEvent`
+   payload: :class:`sonolink.gateway.PlayerUpdateEvent`
        The event payload containing information about the player's current state.
 
-.. autoclass:: relink.gateway.PlayerUpdateEvent()
+.. autoclass:: sonolink.gateway.PlayerUpdateEvent()
 
 Miscellaneous
 -------------
@@ -124,13 +124,13 @@ Miscellaneous
 Unknown Event
 +++++++++++++
 
-.. function:: on_relink_unknown_event(player: relink.Player, payload: dict[str, Any])
+.. function:: on_sonolink_unknown_event(player: sonolink.Player, payload: dict[str, Any])
 
    Called when an unknown event is received. This can be from plugins/extensions on Lavalink.
 
    Parameters
    ----------
-   player: :class:`relink.Player`
+   player: :class:`sonolink.Player`
        The player that received the unknown event.
    payload: :class:`dict`
        The raw event payload that was received.

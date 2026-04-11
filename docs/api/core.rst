@@ -1,25 +1,25 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Core API
 ========
 
-This page defines the public top-level exports from ``relink``.
+This page defines the public top-level exports from ``sonolink``.
 
 Client
 ------
 
-.. autoclass:: relink.Client
+.. autoclass:: sonolink.Client
    :members:
    
 Node
 ----
 
-.. autoclass:: relink.Node
+.. autoclass:: sonolink.Node
    :members:
    
 Player
 -------
-.. autoclass:: relink.Player
+.. autoclass:: sonolink.Player
    :members:
    :inherited-members:
 

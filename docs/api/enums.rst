@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Enums
 ======
@@ -7,53 +7,53 @@ Enums
 Gateway
 -------
 
-.. autoclass:: relink.NodeStatus()
+.. autoclass:: sonolink.NodeStatus()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.TrackEndReason()
+.. autoclass:: sonolink.TrackEndReason()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.TrackExceptionSeverity()
+.. autoclass:: sonolink.TrackExceptionSeverity()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.QueueMode()
+.. autoclass:: sonolink.QueueMode()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.AutoPlayMode()
+.. autoclass:: sonolink.AutoPlayMode()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.InactivityMode()
+.. autoclass:: sonolink.InactivityMode()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.SearchProvider()
+.. autoclass:: sonolink.SearchProvider()
    :members:
    :no-attributetable:
 
 Rest
 ----
 
-.. autoclass:: relink.ExceptionSeverity()
+.. autoclass:: sonolink.ExceptionSeverity()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.TrackLoadResult()
+.. autoclass:: sonolink.TrackLoadResult()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.TrackSourceType()
+.. autoclass:: sonolink.TrackSourceType()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.RoutePlannerType()
+.. autoclass:: sonolink.RoutePlannerType()
    :members:
    :no-attributetable:
 
-.. autoclass:: relink.IPBlockType()
+.. autoclass:: sonolink.IPBlockType()
    :members:
    :no-attributetable:

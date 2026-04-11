@@ -1,13 +1,13 @@
 # This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
 #
-# This example covers how to configure relink's settings objects and wire them
+# This example covers how to configure sonolink's settings objects and wire them
 # into your bot. Settings are split into two groups:
 #
 # - Node-level: CacheSettings, InactivitySettings (shared across all players)
 # - Player-level: AutoPlaySettings, HistorySettings (unique per player)
 #
 # This requires an active Lavalink server, for more information on setting up one
-# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# you can check the guide at: https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any, cast
 
@@ -15,10 +15,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import relink
+import sonolink
 
 
-# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# We subclass commands.Bot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.Bot):
     def __init__(self) -> None:
@@ -29,13 +29,13 @@ class Bot(commands.Bot):
             command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
         )
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.rl_client: sonolink.Client[Any] = sonolink.Client(self)
 
     async def setup_hook(self) -> None:
         # discord.py will automatically call 'setup_hook', and is the
         # safest place to start our client.
         await self.rl_client.start()
-        print("ReLink nodes connected successfully!")
+        print("SonoLink nodes connected successfully!")
 
         # Sync slash commands to Discord
         await self.tree.sync()
@@ -45,7 +45,7 @@ class Bot(commands.Bot):
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
-# and relink will automatically load-balance between them via 'get_best_node'.
+# and sonolink will automatically load-balance between them via 'get_best_node'.
 bot.rl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
@@ -70,9 +70,9 @@ async def play(interaction: discord.Interaction, query: str) -> None:
             await interaction.followup.send("You must be in a voice channel!")
             return
 
-        vc = await interaction.user.voice.channel.connect(cls=relink.Player)
+        vc = await interaction.user.voice.channel.connect(cls=sonolink.Player)
 
-    assert isinstance(vc, relink.Player)
+    assert isinstance(vc, sonolink.Player)
 
     # Now, we will search 'query' with Lavalink and play the obtained track, if available
     result = await bot.rl_client.search_track(query)
@@ -85,7 +85,7 @@ async def play(interaction: discord.Interaction, query: str) -> None:
 
     if isinstance(data, list):
         track = data[0]
-    elif isinstance(data, relink.models.Playlist):
+    elif isinstance(data, sonolink.models.Playlist):
         track = data.tracks[0]
     else:
         track = data
@@ -109,7 +109,7 @@ async def play(interaction: discord.Interaction, query: str) -> None:
 async def pause(interaction: discord.Interaction) -> None:
     vc = interaction.guild.voice_client if interaction.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await interaction.response.send_message("Not connected to a voice channel!")
         return
 
@@ -121,7 +121,7 @@ async def pause(interaction: discord.Interaction) -> None:
 async def resume(interaction: discord.Interaction) -> None:
     vc = interaction.guild.voice_client if interaction.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await interaction.response.send_message("Not connected to a voice channel!")
         return
 
@@ -133,11 +133,11 @@ async def resume(interaction: discord.Interaction) -> None:
 async def stop(interaction: discord.Interaction) -> None:
     vc = interaction.guild.voice_client if interaction.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await interaction.response.send_message("Already disconnected!")
         return
 
-    await cast(relink.Player, vc).disconnect()
+    await cast(sonolink.Player, vc).disconnect()
     await interaction.response.send_message("Disconnected!")
 
 
@@ -145,14 +145,14 @@ async def stop(interaction: discord.Interaction) -> None:
 async def skip(interaction: discord.Interaction) -> None:
     vc = interaction.guild.voice_client if interaction.guild else None
 
-    if not isinstance(vc, relink.Player):
+    if not isinstance(vc, sonolink.Player):
         await interaction.response.send_message("Not connected to a voice channel!")
         return
 
     # 'skip' will raise 'QueueEmpty' if there are no tracks in queue
     try:
         track = await vc.skip()
-    except relink.QueueEmpty:
+    except sonolink.QueueEmpty:
         await interaction.response.send_message("There is no track to skip to!")
     else:
         if not track:
