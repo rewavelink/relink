@@ -238,7 +238,7 @@ Events
 Wavelink has event names such as ``on_wavelink_node_ready`` and
 ``on_wavelink_track_start`` that are dispatched through the underlying Discord client.
 
-SonoLink does the same, but with the `_sonolink_` prefix instead of ``_wavelink_``. 
+SonoLink does the same, but with the ``sonolink_`` prefix instead of ``wavelink_``. 
 The event system is otherwise similar, with the same dispatch mechanism and handler signature.
 
 The available events are:
@@ -258,7 +258,7 @@ event-driven logic where still needed.
 Autoplay
 --------
 
-Wavelink exposes an ``auto_queue`` concept SonoLink's autoplay is configured
+Wavelink exposes an ``auto_queue`` concept. SonoLink's autoplay is configured
 through :class:`sonolink.models.AutoPlaySettings` at player creation time and toggled via
 :attr:`sonolink.Player.autoplay`, which accepts an :class:`sonolink.AutoPlayMode` value:
 
