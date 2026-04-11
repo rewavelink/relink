@@ -81,6 +81,8 @@ class Client(Generic[N]):
         .. warning::
             If you are using a custom :class:`~relink.Player` subclass, ensure it is defined **after**
             constructing the :class:`Client`, otherwise the framework adapter may not be resolved correctly.
+            Alternatively, set the ``RELINK_FRAMEWORK`` environment variable before any imports to
+            force a specific framework ahead of time.
     """
 
     _framework: FrameworkLiteral
