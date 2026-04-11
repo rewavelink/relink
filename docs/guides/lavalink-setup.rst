@@ -276,7 +276,7 @@ When running both containers in the same Compose project, use ``lavalink`` (the 
 as the hostname in your bot's node URI rather than ``localhost``.
 
 Connecting SonoLink to your server
----------------------------------
+----------------------------------
 
 With Lavalink running locally on port 2333, connect SonoLink as follows:
 

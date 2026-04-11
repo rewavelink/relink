@@ -136,7 +136,7 @@ arguments such as ``start``, ``end``, ``volume``, and ``paused`` when you need
 more control over playback.
 
 :meth:`sonolink.Player.stop`
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.stop` to end the current track and clear the active
 playback state.
@@ -158,7 +158,7 @@ This is a good fit for commands such as ``stop``, ``leave``, ``clear``, or admin
 "reset player" actions.
 
 :meth:`sonolink.Player.pause` and :meth:`sonolink.Player.resume`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.pause` to pause playback and
 :meth:`sonolink.Player.resume` to continue it later.
@@ -176,7 +176,7 @@ If it fits your control flow better, ``await player.pause(False)`` is equivalent
 to calling ``resume()``.
 
 :meth:`sonolink.Player.skip`
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.skip` to move forward to the next track.
 
@@ -194,7 +194,7 @@ This makes it a better choice than manually calling ``stop()`` when your intent 
 "go to whatever should play next".
 
 :meth:`sonolink.Player.previous`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.previous` to return to the most recent track in history.
 
@@ -210,7 +210,7 @@ That means ``previous`` depends on queue history being available. If there is no
 history yet, it will fail rather than guessing what "previous" should mean.
 
 :meth:`sonolink.Player.seek`
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.seek` to jump to a specific position in the current track.
 The position is expressed in milliseconds.
@@ -224,7 +224,7 @@ behavior, especially filter application, may only become audible after playback
 position changes.
 
 :meth:`sonolink.Player.set_volume`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.set_volume` to change the player's output volume.
 
@@ -239,7 +239,7 @@ SonoLink volume values use the Lavalink range of ``0`` to ``1000``:
 * values above ``100`` amplify audio and may sound harsh or clip at higher levels.
 
 :meth:`sonolink.Player.set_filters`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use :meth:`sonolink.Player.set_filters` to apply Lavalink filters such as karaoke,
 timescale, equalizer, tremolo, or rotation.

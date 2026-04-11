@@ -65,6 +65,7 @@ docs = [
     "furo",
     "sphinx-copybutton",
     "sphinx-autobuild>=2024.10.3",
+    "discord.py>=2.7,<3",
 ]
 
 [project.urls]
