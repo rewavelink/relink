@@ -1,7 +1,7 @@
 .. currentmodule:: sonolink
 
 SonoLink Documentation
-====================
+======================
 
 SonoLink is a high-performance Lavalink v4 wrapper for Python, inspired by WaveLink.
 It provides a high-level voice player API while still exposing the underlying node,

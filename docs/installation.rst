@@ -13,7 +13,7 @@ Requirements
 * A running Lavalink 4.x server — see :doc:`/guides/lavalink-setup`
 
 Installing SonoLink
------------------
+-------------------
 
 Base install:
 
