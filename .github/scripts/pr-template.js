@@ -62,7 +62,7 @@ module.exports = async ({ github, context, core, prNumber }) => {
             'This PR does not follow the template provided by the repository.',
             '',
             'Please make sure you use & fill our pull request template with all required sections provided.',
-            '(You can go to [.github/pull_request_template.md](https://github.com/ReWaveLink/relink/blob/main/.github/pull_request_template.md) for more information on how this template is built.)',
+            '(You can go to [.github/pull_request_template.md](https://github.com/SonoLink/sonolink/blob/main/.github/pull_request_template.md) for more information on how this template is built.)',
             '',
             'The problems detected were:',
             '',

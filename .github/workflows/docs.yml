@@ -4,13 +4,13 @@ on:
   push:
     paths:
       - "docs/**"
-      - "relink/**"
+      - "sonolink/**"
     branches: [main]
 
   pull_request:
     paths:
       - "docs/**"
-      - "relink/**"
+      - "sonolink/**"
 
   schedule:
     - cron: "0 0 * * *"

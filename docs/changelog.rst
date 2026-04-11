@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 .. _whats_new:
 
@@ -44,20 +44,20 @@ Added
   :ref:`Framework Compatibility <framework-compatibility>`.
 - Added new examples for `py-cord` and `disnake`, and reorganized the existing
   `discord.py` examples into their own directory.
-- Added :meth:`relink.Queue.put_at` to insert items at specific positions in the queue.
-- Added :meth:`relink.Queue.remove` to remove items from the queue by value.
-- Added :meth:`relink.Queue.remove_wait` to remove items from the queue by value, asynchronously.
-- Added :meth:`relink.Node.send` for sending raw requests to the node yourself.
+- Added :meth:`sonolink.Queue.put_at` to insert items at specific positions in the queue.
+- Added :meth:`sonolink.Queue.remove` to remove items from the queue by value.
+- Added :meth:`sonolink.Queue.remove_wait` to remove items from the queue by value, asynchronously.
+- Added :meth:`sonolink.Node.send` for sending raw requests to the node yourself.
 
 Changed
 ~~~~~~~
 
-- `relink.Client` no longer depends on `discord.py` directly. Install any
-  supported framework separately, and ReLink will detect it automatically or
+- `sonolink.Client` no longer depends on `discord.py` directly. Install any
+  supported framework separately, and SonoLink will detect it automatically or
   accept it explicitly via the ``framework=`` parameter.
-- :attr:`relink.models.Playable.extras` is mutable now. You may store any
+- :attr:`sonolink.models.Playable.extras` is mutable now. You may store any
   additional data you want in there, and it will be preserved across the library.
-- :meth:`relink.Node.create_player` now returns the appropriate player type for
+- :meth:`sonolink.Node.create_player` now returns the appropriate player type for
   the active Discord framework.
 
 Fixed
@@ -107,4 +107,4 @@ Initial release.
 
 
 
-.. _unreleased: https://github.com/rewavelink/relink/compare/v1.1.0...HEAD
+.. _unreleased: https://github.com/sonolink/sonolink/compare/v1.1.0...HEAD

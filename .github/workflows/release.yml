@@ -41,7 +41,7 @@ jobs:
 
         environment:
             name: pypi
-            url: https://pypi.org/project/rewavelink/
+            url: https://pypi.org/project/sonolink/
 
         permissions:
             id-token: write

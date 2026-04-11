@@ -1,16 +1,16 @@
 <div align="center">
 
-![ReLink](https://raw.githubusercontent.com/rewavelink/relink/main/docs/_static/images/banner.png)
+![SonoLink](https://raw.githubusercontent.com/sonolink/sonolink/main/docs/_static/images/banner.png)
 
-**ReLink** is a high-performance Lavalink v4 wrapper for Python, inspired by [WaveLink](https://github.com/PythonistaGuild/Wavelink).
+**SonoLink** is a high-performance Lavalink v4 wrapper for Python, inspired by [WaveLink](https://github.com/PythonistaGuild/Wavelink).
 
-[Documentation](https://relink.readthedocs.io/en/latest) · [Discord](https://discord.gg/tPHVWBPedt) · [Migration from WaveLink](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
+[Documentation](https://sonolink.readthedocs.io/en/latest) · [Discord](https://discord.gg/tPHVWBPedt) · [Migration from WaveLink](https://sonolink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 
 
 
-[![PyPI](https://img.shields.io/pypi/v/rewavelink)](https://pypi.org/project/rewavelink)
+[![PyPI](https://img.shields.io/pypi/v/sonolink)](https://pypi.org/project/sonolink)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
-[![License](https://img.shields.io/github/license/rewavelink/relink)](LICENSE)
+[![License](https://img.shields.io/github/license/sonolink/sonolink)](LICENSE)
 [![Lavalink](https://img.shields.io/badge/lavalink-4.x-orange)](https://lavalink.dev)
 [![Discord](https://img.shields.io/discord/1471146455002775624?label=discord)](https://discord.gg/tPHVWBPedt)
 
@@ -23,8 +23,7 @@
 - Full Lavalink v4+ REST API support
 - Built on [msgspec](https://github.com/jcrist/msgspec) for rapid serialization and strict type validation
 - Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) for faster networking
-- Drop-in familiarity for Wavelink users — [migration guide included](https://relink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
-- Actively maintained, unlike the library you're probably migrating from
+- Drop-in familiarity for Wavelink users — [migration guide included](https://sonolink.readthedocs.io/en/latest/guides/migrating-from-wavelink.html)
 - Async-first and [Basedpyright](https://docs.basedpyright.com/latest/) strict-compliant
 - Built-in support for [discord.py](https://github.com/Rapptz/discord.py), [pycord](https://github.com/Pycord-Development/pycord), and [disnake](https://github.com/DisnakeDev/disnake)
 
@@ -35,7 +34,7 @@
 > 
 ### Requirements:
 - Python 3.12 or higher
-- A running Lavalink 4.x server ([guide on setup](https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html))
+- A running Lavalink 4.x server ([guide on setup](https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html))
 - Any of the supported libraries:
   - [discord.py](https://pypi.org/project/discord.py)[voice] 2.7+
   - [py-cord](https://pypi.org/project/py-cord)[voice] 2.8+
@@ -44,19 +43,19 @@
 To install the stable version from PyPI:
 ```sh
 # Linux/macOS
-python3 -m pip install -U rewavelink
+python3 -m pip install -U sonolink
 
 # Windows
-py -3 -m pip install -U rewavelink
+py -3 -m pip install -U sonolink
 ```
 
 To install with optional speed improvements:
 ```sh
 # Linux/macOS
-python3 -m pip install -U "rewavelink[speed]"
+python3 -m pip install -U "sonolink[speed]"
 
 # Windows
-py -3 -m pip install -U "rewavelink[speed]"
+py -3 -m pip install -U "sonolink[speed]"
 ```
 
 <br>
@@ -66,5 +65,5 @@ py -3 -m pip install -U "rewavelink[speed]"
 </p>
 
 <p align="center">
-        <i><code>&copy 2026 <a href="https://github.com/rewavelink">ReLink Development Team</a></code></i>
+        <i><code>&copy 2026 <a href="https://github.com/sonolink">SonoLink Development Team</a></code></i>
 </p>

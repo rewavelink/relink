@@ -1,65 +1,65 @@
 # This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
 #
-# This example covers the procedure of creating a simple music bot using relink,
+# This example covers the procedure of creating a simple music bot using sonolink,
 # with event handlers for track lifecycle and node events.
 #
 # This requires an active Lavalink server, for more information on setting up one
-# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# you can check the guide at: https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from typing import Any
 
 import disnake
 from disnake.ext import commands
 
-import relink
+import sonolink
 
 
-# We subclass commands.InteractionBot to hold our relink.Client instance cleanly.
+# We subclass commands.InteractionBot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.InteractionBot):
     def __init__(self) -> None:
         intents = disnake.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
 
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
-# and relink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+# and sonolink will automatically load-balance between them via 'get_best_node'.
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
 
 
 # Called when the bot has successfully connected to Discord.
-# We start the relink client here so nodes are ready before events fire.
+# We start the sonolink client here so nodes are ready before events fire.
 @bot.listen()
 async def on_connect() -> None:
-    await bot.rl_client.start()
-    print("ReLink nodes connected successfully!")
+    await bot.sl_client.start()
+    print("SonoLink nodes connected successfully!")
 
 
 # Fired when a node has successfully connected and is ready to accept players.
 # 'event.resumed' tells us whether this was a fresh connection or a resume.
 @bot.listen()
-async def on_relink_node_ready(event: relink.gateway.ReadyEvent) -> None:
+async def on_sonolink_node_ready(event: sonolink.gateway.ReadyEvent) -> None:
     print(f"Node {event.node.id!r} is ready! (resumed={event.resumed})")
 
 
 # Fired when a node connection is lost or manually closed.
 @bot.listen()
-async def on_relink_node_close(node: relink.Node) -> None:
+async def on_sonolink_node_close(node: sonolink.Node) -> None:
     print(f"Node {node.id!r} closed.")
 
 
 # Fired each time Lavalink sends a position/state update for a player.
 # This happens frequently (roughly every 5 seconds by default).
 @bot.listen()
-async def on_relink_player_update(
-    player: relink.Player, event: relink.gateway.PlayerUpdateEvent
+async def on_sonolink_player_update(
+    player: sonolink.Player, event: sonolink.gateway.PlayerUpdateEvent
 ) -> None:
     # This event fires very often; avoid heavy work here.
     pass
@@ -67,19 +67,19 @@ async def on_relink_player_update(
 
 # Fired when a track begins playing.
 @bot.listen()
-async def on_relink_track_start(
-    player: relink.Player, event: relink.gateway.TrackStartEvent
+async def on_sonolink_track_start(
+    player: sonolink.Player, event: sonolink.gateway.TrackStartEvent
 ) -> None:
     print(f"[{player.guild}] Started: {event.track.title!r} by {event.track.author!r}")
 
 
 # Fired when a track finishes, is skipped, or is replaced.
 # 'event.reason' is a TrackEndReason enum describing why it ended.
-# NOTE: relink automatically calls 'player.skip()' internally when the reason
+# NOTE: sonolink automatically calls 'player.skip()' internally when the reason
 # allows starting the next track, so you do not need to advance the queue here.
 @bot.listen()
-async def on_relink_track_end(
-    player: relink.Player, event: relink.gateway.TrackEndEvent
+async def on_sonolink_track_end(
+    player: sonolink.Player, event: sonolink.gateway.TrackEndEvent
 ) -> None:
     print(f"[{player.guild}] Ended: {event.track.title!r} (reason={event.reason})")
 
@@ -87,8 +87,8 @@ async def on_relink_track_end(
 # Fired when Lavalink encounters an error while playing a track.
 # 'event.exception.message' contains the error description from Lavalink.
 @bot.listen()
-async def on_relink_track_exception(
-    player: relink.Player, event: relink.gateway.TrackExceptionEvent
+async def on_sonolink_track_exception(
+    player: sonolink.Player, event: sonolink.gateway.TrackExceptionEvent
 ) -> None:
     print(
         f"[{player.guild}] Exception on {event.track.title!r}: "
@@ -99,8 +99,8 @@ async def on_relink_track_exception(
 # Fired when a track gets stuck and stops progressing.
 # 'event.threshold' is the number of milliseconds Lavalink waited before giving up.
 @bot.listen()
-async def on_relink_track_stuck(
-    player: relink.Player, event: relink.gateway.TrackStuckEvent
+async def on_sonolink_track_stuck(
+    player: sonolink.Player, event: sonolink.gateway.TrackStuckEvent
 ) -> None:
     print(
         f"[{player.guild}] Track {event.track.title!r} got stuck "

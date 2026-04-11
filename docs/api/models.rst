@@ -1,23 +1,23 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Models
 ==========
 Settings
 --------
 
-.. autoclass:: relink.models.AutoPlaySettings
+.. autoclass:: sonolink.models.AutoPlaySettings
    :no-members:
    :no-index:
 
-.. autoclass:: relink.models.InactivitySettings
+.. autoclass:: sonolink.models.InactivitySettings
    :no-members:
    :no-index:
 
-.. autoclass:: relink.models.HistorySettings
+.. autoclass:: sonolink.models.HistorySettings
    :no-members:
    :no-index:
 
-.. autoclass:: relink.models.CacheSettings
+.. autoclass:: sonolink.models.CacheSettings
    :no-members:
    :no-index:
 
@@ -25,77 +25,77 @@ Settings
 Tracks and playlists
 --------------------
 
-.. autoclass:: relink.models.Album()
+.. autoclass:: sonolink.models.Album()
    :members:
    
 
-.. autoclass:: relink.models.Artist()
+.. autoclass:: sonolink.models.Artist()
    :members:
    
 
-.. autoclass:: relink.models.Playable()
+.. autoclass:: sonolink.models.Playable()
    :members:
    
 
-.. autoclass:: relink.models.Playlist()
+.. autoclass:: sonolink.models.Playlist()
    :members:
    
 
 Search and node models
 ----------------------
 
-.. autoclass:: relink.models.SearchResult()
+.. autoclass:: sonolink.models.SearchResult()
    :members:
    
 
-.. autoclass:: relink.models.PlayerInfo()
+.. autoclass:: sonolink.models.PlayerInfo()
    :members:
    
 
-.. autoclass:: relink.models.ServerInfo()
+.. autoclass:: sonolink.models.ServerInfo()
    :members:
    
 
 Filter wrapper models
 ---------------------
 
-.. autoclass:: relink.models.Equalizer
+.. autoclass:: sonolink.models.Equalizer
    :members:
    
 
-.. autoclass:: relink.models.Karaoke
+.. autoclass:: sonolink.models.Karaoke
    :members:
    
 
-.. autoclass:: relink.models.Timescale
+.. autoclass:: sonolink.models.Timescale
    :members:
    
 
-.. autoclass:: relink.models.Tremolo
+.. autoclass:: sonolink.models.Tremolo
    :members:
    
 
-.. autoclass:: relink.models.Vibrato
+.. autoclass:: sonolink.models.Vibrato
    :members:
    
 
-.. autoclass:: relink.models.Rotation
+.. autoclass:: sonolink.models.Rotation
    :members:
    
 
-.. autoclass:: relink.models.Distortion
+.. autoclass:: sonolink.models.Distortion
    :members:
    
 
-.. autoclass:: relink.models.ChannelMix
+.. autoclass:: sonolink.models.ChannelMix
    :members:
    
 
-.. autoclass:: relink.models.LowPass
+.. autoclass:: sonolink.models.LowPass
    :members:
    
 
-.. autoclass:: relink.models.Filters
+.. autoclass:: sonolink.models.Filters
    :members:
    
 

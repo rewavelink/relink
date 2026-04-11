@@ -1,12 +1,12 @@
 # This example requires the discord.py[voice] (https://pypi.org/project/discord.py/) library to be installed.
 #
-# This example covers the procedure of handling filters with relink, allowing you to apply audio filters to your players.
+# This example covers the procedure of handling filters with sonolink, allowing you to apply audio filters to your players.
 # It demonstrates full usage of every filter type: Equalizer, Timescale, Karaoke,
 # Tremolo, Vibrato, Rotation, Distortion, ChannelMix, and LowPass.
-# https://relink.readthedocs.io/en/latest/guides/filters.html
+# https://sonolink.readthedocs.io/en/latest/guides/filters.html
 #
 # This requires an active Lavalink server, for more information on setting up one
-# you can check the guide at: https://relink.readthedocs.io/en/latest/guides/lavalink-setup.html
+# you can check the guide at: https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html
 
 from enum import StrEnum
 from typing import Any
@@ -15,11 +15,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import relink
-from relink.models import filters
+import sonolink
+from sonolink.models import filters
 
 
-# We subclass commands.Bot to hold our relink.Client instance cleanly.
+# We subclass commands.Bot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
 class Bot(commands.Bot):
     def __init__(self) -> None:
@@ -30,13 +30,13 @@ class Bot(commands.Bot):
             command_prefix=[],  # We won't be using prefix commands in this example, so we can set it to an empty list
         )
 
-        self.rl_client: relink.Client[Any] = relink.Client(self)
+        self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
     async def setup_hook(self) -> None:
         # discord.py will automatically call 'setup_hook', and is the
         # safest place to start our client.
-        await self.rl_client.start()
-        print("ReLink nodes connected successfully!")
+        await self.sl_client.start()
+        print("SonoLink nodes connected successfully!")
 
         # Sync slash commands to Discord
         await self.tree.sync()
@@ -46,8 +46,8 @@ class Bot(commands.Bot):
 bot = Bot()
 
 # Register the node we want to connect to. You can register multiple nodes
-# and relink will automatically load-balance between them via 'get_best_node'.
-bot.rl_client.create_node(
+# and sonolink will automatically load-balance between them via 'get_best_node'.
+bot.sl_client.create_node(
     uri="YOUR_LAVALINK_URI",
     password="YOUR_LAVALINK_PASSWORD",
 )
@@ -415,9 +415,9 @@ FILTERS: dict[Filter, filters.Filters] = {
 }
 
 
-def _get_player(interaction: discord.Interaction) -> relink.Player | None:
+def _get_player(interaction: discord.Interaction) -> sonolink.Player | None:
     vc = interaction.guild.voice_client if interaction.guild else None
-    return vc if isinstance(vc, relink.Player) else None
+    return vc if isinstance(vc, sonolink.Player) else None
 
 
 async def filter_autocomplete(
@@ -447,12 +447,12 @@ async def play(interaction: discord.Interaction, query: str) -> None:
             await interaction.followup.send("You must be in a voice channel!")
             return
 
-        vc = await interaction.user.voice.channel.connect(cls=relink.Player)
+        vc = await interaction.user.voice.channel.connect(cls=sonolink.Player)
 
-    assert isinstance(vc, relink.Player)
+    assert isinstance(vc, sonolink.Player)
 
     # Now, we will search 'query' with Lavalink and play the obtained track, if available
-    result = await bot.rl_client.search_track(query)
+    result = await bot.sl_client.search_track(query)
 
     if result.is_error() or result.is_empty() or result.result is None:
         await interaction.followup.send("Could not find any tracks!")
@@ -462,7 +462,7 @@ async def play(interaction: discord.Interaction, query: str) -> None:
 
     if isinstance(data, list):
         track = data[0]
-    elif isinstance(data, relink.models.Playlist):
+    elif isinstance(data, sonolink.models.Playlist):
         track = data.tracks[0]
     else:
         track = data

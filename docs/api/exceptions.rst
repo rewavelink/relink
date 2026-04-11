@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Exceptions
 ==========
@@ -6,30 +6,30 @@ Exceptions
 Gateway
 -------
 
-.. autoexception:: relink.InvalidNodePassword
+.. autoexception:: sonolink.InvalidNodePassword
    :members:
 
-.. autoexception:: relink.NodeURINotFound
+.. autoexception:: sonolink.NodeURINotFound
    :members:
 
-.. autoexception:: relink.QueueEmpty
+.. autoexception:: sonolink.QueueEmpty
    :members:
 
-.. autoexception:: relink.HistoryEmpty
+.. autoexception:: sonolink.HistoryEmpty
    :members:
 
 Rest
 ----
 
-.. autoclass:: relink.ErrorResponseType
+.. autoclass:: sonolink.ErrorResponseType
    :members:
    
 
-.. autoexception:: relink.HTTPException
+.. autoexception:: sonolink.HTTPException
    :members:
 
 Network
 -------
 
-.. autoexception:: relink.network.errors.WebSocketError
+.. autoexception:: sonolink.network.errors.WebSocketError
    :members:

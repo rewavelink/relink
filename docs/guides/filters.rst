@@ -1,4 +1,4 @@
-.. currentmodule:: relink
+.. currentmodule:: sonolink
 
 Filters And Playback State
 ==========================
@@ -7,12 +7,12 @@ Filters And Playback State
 Applying filters
 ----------------
 
-Lavalink filters are grouped into a single :class:`relink.models.Filters` object.
-You build that object first, then apply it with :meth:`relink.Player.set_filters`:
+Lavalink filters are grouped into a single :class:`sonolink.models.Filters` object.
+You build that object first, then apply it with :meth:`sonolink.Player.set_filters`:
 
 .. code-block:: python
 
-   from relink.models import Filters, Timescale
+   from sonolink.models import Filters, Timescale
 
    filters = Filters(
       timescale=Timescale(speed=1.1),
@@ -26,7 +26,7 @@ in one request.
 How filter payloads work
 ------------------------
 
-:class:`relink.models.Filters` mirrors the filter payload Lavalink
+:class:`sonolink.models.Filters` mirrors the filter payload Lavalink
 expects. Each attribute represents one filter family:
 
 * ``volume``
@@ -42,13 +42,13 @@ expects. Each attribute represents one filter family:
 * ``plugin_filters``
 
 The important detail is that filter updates are partial. If you only provide
-``timescale``, ReLink sends only that part of the filter payload. This makes it
+``timescale``, SonoLink sends only that part of the filter payload. This makes it
 easy to build focused commands such as ``nightcore``, ``bassboost``, or
 ``lowpass`` without rebuilding every other filter each time.
 
 In practice, this means you should think about filters as player state. If your
 bot lets users stack effects, you will usually want to keep track of the
-current :attr:`relink.Player.filters`, update the parts you care about, and
+current :attr:`sonolink.Player.filters`, update the parts you care about, and
 then apply the combined result.
 
 Setting filters cleanly
@@ -59,7 +59,7 @@ want:
 
 .. code-block:: python
 
-   from relink.models import Filters, Rotation
+   from sonolink.models import Filters, Rotation
 
    filters = Filters(
       rotation=Rotation(rotation_hz=0.2),
@@ -72,7 +72,7 @@ them in a single ``Filters`` object:
 
 .. code-block:: python
 
-   from relink.models import (
+   from sonolink.models import (
       Filters,
       Rotation,
       Timescale,
@@ -94,15 +94,15 @@ Merging and combining filters
 -----------------------------
 
 If you need to layer effects on top of an existing filter state without
-replacing everything, :meth:`relink.models.Filters.merge` and
-:meth:`relink.models.Filters.combine` let you do that cleanly.
+replacing everything, :meth:`sonolink.models.Filters.merge` and
+:meth:`sonolink.models.Filters.combine` let you do that cleanly.
 
 ``merge`` updates the current instance in place, preferring values from the
 other filter where both define the same effect:
 
 .. code-block:: python
 
-   from relink.models import Filters, Rotation, Timescale
+   from sonolink.models import Filters, Rotation, Timescale
 
    filters = Filters(timescale=Timescale(speed=1.1, pitch=1.1))
    extra = Filters(rotation=Rotation(rotation_hz=0.2))
@@ -115,7 +115,7 @@ leaves both inputs unchanged:
 
 .. code-block:: python
 
-   from relink.models import Filters, Rotation, Timescale
+   from sonolink.models import Filters, Rotation, Timescale
 
    base = Filters(timescale=Timescale(speed=1.1, pitch=1.1))
    extra = Filters(rotation=Rotation(rotation_hz=0.2))
@@ -154,7 +154,7 @@ Some Lavalink filters do not become audible the moment the filter payload is
 updated. In those cases, the effect becomes clear only after playback position
 changes.
 
-Passing ``seek=True`` tells ReLink to apply the filters and then seek to the
+Passing ``seek=True`` tells SonoLink to apply the filters and then seek to the
 player's current position. In effect, playback jumps to the same timestamp it
 was already on, which nudges Lavalink to reprocess the stream with the updated
 filter state.
@@ -191,16 +191,16 @@ means unchanged volume.
 
 .. code-block:: python
 
-   from relink.models import Filters
+   from sonolink.models import Filters
 
    filters = Filters(volume=0.8)
    await player.set_filters(filters, seek=True)
 
-This is different from :meth:`relink.Player.set_volume`, which uses Lavalink's
+This is different from :meth:`sonolink.Player.set_volume`, which uses Lavalink's
 player volume scale of ``0`` to ``1000``. Filter volume is part of the filter
 pipeline, while ``set_volume`` changes the player's main output level.
 
-If you only want a straightforward volume command, :meth:`relink.Player.set_volume`
+If you only want a straightforward volume command, :meth:`sonolink.Player.set_volume`
 is usually the clearer choice. Filter volume is more useful when volume is part
 of a larger filter preset.
 
@@ -212,7 +212,7 @@ bands, covering roughly ``25 Hz`` through ``16000 Hz``.
 
 .. code-block:: python
 
-   from relink.models import Equalizer, Filters
+   from sonolink.models import Equalizer, Filters
 
    filters = Filters(
       equalizer=[
@@ -236,7 +236,7 @@ for vocal reduction.
 
 .. code-block:: python
 
-   from relink.models import Karaoke, Filters
+   from sonolink.models import Karaoke, Filters
 
    filters = Filters(
       karaoke=Karaoke(
@@ -257,7 +257,7 @@ in some songs, but it will not cleanly remove vocals from every mix.
 
 .. code-block:: python
 
-   from relink.models import Filters, Timescale
+   from sonolink.models import Filters, Timescale
 
    filters = Filters(
       timescale=Timescale(speed=1.1, pitch=1.1),
@@ -282,7 +282,7 @@ changes often sound more musical than aggressive ones.
 
 .. code-block:: python
 
-   from relink.models import Filters, Tremolo
+   from sonolink.models import Filters, Tremolo
 
    filters = Filters(
       tremolo=Tremolo(frequency=4.0, depth=0.5),
@@ -300,7 +300,7 @@ and ``depth`` controls how strong it is.
 
 .. code-block:: python
 
-   from relink.models import Filters, Vibrato
+   from sonolink.models import Filters, Vibrato
 
    filters = Filters(
       vibrato=Vibrato(frequency=6.0, depth=0.3),
@@ -318,7 +318,7 @@ synths, and sustained notes than on heavily percussive audio.
 
 .. code-block:: python
 
-   from relink.models import Filters, Rotation
+   from sonolink.models import Filters, Rotation
 
    filters = Filters(
       rotation=Rotation(rotation_hz=0.2),
@@ -338,7 +338,7 @@ tone dramatically.
 
 .. code-block:: python
 
-   from relink.models import Distortion, Filters
+   from sonolink.models import Distortion, Filters
 
    filters = Filters(
       distortion=Distortion(
@@ -362,7 +362,7 @@ mixed into the output channels.
 
 .. code-block:: python
 
-   from relink.models import ChannelMix, Filters
+   from sonolink.models import ChannelMix, Filters
 
    filters = Filters(
       channel_mix=ChannelMix(
@@ -385,7 +385,7 @@ output. A value of ``0.5`` for all four coefficients is a common dual-mono setup
 
 .. code-block:: python
 
-   from relink.models import LowPass, Filters
+   from sonolink.models import LowPass, Filters
 
    filters = Filters(
       low_pass=LowPass(smoothing=20.0),
@@ -400,11 +400,11 @@ style sound depending on the settings and the source material.
 ^^^^^^^^^^^^^^^^^^
 
 ``Filters.plugin_filters`` is reserved for Lavalink plugin-defined filters.
-ReLink passes this payload through as-is.
+SonoLink passes this payload through as-is.
 
 .. code-block:: python
 
-   from relink.models import Filters
+   from sonolink.models import Filters
 
    filters = Filters(
       plugin_filters={
@@ -440,11 +440,11 @@ Other playback state
 
 The player also exposes:
 
-* :attr:`relink.Player.paused`
-* :attr:`relink.Player.position`
-* :attr:`relink.Player.volume`
-* :attr:`relink.Player.current`
-* :attr:`relink.Player.filters`
+* :attr:`sonolink.Player.paused`
+* :attr:`sonolink.Player.position`
+* :attr:`sonolink.Player.volume`
+* :attr:`sonolink.Player.current`
+* :attr:`sonolink.Player.filters`
 
 These properties are useful for status embeds, command responses, and effect
 toggles that need to inspect the current player state before applying changes.

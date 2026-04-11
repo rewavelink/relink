@@ -3,11 +3,11 @@
 Version Guarantees
 ==================
 
-ReLink follows `semantic versioning <https://semver.org/>`_ — in short, if a release breaks
+SonoLink follows `semantic versioning <https://semver.org/>`_ — in short, if a release breaks
 something in your existing code, the major version number will reflect that.
 
 In practice, things aren't always black and white. Lavalink can change behaviour between
-versions, the Discord libraries ReLink supports each have their own release cadences, and Python
+versions, the Discord libraries SonoLink supports each have their own release cadences, and Python
 itself introduces new changes throughout new versions. So it helps to be explicit about what "breaking"
 actually means here.
 

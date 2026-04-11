@@ -2,7 +2,7 @@ import datetime
 import sys
 from pathlib import Path
 
-from relink import __version__
+from sonolink import __version__
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS_PATH = ROOT / "docs"
@@ -11,7 +11,7 @@ sys.path.append(str(DOCS_PATH / "extensions"))
 
 
 # -- Project information --
-project = "relink"
+project = "sonolink"
 author = "vmphase, Soheab, DA-344"
 copyright = f"{datetime.date.today().year}, {author}"
 release = __version__
@@ -49,14 +49,14 @@ exclude_patterns = [
 nitpick_ignore_regex = [
     ("py:class", r"(N|D|P|T|T_co|~P|SessionType|WSErrorType|type\[N\])"),
     ("py:class", r"dict\[str"),
-    ("py:class", r"relink\.errors\.ReLinkException"),
-    ("py:class", r"relink\.gateway\.errors\.NodeError"),
-    ("py:class", r"relink\.models\.base\.(BaseModel|BaseSettings)"),
-    ("py:class", r"relink\.network\.base\.(BaseHTTPManager|BaseWebsocketManager)"),
-    ("py:class", r"relink\.rest\.http\..+"),
-    ("py:class", r"relink\.gateway\.queue\.base\..+"),
-    ("py:class", r"relink\.gateway\.events\..+"),
-    ("py:class", r"relink\.utils\.properties\.(T|T_co|_cached_property)"),
+    ("py:class", r"sonolink\.errors\.SonoLinkException"),
+    ("py:class", r"sonolink\.gateway\.errors\.NodeError"),
+    ("py:class", r"sonolink\.models\.base\.(BaseModel|BaseSettings)"),
+    ("py:class", r"sonolink\.network\.base\.(BaseHTTPManager|BaseWebsocketManager)"),
+    ("py:class", r"sonolink\.rest\.http\..+"),
+    ("py:class", r"sonolink\.gateway\.queue\.base\..+"),
+    ("py:class", r"sonolink\.gateway\.events\..+"),
+    ("py:class", r"sonolink\.utils\.properties\.(T|T_co|_cached_property)"),
 ]
 
 # -- Options for autodoc --
