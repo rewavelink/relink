@@ -66,6 +66,39 @@ see :attr:`discord:discord.ext.commands.Context.voice_client` (discord.py),
    if not isinstance(player, sonolink.Player):
        player = await ctx.author.voice.channel.connect(cls=sonolink.Player)
 
+Subclassing a player
+--------------------
+
+If you need to extend or override player behaviour, subclass :class:`sonolink.Player` directly.
+The framework adapter is injected automatically at class-creation time, so your subclass
+works as a drop-in replacement anywhere :class:`sonolink.Player` is accepted.
+
+.. code-block:: python
+
+   class MyPlayer(sonolink.Player):
+       async def stop(
+           self,
+           /,
+           *,
+           clear_queue: bool = False,
+           clear_history: bool = False,
+       ) -> None:
+           print("Method stop is overridden.")
+           await super().stop(clear_queue=clear_queue, clear_history=clear_history)
+
+Pass your subclass the same way you would pass :class:`sonolink.Player`:
+
+.. code-block:: python
+
+   player = await voice_channel.connect(cls=MyPlayer)
+
+.. warning::
+
+   Your subclass must be defined **after** constructing :class:`sonolink.Client`, otherwise
+   the framework adapter may not be resolved correctly. Alternatively, set the
+   ``RELINK_FRAMEWORK`` environment variable before any imports to force a specific
+   framework ahead of time.
+
 Playback controls
 -----------------
 
