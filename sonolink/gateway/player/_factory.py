@@ -27,7 +27,7 @@ from __future__ import annotations
 import importlib.metadata
 import logging
 import os
-from typing import Literal, cast, get_args
+from typing import Literal, cast
 
 from packaging.version import Version
 
@@ -45,6 +45,25 @@ class PlayerFactory:
         "pycord": {"pkg": "py-cord", "import_name": "discord", "min": "2.8"},
     }
 
+    _available: dict[str, bool] = {}
+    _player_classes: dict[str, type[BasePlayer]] = {}
+
+    def __new__(cls) -> PlayerFactory:
+        instance = super().__new__(cls)
+
+        if cls._available:
+            return instance
+
+        pkg_to_providers = dict(importlib.metadata.packages_distributions())
+        known_pkgs = {cls._normalize(d["pkg"]) for d in cls._FRAMEWORK_DATA.values()}
+
+        for name, data in cls._FRAMEWORK_DATA.items():
+            cls._available[name] = cls._check_available(
+                data, pkg_to_providers, known_pkgs
+            )
+
+        return instance
+
     def get_player(
         self,
         framework: FrameworkLiteral,
@@ -52,36 +71,38 @@ class PlayerFactory:
         """
         Returns the appropriate VoiceProtocol based on the framework string.
         """
-        if not self.has_framework(framework):
-            pkg_info = self._FRAMEWORK_DATA[framework]
+        if framework in self._player_classes:
+            return self._player_classes[framework]
+
+        if not self._available.get(framework, False):
+            min_ver = self._FRAMEWORK_DATA[framework]["min"]
             raise RuntimeError(
                 f"Framework '{framework}' is not installed or does not meet "
-                f"the minimum version requirement (v{pkg_info['min']}+)."
+                f"the minimum version requirement (v{min_ver}+)."
             )
 
         match framework:
             case "discord.py":
                 from .adapters._dpy import DpyPlayer
 
-                return DpyPlayer
+                player_class = DpyPlayer
             case "disnake":
                 from .adapters._disnake import DisnakePlayer
 
-                return DisnakePlayer
+                player_class = DisnakePlayer
             case "pycord":
                 from .adapters._pycord import PycordPlayer
 
-                return PycordPlayer
+                player_class = PycordPlayer
+
+        self._player_classes[framework] = player_class
+        return player_class
 
     def detect_framework(self) -> FrameworkLiteral | None:
-        if env := os.environ.get("RELINK_FRAMEWORK"):
+        if env := os.environ.get("SONOLINK_FRAMEWORK"):
             return cast(FrameworkLiteral, env)
 
-        available: list[FrameworkLiteral] = [
-            framework
-            for framework in get_args(FrameworkLiteral)
-            if self.has_framework(framework)
-        ]
+        available = [name for name, ok in self._available.items() if ok]
 
         if not available:
             raise RuntimeError(
@@ -98,33 +119,32 @@ class PlayerFactory:
                 available[0],
             )
 
-        return available[0]
+        return cast(FrameworkLiteral, available[0])
 
     def has_framework(self, framework: FrameworkLiteral) -> bool:
-        data = self._FRAMEWORK_DATA.get(framework)
-        if not data:
-            return False
+        return self._available.get(framework, False)
 
+    @classmethod
+    def _check_available(
+        cls,
+        data: dict[str, str],
+        pkg_to_providers: dict[str, list[str]],
+        known_pkgs: set[str],
+    ) -> bool:
         pkg, import_name, min_ver = data["pkg"], data["import_name"], data["min"]
-        target_norm = self._normalize(pkg)
 
         try:
-            installed_version = importlib.metadata.version(pkg)
-
-            if Version(installed_version).release < Version(min_ver).release:
-                _log.warning(
-                    f"Found {pkg} v{installed_version}, but v{min_ver}+ is required."
-                )
-                return False
-
-            known = {self._normalize(d["pkg"]) for d in self._FRAMEWORK_DATA.values()}
-            mapping = importlib.metadata.packages_distributions()
-            providers = {self._normalize(p) for p in mapping.get(import_name, [])}
-
-            return (providers & known) == {target_norm}
-
+            installed = importlib.metadata.version(pkg)
         except importlib.metadata.PackageNotFoundError:
             return False
 
-    def _normalize(self, name: str) -> str:
+        if Version(installed).release < Version(min_ver).release:
+            _log.warning("Found %s v%s, but v%s+ is required.", pkg, installed, min_ver)
+            return False
+
+        providers = {cls._normalize(p) for p in pkg_to_providers.get(import_name, [])}
+        return (providers & known_pkgs) == {cls._normalize(pkg)}
+
+    @staticmethod
+    def _normalize(name: str) -> str:
         return name.strip().casefold().replace("_", "-").replace(".", "-")

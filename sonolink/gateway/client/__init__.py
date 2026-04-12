@@ -81,7 +81,7 @@ class Client(Generic[N]):
         .. warning::
             If you are using a custom :class:`~sonolink.Player` subclass, ensure it is defined **after**
             constructing the :class:`Client`, otherwise the framework adapter may not be resolved correctly.
-            Alternatively, set the ``RELINK_FRAMEWORK`` environment variable before any imports to
+            Alternatively, set the ``SONOLINK_FRAMEWORK`` environment variable before any imports to
             force a specific framework ahead of time.
     """
 
@@ -136,7 +136,7 @@ class Client(Generic[N]):
         if framework is None:
             framework = PlayerFactory().detect_framework() or "discord.py"
 
-        os.environ["RELINK_FRAMEWORK"] = framework
+        os.environ["SONOLINK_FRAMEWORK"] = framework
 
         self._client: DiscordClient[Any] = ClientFactory.create(client, framework)
 
