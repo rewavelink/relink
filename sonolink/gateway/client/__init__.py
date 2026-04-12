@@ -48,6 +48,7 @@ if TYPE_CHECKING:
 
     from .adapters._disnake import DisnakeClientProto
     from .adapters._dpy import DpyClientProto
+    from .adapters._nextcord import NextcordClientProto
     from .adapters._pycord import PycordClientProto
 
 
@@ -120,6 +121,15 @@ class Client(Generic[N]):
     @overload
     def __init__(
         self,
+        client: NextcordClientProto,
+        *,
+        node_cls: type[N] = ...,
+        framework: Literal["nextcord"] = ...,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self,
         client: Any,
         *,
         node_cls: type[N] = ...,
@@ -165,7 +175,7 @@ class Client(Generic[N]):
     def framework(self) -> FrameworkLiteral:
         """
         The Discord framework used by this client
-        (``"discord.py"``, ``"disnake"``, or ``"pycord"``).
+        (``"discord.py"``, ``"pycord"``, ``"disnake"``, or ``nextcord``).
         """
         return self._framework
 

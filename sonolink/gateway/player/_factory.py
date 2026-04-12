@@ -33,7 +33,7 @@ from packaging.version import Version
 
 from ._base import BasePlayer
 
-FrameworkLiteral = Literal["discord.py", "pycord", "disnake"]
+FrameworkLiteral = Literal["discord.py", "pycord", "disnake", "nextcord"]
 
 _log = logging.getLogger(__name__)
 
@@ -41,8 +41,9 @@ _log = logging.getLogger(__name__)
 class PlayerFactory:
     _FRAMEWORK_DATA: dict[str, dict[str, str]] = {
         "discord.py": {"pkg": "discord.py", "import_name": "discord", "min": "2.7"},
-        "disnake": {"pkg": "disnake", "import_name": "disnake", "min": "2.12"},
         "pycord": {"pkg": "py-cord", "import_name": "discord", "min": "2.8"},
+        "disnake": {"pkg": "disnake", "import_name": "disnake", "min": "2.12"},
+        "nextcord": {"pkg": "nextcord", "import_name": "nextcord", "min": "3.1.1"},
     }
 
     _available: dict[str, bool] = {}
@@ -86,14 +87,18 @@ class PlayerFactory:
                 from .adapters._dpy import DpyPlayer
 
                 player_class = DpyPlayer
-            case "disnake":
-                from .adapters._disnake import DisnakePlayer
-
-                player_class = DisnakePlayer
             case "pycord":
                 from .adapters._pycord import PycordPlayer
 
                 player_class = PycordPlayer
+            case "disnake":
+                from .adapters._disnake import DisnakePlayer
+
+                player_class = DisnakePlayer
+            case "nextcord":
+                from .adapters._nextcord import NextcordPlayer
+
+                player_class = NextcordPlayer
 
         self._player_classes[framework] = player_class
         return player_class
@@ -108,7 +113,7 @@ class PlayerFactory:
             raise RuntimeError(
                 "No supported framework detected meeting the minimum version requirements.\n"
                 "Ensure one of the following is installed: "
-                "discord.py >= 2.7, py-cord >= 2.8, or disnake >= 2.12."
+                "discord.py >= 2.7, py-cord >= 2.8, disnake >= 2.12 or nextcord >= 3.1.1"
             )
 
         if len(available) > 1:
