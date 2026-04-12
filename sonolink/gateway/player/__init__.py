@@ -56,7 +56,7 @@ class _PlayerMeta(abc.ABCMeta):
     @classmethod
     def _adapter(cls) -> type:
         return cls._factory.get_player(
-            cast(FrameworkLiteral, os.getenv("RELINK_FRAMEWORK", "discord.py"))
+            cast(FrameworkLiteral, os.getenv("SONOLINK_FRAMEWORK", "discord.py"))
         )
 
     def __new__(
@@ -102,7 +102,7 @@ class Player(BasePlayer, metaclass=_PlayerMeta):
     implementation for the detected or configured Discord library backend
     (``discord.py``, ``disnake``, or ``py-cord``) at instantiation time.
 
-    The framework is resolved from the ``RELINK_FRAMEWORK`` environment
+    The framework is resolved from the ``SONOLINK_FRAMEWORK`` environment
     variable, falling back to ``"discord.py"`` if unset.
 
     There are two primary ways to create a player:

@@ -96,7 +96,7 @@ Pass your subclass the same way you would pass :class:`sonolink.Player`:
 
    Your subclass must be defined **after** constructing :class:`sonolink.Client`, otherwise
    the framework adapter may not be resolved correctly. Alternatively, set the
-   ``RELINK_FRAMEWORK`` environment variable before any imports to force a specific
+   ``SONOLINK_FRAMEWORK`` environment variable before any imports to force a specific
    framework ahead of time.
 
 Playback controls
