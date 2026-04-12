@@ -99,7 +99,7 @@ class PlayerFactory:
         return player_class
 
     def detect_framework(self) -> FrameworkLiteral | None:
-        if env := os.environ.get("RELINK_FRAMEWORK"):
+        if env := os.environ.get("SONOLINK_FRAMEWORK"):
             return cast(FrameworkLiteral, env)
 
         available = [name for name, ok in self._available.items() if ok]

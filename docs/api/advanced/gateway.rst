@@ -41,7 +41,7 @@ Library adapters
 These classes are the concrete :class:`~sonolink.Player` implementations for each
 supported Discord library. You will not normally instantiate them directly —
 :class:`~sonolink.Player` resolves the correct adapter automatically at runtime via
-the ``RELINK_FRAMEWORK`` environment variable. They are documented here for
+the ``SONOLINK_FRAMEWORK`` environment variable. They are documented here for
 completeness and for users who need to type-annotate their voice channel references
 precisely.
 
