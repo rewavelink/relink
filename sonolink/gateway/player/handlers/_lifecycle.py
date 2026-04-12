@@ -66,22 +66,42 @@ class LifecycleHandler(HandlerBase):
         if not node:
             node = self._player._ensure_node()
 
-        await guild.change_voice_state(
-            channel=cast(Snowflake, channel),
-            self_mute=self_mute,
-            self_deaf=self_deaf,
-        )
+        attempts = 1
+        if reconnect:
+            attempts = 10**9 if node.retries is None else node.retries + 1
 
-        try:
-            async with asyncio.timeout(timeout):
-                await self._player._connection._connected_flag.wait()
-        except (asyncio.TimeoutError, asyncio.CancelledError):
-            await self.disconnect(force=True)
-            raise ConnectionError(
-                f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
-            )
+        for i in range(attempts):
+            self._player._connection._connected_flag.clear()
+
+            try:
+                await guild.change_voice_state(
+                    channel=cast(Snowflake, channel),
+                    self_mute=self_mute,
+                    self_deaf=self_deaf,
+                )
+
+                async with asyncio.timeout(timeout):
+                    await self._player._connection._connected_flag.wait()
+
+                return
+
+            except asyncio.CancelledError:
+                await self.disconnect(force=True)
+                raise
+
+            except asyncio.TimeoutError as exc:
+                await self.disconnect(force=True)
+                if i + 1 < attempts:
+                    continue
+
+                raise ConnectionError(
+                    f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
+                ) from exc
 
     async def disconnect(self, *, force: bool = False) -> None:
+        if not force and not self._player._connection._connected_flag.is_set():
+            return
+
         try:
             if self._player._node is None:
                 return
