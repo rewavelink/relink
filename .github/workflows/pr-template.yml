@@ -15,9 +15,7 @@ jobs:
 
         steps:
             - name: Checkout base branch
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.event.pull_request.base.sha }}
+              uses: actions/checkout@v6
 
             - name: Enforce Template
               uses: actions/github-script@v8
