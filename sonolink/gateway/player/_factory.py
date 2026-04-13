@@ -27,6 +27,7 @@ from __future__ import annotations
 import importlib.metadata
 import logging
 import os
+import sys
 from typing import Literal, cast
 
 from packaging.version import Version
@@ -117,6 +118,14 @@ class PlayerFactory:
             )
 
         if len(available) > 1:
+            imported = [
+                name
+                for name in available
+                if self._FRAMEWORK_DATA[name]["import_name"] in sys.modules
+            ]
+            if len(imported) == 1:
+                return cast(FrameworkLiteral, imported[0])
+                
             _log.warning(
                 "Multiple frameworks detected: %s, using '%s'.\n"
                 "Override this by passing 'framework' to sonolink.Client.",

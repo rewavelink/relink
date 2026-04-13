@@ -78,12 +78,6 @@ class Client(Generic[N]):
         detected automatically from whichever library is installed; if multiple
         are present, precedence follows ``discord.py`` → ``pycord`` → ``disnake``.
         Defaults to ``None``.
-
-        .. warning::
-            If you are using a custom :class:`~sonolink.Player` subclass, ensure it is defined **after**
-            constructing the :class:`Client`, otherwise the framework adapter may not be resolved correctly.
-            Alternatively, set the ``SONOLINK_FRAMEWORK`` environment variable before any imports to
-            force a specific framework ahead of time.
     """
 
     _framework: FrameworkLiteral

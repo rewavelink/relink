@@ -55,9 +55,11 @@ class _PlayerMeta(abc.ABCMeta):
 
     @classmethod
     def _adapter(cls) -> type:
-        return cls._factory.get_player(
-            cast(FrameworkLiteral, os.getenv("SONOLINK_FRAMEWORK", "discord.py"))
+        framework = (
+            cast(FrameworkLiteral, os.getenv("SONOLINK_FRAMEWORK"))
+            or cls._factory.detect_framework()
         )
+        return cls._factory.get_player(framework)
 
     def __new__(
         cls,
