@@ -56,12 +56,17 @@ All three classes inherit the full public API of :class:`~sonolink.player.BasePl
    :inherited-members:
    :show-inheritance:
 
+.. autoclass:: sonolink.gateway.player.adapters._pycord.PycordPlayer
+   :members:
+   :inherited-members:
+   :show-inheritance:
+
 .. autoclass:: sonolink.gateway.player.adapters._disnake.DisnakePlayer
    :members:
    :inherited-members:
    :show-inheritance:
 
-.. autoclass:: sonolink.gateway.player.adapters._pycord.PycordPlayer
+.. autoclass:: sonolink.gateway.player.adapters._nextcord.NextcordPlayer
    :members:
    :inherited-members:
    :show-inheritance:

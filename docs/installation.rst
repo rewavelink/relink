@@ -8,8 +8,9 @@ Requirements
 
 * Python 3.12+
 * One of: `discord.py 2.7+ <https://github.com/Rapptz/discord.py>`_,
-  `py-cord 2.8+ <https://github.com/Pycord-Development/pycord>`_, or
-  `disnake 2.12+ <https://github.com/DisnakeDev/disnake>`_
+  `py-cord 2.8+ <https://github.com/Pycord-Development/pycord>`_,
+  `disnake 2.12+ <https://github.com/DisnakeDev/disnake>`_, or
+  `nextcord 3.1.1+ <https://github.com/nextcord/nextcord>`_
 * A running Lavalink 4.x server — see :doc:`/guides/lavalink-setup`
 
 Installing SonoLink

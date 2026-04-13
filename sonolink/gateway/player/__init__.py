@@ -102,10 +102,13 @@ class Player(BasePlayer, metaclass=_PlayerMeta):
 
     Automatically resolves the appropriate :class:`~sonolink.player.BasePlayer`
     implementation for the detected or configured Discord library backend
-    (``discord.py``, ``disnake``, or ``py-cord``) at instantiation time.
+    (``discord.py``, ``py-cord``, ``disnake``, or ``nextcord``) at instantiation time.
 
     The framework is resolved from the ``SONOLINK_FRAMEWORK`` environment
-    variable, falling back to ``"discord.py"`` if unset.
+    variable, or detected automatically from whichever supported library is
+    installed. If no supported framework is found, a :exc:`RuntimeError` is
+    raised. If multiple are present, the one already imported is preferred;
+    if that is ambiguous, the first available is used and a warning is logged.
 
     There are two primary ways to create a player:
 
@@ -147,8 +150,10 @@ class Player(BasePlayer, metaclass=_PlayerMeta):
     ----------
     guild
         The guild this player is attached to. The concrete type depends on
-        the underlying Discord library (e.g. ``discord.Guild``,
-        ``disnake.Guild``).
+        the underlying Discord library (e.g. :class:`discord:discord.Guild`
+        (discord.py), :class:`pycord:discord.Guild` (py-cord),
+        :class:`disnake:disnake.Guild` (disnake), or
+        :class:`nextcord:nextcord.Guild` (nextcord)).
     channel
         The voice channel this player is currently connected to. The concrete
         type depends on the underlying Discord library.

@@ -12,7 +12,7 @@ What stays familiar
 -------------------
 
 * Lavalink remains the backend.
-* SonoLink supports discord.py, py-cord, and disnake, each using a custom ``discord.VoiceProtocol`` for voice integration.
+* SonoLink supports discord.py, py-cord, disnake, and nextcord, each using a custom ``discord.VoiceProtocol`` for voice integration.
 * The main runtime objects are still a client-level coordinator, nodes, players, queues,
   tracks, playlists, and filters.
 
@@ -72,7 +72,7 @@ In SonoLink, the equivalent flow is explicit and instance-based:
 .. note::
    :meth:`sonolink.Client.start` should be called once your Discord client is ready,
    typically in :meth:`discord:discord.Client.setup_hook` (discord.py), :func:`pycord:discord.on_connect` (py-cord)
-   or :func:`disnake:disnake.on_connect` (disnake)
+   , :func:`disnake:disnake.on_connect` (disnake) or :func:`nextcord:nextcord.on_connect` (nextcord)
    rather than in the ``on_ready`` event.
    
 Settings

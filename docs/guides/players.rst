@@ -25,9 +25,12 @@ short and predictable.
 
 If you need to configure the player before connecting, create it first, either by using an
 instance or by using :meth:`sonolink.Node.create_player`, and then pass the configured instance
-as ``cls`` to :meth:`discord:discord.abc.Connectable.connect` (discord.py),
-:meth:`pycord:discord.VoiceChannel.connect` (py-cord), or
-:meth:`disnake:disnake.VoiceChannel.connect`.
+as ``cls`` to:
+
+- :meth:`discord:discord.abc.Connectable.connect` (discord.py)
+- :meth:`pycord:discord.VoiceChannel.connect` (py-cord)
+- :meth:`disnake:disnake.VoiceChannel.connect` (disnake) 
+- :meth:`nextcord:nextcord.VoiceChannel.connect` (nextcord)
 
 .. code-block:: python
 
@@ -56,9 +59,12 @@ Reusing an existing player
 --------------------------
 
 In command handlers, the active voice connection is available via ``ctx.voice_client`` —
-see :attr:`discord:discord.ext.commands.Context.voice_client` (discord.py),
-:attr:`pycord:discord.ext.commands.Context.voice_client` (py-cord), or
-:attr:`disnake:disnake.ext.commands.Context.voice_client` (disnake).
+see:
+
+- :attr:`discord:discord.ext.commands.Context.voice_client` (discord.py)
+- :attr:`pycord:discord.ext.commands.Context.voice_client` (py-cord)
+- :attr:`disnake:disnake.ext.commands.Context.voice_client` (disnake) 
+- :attr:`nextcord:nextcord.ext.commands.Context.voice_client` (nextcord)
 
 .. code-block:: python
 

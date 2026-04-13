@@ -74,10 +74,19 @@ class Client(Generic[N]):
         The class to use when creating new nodes. Defaults to :class:`Node`.
     framework: :class:`str` | :data:`None`
         The Discord framework to use. Accepted values are ``"discord.py"``,
-        ``"pycord"``, and ``"disnake"``. When ``None``, the framework is
-        detected automatically from whichever library is installed; if multiple
-        are present, precedence follows ``discord.py`` → ``pycord`` → ``disnake``.
+        ``"pycord"``, ``"disnake"`` and ``"nextcord"``. When ``None``, the
+        framework is detected automatically from whichever library is installed.
+        If no supported framework is found, a :exc:`RuntimeError` is raised.
+        If multiple are present, the one already imported is preferred; if that
+        is ambiguous, the first available is used and a warning is logged.
         Defaults to ``None``.
+
+    Raises
+    ------
+    RuntimeError
+        No supported Discord framework meeting the minimum version requirements
+        was found, or a ``sonolink.Client`` is already attached to the given
+        Discord client.
     """
 
     _framework: FrameworkLiteral
@@ -169,7 +178,7 @@ class Client(Generic[N]):
     def framework(self) -> FrameworkLiteral:
         """
         The Discord framework used by this client
-        (``"discord.py"``, ``"pycord"``, ``"disnake"``, or ``nextcord``).
+        (``"discord.py"``, ``"pycord"``, ``"disnake"``, or ``"nextcord"``).
         """
         return self._framework
 
@@ -180,7 +189,7 @@ class Client(Generic[N]):
         password: str,
         id: str | None = None,
         retries: int | None = None,
-        resume_timeout: float = 60,
+        resume_timeout: float = 60.0,
         cache_settings: CacheSettings | None = None,
         inactivity_settings: InactivitySettings | None = None,
         session: SessionType | None = None,
@@ -200,10 +209,10 @@ class Client(Generic[N]):
             generated automatically.
         retries: :class:`int` | :data:`None`
             The amount of retries to attempt when connecting or reconnecting this node. Whenever the limit
-            is reached, it closes the node automatically. If this is set to ``None``, it retries indefinetely.
+            is reached, it closes the node automatically. If this is set to ``None``, it retries indefinitely.
             Defaults to ``None``.
-        resume_timeout: :class:`int`
-            The maximum amount of seconds a resume can take before closing the node. Defaults to ``60``.
+        resume_timeout: :class:`float`
+            The maximum amount of seconds a resume can take before closing the node. Defaults to ``60.0``.
         cache_settings: :class:`CacheSettings` | :data:`None`
             The search result caching configuration.
             Defaults to ``CacheSettings.default()``.
@@ -264,7 +273,7 @@ class Client(Generic[N]):
         Connects all registered nodes to their respective Lavalink servers.
 
         This method should typically be called after the discord client is logged in,
-        often within the ``on_ready`` event.
+        often within the ``setup_hook`` (discord.py) or ``on_connect`` (py-cord, disnake and nextcord) event.
         """
         if not self._nodes:
             return

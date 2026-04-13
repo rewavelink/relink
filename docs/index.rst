@@ -16,10 +16,10 @@ debugging, customisation, or more advanced workflows.
 Framework Compatibility
 -----------------------
 
-SonoLink is compatible with **discord.py 2.7+**, **py-cord 2.8+**, and **disnake 2.12+**,
+SonoLink is compatible with **discord.py 2.7+**, **py-cord 2.8+**, **disnake 2.12+** and **nextcord 3.1.1+**,
 and requires no additional Discord library dependency — it automatically detects whichever
 you have installed. If multiple are found, precedence follows: ``discord.py`` →
-``py-cord`` → ``disnake``.
+``py-cord`` → ``disnake`` → ``nextcord``.
 
 .. important::
    SonoLink targets **Lavalink 4.x**. See :doc:`/guides/lavalink-setup` for instructions on
