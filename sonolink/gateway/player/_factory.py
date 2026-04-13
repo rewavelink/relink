@@ -125,7 +125,7 @@ class PlayerFactory:
             ]
             if len(imported) == 1:
                 return cast(FrameworkLiteral, imported[0])
-                
+
             _log.warning(
                 "Multiple frameworks detected: %s, using '%s'.\n"
                 "Override this by passing 'framework' to sonolink.Client.",
