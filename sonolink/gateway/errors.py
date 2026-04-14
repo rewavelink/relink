@@ -30,6 +30,7 @@ from sonolink.errors import SonoLinkException
 
 if TYPE_CHECKING:
     from .node import Node
+    from .player import FrameworkLiteral
 
 __all__ = (
     "NodeError",
@@ -37,6 +38,8 @@ __all__ = (
     "NodeURINotFound",
     "QueueEmpty",
     "HistoryEmpty",
+    "FrameworkClientMismatch",
+    "FrameworkImportError",
 )
 
 
@@ -70,3 +73,48 @@ class QueueEmpty(SonoLinkException):
 
 class HistoryEmpty(SonoLinkException):
     """Exception raised when trying to get a track from an empty history."""
+
+
+class FrameworkClientMismatch(SonoLinkException):
+    """Exception raised when trying to initialize a Sonolink Client with a
+    client from a different framework.
+
+    .. versionadded:: 1.1.0
+    """
+
+    expected: type
+    """The expected framework type."""
+    actual: type
+    """The actual framework type."""
+    framework: FrameworkLiteral
+    """The detected framework."""
+
+    def __init__(
+        self, *, expected: type, actual: type, framework: FrameworkLiteral
+    ) -> None:
+        self.expected = expected
+        self.actual = actual
+        self.framework = framework
+        msg = (
+            f"Expected client of type {expected!r} for detected framework '{framework}', "
+            f"but got {actual!r}. Either the client is from a different framework or the framework detection is incorrect."
+        )
+        super().__init__(msg)
+
+
+class FrameworkImportError(SonoLinkException):
+    """Exception raised when trying to initialize a Sonolink Client with a framework
+    that is detected but cannot be imported. This likely means the framework is not
+    installed or not up to date.
+
+    .. versionadded:: 1.1.0
+    """
+
+    framework: FrameworkLiteral
+    """The detected framework."""
+
+    def __init__(self, *, framework: FrameworkLiteral) -> None:
+        self.framework = framework
+
+        msg = f"Could not import detected framework '{framework}'. Make sure the framework is installed and up to date."
+        super().__init__(msg)
