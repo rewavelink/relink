@@ -26,8 +26,7 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Iterable, Iterator
-from itertools import islice
-from typing import TYPE_CHECKING, TypeGuard, overload
+from typing import TYPE_CHECKING, overload
 
 from sonolink.models.track import Playable
 
@@ -67,20 +66,11 @@ class ReadableCollection:
     def __getitem__(self, index: int | slice) -> Playable | list[Playable]:
         if isinstance(index, int):
             return self._items[index]
-
-        start, stop, step = index.indices(len(self._items))
-        if step > 0:
-            return list(islice(self._items, start, stop, step))
-
-        # islice can't handle negative steps
-        # for simplicity, we create a list and slice it
-        # instead of using islice
         return list(self._items)[index]
 
-    def _ensure_playable(self, value: object) -> TypeGuard[Playable]:
+    def _ensure_playable(self, value: object) -> None:
         if not isinstance(value, Playable):
             raise TypeError(f"Expected Playable, got {type(value).__name__}")
-        return True
 
 
 class MutableQueueBase(ReadableCollection):
@@ -94,13 +84,12 @@ class MutableQueueBase(ReadableCollection):
         *,
         atomic: bool,
     ) -> list[Playable]:
-        if isinstance(tracks, Playable):
-            ret = [tracks]
-        elif atomic:
-            ret = [t for t in tracks if self._ensure_playable(t)]
-        else:
-            ret = list(tracks)
-        return ret
+        items = [tracks] if isinstance(tracks, Playable) else tracks
+
+        if atomic:
+            return [t for t in items if self._ensure_playable(t)]
+
+        return list(items)
 
     def put(
         self,
@@ -172,29 +161,30 @@ class MutableQueueBase(ReadableCollection):
         tracks = self._materialize_tracks(tracks, atomic=atomic)
         count = len(tracks)
 
+        if count == 0:
+            return 0
+
         items_length = len(self._items)
+
+        if index < 0:
+            index += items_length
+
+        index = max(0, min(index, items_length))
 
         if count == 1:
             self._items.insert(index, tracks[0])
-        elif count > 1:
-            # handle negative index
-            if index < 0:
-                index += items_length
-            index = max(0, min(index, items_length))
+            return 1
 
-            if index >= (
-                items_length - index
-            ):  # index is closer to the right, so we rotate right instead
-                k = items_length - index
-                self._items.rotate(k)
-                self._items.extend(tracks)
-                self._items.rotate(-k)
-            else:
-                self._items.rotate(-index)
-                self._items.extendleft(
-                    reversed(tracks)
-                )  # extendleft inserts in reverse, so we have to re-reverse it
-                self._items.rotate(index)
+        tail = items_length - index
+
+        if index <= tail:  # insertion point is closer to (or equidistant from) the left
+            self._items.rotate(-index)
+            self._items.extendleft(reversed(tracks))
+            self._items.rotate(index)
+        else:
+            self._items.rotate(tail)
+            self._items.extend(tracks)
+            self._items.rotate(-tail)
 
         return count
 
@@ -221,19 +211,24 @@ class MutableQueueBase(ReadableCollection):
         :class:`int`
             The number of tracks removed from the queue.
         """
-        tracks = self._materialize_tracks(tracks, atomic=False)
-        count = 0
-        for track in tracks:
-            while True:
-                try:
-                    self._items.remove(track)
-                except ValueError:
-                    break
+        tracks = set(self._materialize_tracks(tracks, atomic=False))
+        before = len(self._items)
+
+        if remove_all:
+            self._items = deque(track for track in self._items if track not in tracks)
+        else:
+            removed: set[Playable] = set()
+            new_items: deque[Playable] = deque()
+
+            for track in self._items:
+                if track in tracks and track not in removed:
+                    removed.add(track)
                 else:
-                    count += 1
-                    if not remove_all:
-                        break
-        return count
+                    new_items.append(track)
+
+            self._items = new_items
+
+        return before - len(self._items)
 
     def clear(self) -> None:
         """Remove all items from the queue."""

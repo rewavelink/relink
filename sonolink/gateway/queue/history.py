@@ -57,5 +57,8 @@ class History(ReadableCollection):
 
     def _copy(self) -> Self:
         new = self.__class__(settings=self._settings)
-        new._items = self._items.copy()
+        new._items = deque(self._items, maxlen=self._settings.max_items)
         return new
+
+    def _clear(self) -> None:
+        self._items.clear()

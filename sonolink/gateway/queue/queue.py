@@ -162,7 +162,7 @@ class Queue(MutableQueueBase):
         if self._mode is QueueMode.LOOP_ALL and not self:
             if len(self._history) > 0:
                 self._items.extend(self._history)
-                self._history._items.clear()
+                self._history._clear()
 
             if self._current_track is not None:
                 self._items.append(self._current_track)
@@ -196,11 +196,8 @@ class Queue(MutableQueueBase):
                 await waiter
             finally:
                 waiter.cancel()
-
-                try:
+                if waiter in self._waiters:
                     self._waiters.remove(waiter)
-                except ValueError:
-                    pass
 
                 if self and not waiter.cancelled():
                     self._wakeup_next()
@@ -389,7 +386,7 @@ class Queue(MutableQueueBase):
             mode=self._mode,
             history_settings=self._history._settings,
         )
-        new_queue._items = self._items.copy()
+        new_queue._items = deque(self._items)
         new_queue._current_track = self._current_track
         new_queue._history = self._history._copy()
         return new_queue
@@ -400,7 +397,7 @@ class Queue(MutableQueueBase):
 
         This does not return anything.
         """
-        random.shuffle(self._items)
+        self._items = deque(random.sample(self._items, k=len(self._items)))
 
     def swap(self, old: int, new: int) -> None:
         """
@@ -424,7 +421,7 @@ class Queue(MutableQueueBase):
         """
         Clear the queue history if history is enabled.
         """
-        self._history._items.clear()
+        self._history._clear()
 
     def reset(self) -> None:
         """
