@@ -24,7 +24,7 @@
 - Built on [msgspec](https://github.com/jcrist/msgspec) for rapid serialization and strict type validation
 - Optional [curl_cffi](https://github.com/lexiforest/curl_cffi) for faster networking
 - Async-first and [Basedpyright](https://docs.basedpyright.com/latest/) strict-compliant
-- Built-in support for [discord.py](https://github.com/Rapptz/discord.py), [pycord](https://github.com/Pycord-Development/pycord), and [disnake](https://github.com/DisnakeDev/disnake)
+- Built-in support for [discord.py](https://github.com/Rapptz/discord.py), [pycord](https://github.com/Pycord-Development/pycord), [disnake](https://github.com/DisnakeDev/disnake), and [nextcord](https://github.com/nextcord/nextcord).
 
 ## Documentation
 
@@ -44,7 +44,8 @@ Examples may be found in the [examples](https://github.com/sonolink/sonolink/tre
   - [discord.py](https://pypi.org/project/discord.py)[voice] 2.7+
   - [py-cord](https://pypi.org/project/py-cord)[voice] 2.8+
   - [disnake](https://pypi.org/project/disnake)[voice] 2.12+
-
+  - [nextcord](https://pypi.org/project/nextcord)[voice] 3.1.1+
+  
 To install the stable version from PyPI:
 ```sh
 # Linux/macOS

@@ -1,4 +1,4 @@
-# This example requires the disnake[voice] (https://pypi.org/project/disnake/) library to be installed.
+# This example requires the nextcord[voice] (https://pypi.org/project/nextcord/) library to be installed.
 #
 # This example covers the procedure of creating a simple music bot using sonolink,
 # with event handlers for track lifecycle and node events.
@@ -8,17 +8,17 @@
 
 from typing import Any
 
-import disnake
-from disnake.ext import commands
+import nextcord
+from nextcord.ext import commands
 
 import sonolink
 
 
-# We subclass commands.InteractionBot to hold our sonolink.Client instance cleanly.
+# We subclass commands.Bot to hold our sonolink.Client instance cleanly.
 # This avoids relying on globals and makes the client easy to access anywhere.
-class Bot(commands.InteractionBot):
+class Bot(commands.Bot):
     def __init__(self) -> None:
-        intents = disnake.Intents(guilds=True, voice_states=True)
+        intents = nextcord.Intents(guilds=True, voice_states=True)
         super().__init__(intents=intents)
 
         self.sl_client: sonolink.Client[Any] = sonolink.Client(self)

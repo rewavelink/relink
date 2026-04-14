@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
     from .adapters._disnake import DisnakeClient
     from .adapters._dpy import DpyClient
+    from .adapters._nextcord import NextcordClient
     from .adapters._pycord import PycordClient
 
 
@@ -17,7 +18,7 @@ class ClientFactory:
 
     @overload
     @staticmethod
-    def create(client: Any, framework: Literal["disnake"]) -> DisnakeClient: ...
+    def create(client: Any, framework: Literal["discord.py"]) -> DpyClient: ...
 
     @overload
     @staticmethod
@@ -25,7 +26,11 @@ class ClientFactory:
 
     @overload
     @staticmethod
-    def create(client: Any, framework: Literal["discord.py"]) -> DpyClient: ...
+    def create(client: Any, framework: Literal["disnake"]) -> DisnakeClient: ...
+
+    @overload
+    @staticmethod
+    def create(client: Any, framework: Literal["nextcord"]) -> NextcordClient: ...
 
     @staticmethod
     def create(client: Any, framework: FrameworkLiteral) -> DiscordClient[Any]:
@@ -36,6 +41,8 @@ class ClientFactory:
                 from .adapters._pycord import PycordClient as Client
             case "disnake":
                 from .adapters._disnake import DisnakeClient as Client
+            case "nextcord":
+                from .adapters._nextcord import NextcordClient as Client
             case _:  # pyright: ignore[reportUnnecessaryComparison]
                 raise ValueError(f"Unsupported framework: {framework}")
 

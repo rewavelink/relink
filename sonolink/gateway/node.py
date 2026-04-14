@@ -234,6 +234,14 @@ class Node:
 
     @property
     def session_id(self) -> str:
+        """
+        The current session ID for this node.
+
+        Raises
+        ------
+        RuntimeError
+            The node is not connected or has no active session.
+        """
         if not self._resume_session:
             raise RuntimeError(f"Node {self._id!r} is not connected (no session ID).")
         return self._resume_session
@@ -319,7 +327,7 @@ class Node:
             The volume of the player, in percentage from 0 to 1000. Defaults to ``None``.
         paused: :class:`bool` | :data:`None`
             Whether the player should start paused. Defaults to ``None``.
-        filters: :class:`PlayerFilters` | :data:`None`
+        filters: :class:`Filters` | :data:`None`
             The filters to apply to the player. Defaults to ``None``.
         queue_mode: :class:`QueueMode`
             The playback strategy for the queue. Defaults to :attr:`QueueMode.NORMAL`.
@@ -332,9 +340,11 @@ class Node:
         -------
         :class:`Player`
             The player. This can be passed to the ``cls=`` kwarg on
-            :meth:`discord:discord.abc.Connectable.connect` (discord.py),
-            :meth:`pycord:discord.VoiceChannel.connect` (py-cord), or
-            :meth:`disnake:disnake.VoiceChannel.connect` (disnake).
+
+            - :meth:`discord:discord.abc.Connectable.connect` (discord.py)
+            - :meth:`pycord:discord.VoiceChannel.connect` (py-cord)
+            - :meth:`disnake:disnake.VoiceChannel.connect` (disnake)
+            - :meth:`nextcord:nextcord.VoiceChannel.connect` (nextcord)
         """
         client = self._ensure_client()
         player_cls = self._player_factory.get_player(client.framework)
@@ -449,7 +459,7 @@ class Node:
 
     async def fetch_players(self) -> list[PlayerInfo]:
         """
-        Fetches all the player that are connected to this node.
+        Fetches all the players that are connected to this node.
 
         This performs a fresh REST request for the current player states on the node.
 
@@ -782,7 +792,7 @@ class Node:
 
     async def cleanup(self) -> None:
         """
-        A function that may be overriden in order to add custom clean-up
+        A function that may be overridden in order to add custom clean-up
         logic to a node.
 
         This is automatically called by the library.

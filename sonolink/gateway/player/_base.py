@@ -88,7 +88,7 @@ class BasePlayer(abc.ABC):
     Abstract base class that defines the interface for a Lavalink player.
 
     This class is library-agnostic and is intended to be subclassed to provide
-    concrete implementations compatible with ``discord.py``, ``disnake``, or ``py-cord``.
+    concrete implementations compatible with ``discord.py``, `py-cord``, ``disnake``, or ``nextcord``.
     Each library-specific subclass is responsible for implementing the voice protocol
     integration (e.g., inheriting from the appropriate ``VoiceProtocol`` class) and
     fulfilling the abstract methods defined here.
@@ -123,8 +123,10 @@ class BasePlayer(abc.ABC):
     ----------
     guild
         The guild this player is attached to. The concrete type depends on the
-        underlying Discord library (e.g., ``discord.Guild``, ``disnake.Guild``,
-        or ``pycord``'s equivalent).
+        underlying Discord library (e.g. :class:`discord:discord.Guild`
+        (discord.py), :class:`pycord:discord.Guild` (py-cord),
+        :class:`disnake:disnake.Guild` (disnake), or
+        :class:`nextcord:nextcord.Guild` (nextcord)).
     channel
         The voice channel this player is currently connected to. The concrete
         type depends on the underlying Discord library.
