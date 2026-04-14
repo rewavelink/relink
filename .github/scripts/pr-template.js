@@ -1,11 +1,7 @@
-module.exports = async ({ github, context, core, prNumber }) => {
+module.exports = async ({ github, context, core }) => {
     const invalid = 'status: invalid';
-
-    const { data: pr } = await github.rest.pulls.get({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        pull_number: prNumber,
-    });
+    const pr = context.payload.pull_request;
+    const prNumber = pr.number;
 
     if (pr.locked) {
         core.info(`The PR #${prNumber} is locked, skipping template enforcement.`);
