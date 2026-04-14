@@ -31,39 +31,43 @@ module.exports = async ({ github, context, core }) => {
     // This should not happpen as this job waits for the template vaildator
     // to return successfully.
     if (!match) {
-        core.info('The Type of change section is not found.');
+        core.info('The Type of change section is not found. Ensure the PR follows the template.');
+        return;
     };
 
     const section = match[1];
-    const labels = [];
+    const labelsToApply = [];
 
-    for (const label of currentLabels) {
-        if (autoLabels.has(label.name)) {
+    for (const [text, label] of Object.entries(tags)) {
+        const regex = new RegExp(`- \\[[xX]\\]\\s*.*${text}`, 'i');
+        if (regex.test(section)) {
+            labelsToApply.push(label);
+        };
+    };
+
+    for (const labelName of currentLabels) {
+        if (autoLabels.has(labelName) && !labelsToApply.includes(labelName)) {
+            core.info(`Removing label: ${labelName}`);
             await github.rest.issues.removeLabel({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
-                name: label.name,
-            });
-        };
-    };
+                name: labelName,
+            }).catch(err => core.error(`Failed to remove ${labelName}: ${err.message}`));
+        }
+    }
 
-    for (const [text, label] of Object.entries(tags)) {
-        const regex = new RegExp(`- \\[x\\].*${text}`, 'i');
-        if (regex.test(section)) {
-            labels.push(label);
-        };
-    };
+    const newLabelsToAdd = labelsToApply.filter(l => !currentLabels.includes(l));
 
-    if (labels.length === 0) {
-        core.info('No labels need to be added.');
-        return;
-    };
-
-    await github.rest.issues.addLabels({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        issue_number: prNumber,
-        labels: labels,
-    });
+    if (newLabelsToAdd.length > 0) {
+        core.info(`Adding labels: ${newLabelsToAdd.join(', ')}`);
+        await github.rest.issues.addLabels({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            labels: newLabelsToAdd,
+        });
+    } else {
+        core.info('No new labels to add.');
+    }
 };
