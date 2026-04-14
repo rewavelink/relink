@@ -30,11 +30,14 @@ jobs:
         if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
         needs: [template-check]
         steps:
+            - name: Checkout base branch
+              uses: actions/checkout@v6
+
             - name: Auto-apply tag
               uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
-                        const path = require('path');
-                        const script = require(path.resolve('.github/scripts/auto-tags.js'));
-                        await script({ github, context, core, pr });
+                      const path = require('path');
+                      const script = require(path.resolve('.github/scripts/auto-tags.js'));
+                      await script({ github, context, core });
