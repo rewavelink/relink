@@ -84,12 +84,15 @@ class MutableQueueBase(ReadableCollection):
         *,
         atomic: bool,
     ) -> list[Playable]:
-        items = [tracks] if isinstance(tracks, Playable) else tracks
+        items = [tracks] if isinstance(tracks, Playable) else list(tracks)
 
-        if atomic:
-            return [t for t in items if self._ensure_playable(t)]
+        if not atomic:
+            return [t for t in items if isinstance(t, Playable)]
 
-        return list(items)
+        for item in items:
+            self._ensure_playable(item)
+
+        return items
 
     def put(
         self,
