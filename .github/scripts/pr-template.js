@@ -39,16 +39,25 @@ module.exports = async ({ github, context, core }) => {
 
     if (problems.length === 0) {
         core.info(`PR #${prNumber} follows the template.`);
+
+        if (pr.labels.find(l => l.name === invalid)) {
+            await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: invalid,
+            }).catch(() => { });
+        }
         return;
     };
-    
+
     await github.rest.issues.addLabels({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: prNumber,
         labels: [invalid],
     });
-    
+
     const fmt = problems.join('\n');
     await github.rest.issues.createComment({
         owner: context.repo.owner,
