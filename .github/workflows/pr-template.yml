@@ -12,7 +12,6 @@ permissions:
 jobs:
     template-check:
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout base branch
               uses: actions/checkout@v6
@@ -24,4 +23,21 @@ jobs:
                   script: |
                       const path = require('path');
                       const script = require(path.resolve('.github/scripts/pr-template.js'));
-                      await script({ github, context, core, prNumber: context.payload.pull_request.number });
+                      await script({ github, context, core });
+
+    auto-apply-tags:
+        runs-on: ubuntu-latest
+        if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
+        needs: [template-check]
+        steps:
+            - name: Checkout base branch
+              uses: actions/checkout@v6
+
+            - name: Auto-apply tag
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const path = require('path');
+                      const script = require(path.resolve('.github/scripts/auto-tags.js'));
+                      await script({ github, context, core });

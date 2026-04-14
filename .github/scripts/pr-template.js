@@ -1,11 +1,7 @@
-module.exports = async ({ github, context, core, prNumber }) => {
+module.exports = async ({ github, context, core }) => {
     const invalid = 'status: invalid';
-
-    const { data: pr } = await github.rest.pulls.get({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        pull_number: prNumber,
-    });
+    const pr = context.payload.pull_request;
+    const prNumber = pr.number;
 
     if (pr.locked) {
         core.info(`The PR #${prNumber} is locked, skipping template enforcement.`);
@@ -43,16 +39,25 @@ module.exports = async ({ github, context, core, prNumber }) => {
 
     if (problems.length === 0) {
         core.info(`PR #${prNumber} follows the template.`);
+
+        if (pr.labels.find(l => l.name === invalid)) {
+            await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: invalid,
+            }).catch(() => { });
+        }
         return;
     };
-    
+
     await github.rest.issues.addLabels({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: prNumber,
         labels: [invalid],
     });
-    
+
     const fmt = problems.join('\n');
     await github.rest.issues.createComment({
         owner: context.repo.owner,
