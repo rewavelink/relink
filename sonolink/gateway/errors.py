@@ -77,35 +77,36 @@ class HistoryEmpty(SonoLinkException):
 
 class FrameworkClientMismatch(SonoLinkException):
     """Exception raised when trying to initialize a Sonolink Client with a
-    client from a different framework.
+    client that does not match the detected framework. This likely means the
+    client is from a different framework or the framework detection is incorrect.
 
     .. versionadded:: 1.1.0
     """
 
-    expected: type
+    expected_type: type
     """The expected framework type."""
-    actual: type
+    received_type: type
     """The actual framework type."""
     framework: FrameworkLiteral
     """The detected framework."""
 
     def __init__(
-        self, *, expected: type, actual: type, framework: FrameworkLiteral
+        self, *, expected_type: type, received_type: type, framework: FrameworkLiteral
     ) -> None:
-        self.expected = expected
-        self.actual = actual
+        self.expected_type = expected_type
+        self.received_type = received_type
         self.framework = framework
         msg = (
-            f"Expected client of type {expected!r} for detected framework '{framework}', "
-            f"but got {actual!r}. Either the client is from a different framework or the framework detection is incorrect."
+            f"Expected client of type {self.expected_type!r} for detected framework '{framework}', "
+            f"but got {self.received_type!r}. Either the client is from a different framework or the framework detection is incorrect."
         )
         super().__init__(msg)
 
 
 class FrameworkImportError(SonoLinkException):
-    """Exception raised when trying to initialize a Sonolink Client with a framework
-    that is detected but cannot be imported. This likely means the framework is not
-    installed or not up to date.
+    """Exception raised when trying to initialize a Sonolink Client with a framework's
+    client, but the framework cannot be imported. This likely means the framework
+    is not installed, there is an issue with the installation or the framework detection is incorrect.
 
     .. versionadded:: 1.1.0
     """
