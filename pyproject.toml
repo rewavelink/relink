@@ -79,6 +79,7 @@ pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportPrivateUsage = false
 reportUnnecessaryComparison = false
+reportUnnecessaryIsInstance = false
 exclude = ["docs/"]
 
 [tool.ruff]
