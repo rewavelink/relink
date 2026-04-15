@@ -10,14 +10,13 @@ module.exports = async ({ github, context, core }) => {
     const autoLabels = new Set(Object.values(tags));
     const pr = context.payload.pull_request;
     const prNumber = pr.number;
-    const currentLabels = pr.labels ?? [];
+    const currentLabels = (pr.labels ?? []).map(l => l.name);
 
     if (pr.locked) {
         core.info(`The PR #${prNumber} is locked, skipping autotag apply.`);
         return;
     }
 
-    /** @type String */
     const prContent = (pr.body || '').trim();
     if (prContent.length === 0) {
         core.setFailed('There is no PR description.');
@@ -39,7 +38,7 @@ module.exports = async ({ github, context, core }) => {
     const labelsToApply = [];
 
     for (const [text, label] of Object.entries(tags)) {
-        const regex = new RegExp(`- \\[[xX]\\]\\s*.*${text}`, 'i');
+        const regex = new RegExp(`- \\[[xX]\\][^\r\n]*${text}`, 'i');
         if (regex.test(section)) {
             labelsToApply.push(label);
         };
