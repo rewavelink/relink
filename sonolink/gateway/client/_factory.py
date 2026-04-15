@@ -55,5 +55,5 @@ class ClientFactory:
                 )
 
             return Client(cast(Any, client))
-        except (ImportError, ModuleNotFoundError) as exc:
+        except (ImportError, ModuleNotFoundError):
             raise FrameworkImportError(framework=framework) from None
