@@ -115,7 +115,7 @@ To add this plugin, you should add the ``plugins`` key to your ``lavalink`` as i
       # other options...
       plugins:
         - dependency: "dev.lavalink.youtube:youtube-plugin:X.Y.Z"  # you must replace "X.Y.Z" with a version available on their GitHub
-        snapshot: false  # may be set to true when you want to use a snapshot version
+          snapshot: false  # may be set to true when you want to use a snapshot version
 
 This plugin can be configured the same way as the native youtube source, but must be under the ``plugins.youtube`` key. The following shows an example
 of this.
