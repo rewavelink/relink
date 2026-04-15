@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from collections import deque
+from collections import Counter, deque
 from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, overload
 
@@ -214,18 +214,23 @@ class MutableQueueBase(ReadableCollection):
         :class:`int`
             The number of tracks removed from the queue.
         """
-        tracks = set(self._materialize_tracks(tracks, atomic=False))
+        to_remove = self._materialize_tracks(tracks, atomic=False)
+
+        if not to_remove:
+            return 0
+
         before = len(self._items)
 
         if remove_all:
-            self._items = deque(track for track in self._items if track not in tracks)
+            lookup = set(to_remove)
+            self._items = deque(track for track in self._items if track not in lookup)
         else:
-            removed: set[Playable] = set()
+            counts = Counter(to_remove)
             new_items: deque[Playable] = deque()
 
             for track in self._items:
-                if track in tracks and track not in removed:
-                    removed.add(track)
+                if counts.get(track, 0) > 0:
+                    counts[track] -= 1
                 else:
                     new_items.append(track)
 
