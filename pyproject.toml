@@ -30,7 +30,6 @@ keywords = [
     "wavelink",
     "fork",
     "sonolink",
-    "discord.py",
     "discord",
     "music",
     "audio",
@@ -38,9 +37,11 @@ keywords = [
     "library",
     "python",
     "asyncio",
+    "discord.py",
     "pycord",
     "py-cord",
     "disnake",
+    "nextcord",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
