@@ -87,7 +87,7 @@ class Queue(MutableQueueBase):
     @current_track.setter
     def current_track(self, value: Playable | None) -> None:
         if value is not None:
-            self._ensure_playable(value)
+            self._as_playable(value)
         self._current_track = value
 
     @property

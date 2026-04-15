@@ -68,9 +68,10 @@ class ReadableCollection:
             return self._items[index]
         return list(self._items)[index]
 
-    def _ensure_playable(self, value: object) -> None:
+    def _as_playable(self, value: object) -> Playable:
         if not isinstance(value, Playable):
             raise TypeError(f"Expected Playable, got {type(value).__name__}")
+        return value
 
 
 class MutableQueueBase(ReadableCollection):
@@ -89,10 +90,7 @@ class MutableQueueBase(ReadableCollection):
         if not atomic:
             return [t for t in items if isinstance(t, Playable)]
 
-        for item in items:
-            self._ensure_playable(item)
-
-        return items
+        return [self._as_playable(item) for item in items]
 
     def put(
         self,
