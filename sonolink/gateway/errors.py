@@ -30,6 +30,7 @@ from sonolink.errors import SonoLinkException
 
 if TYPE_CHECKING:
     from .node import Node
+    from .player import FrameworkLiteral
 
 __all__ = (
     "NodeError",
@@ -37,6 +38,8 @@ __all__ = (
     "NodeURINotFound",
     "QueueEmpty",
     "HistoryEmpty",
+    "FrameworkClientMismatch",
+    "FrameworkImportError",
 )
 
 
@@ -70,3 +73,49 @@ class QueueEmpty(SonoLinkException):
 
 class HistoryEmpty(SonoLinkException):
     """Exception raised when trying to get a track from an empty history."""
+
+
+class FrameworkClientMismatch(SonoLinkException):
+    """Exception raised when trying to initialize a Sonolink Client with a
+    client that does not match the detected framework. This likely means the
+    client is from a different framework or the framework detection is incorrect.
+
+    .. versionadded:: 1.1.0
+    """
+
+    expected_type: type
+    """The expected framework type."""
+    received_type: type
+    """The actual framework type."""
+    framework: FrameworkLiteral
+    """The detected framework."""
+
+    def __init__(
+        self, *, expected_type: type, received_type: type, framework: FrameworkLiteral
+    ) -> None:
+        self.expected_type = expected_type
+        self.received_type = received_type
+        self.framework = framework
+        msg = (
+            f"Expected client of type {self.expected_type!r} for detected framework '{framework}', "
+            f"but got {self.received_type!r}. Either the client is from a different framework or the framework detection is incorrect."
+        )
+        super().__init__(msg)
+
+
+class FrameworkImportError(SonoLinkException):
+    """Exception raised when trying to initialize a Sonolink Client with a framework's
+    client, but the framework cannot be imported. This likely means the framework
+    is not installed, there is an issue with the installation or the framework detection is incorrect.
+
+    .. versionadded:: 1.1.0
+    """
+
+    framework: FrameworkLiteral
+    """The detected framework."""
+
+    def __init__(self, *, framework: FrameworkLiteral) -> None:
+        self.framework = framework
+
+        msg = f"Could not import detected framework '{framework}'. Make sure the framework is installed and up to date."
+        super().__init__(msg)
