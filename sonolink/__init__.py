@@ -13,6 +13,7 @@ from ._version import __version__, version_info
 from .gateway import *
 from .rest import *
 from .utils import *
+from ._registry import get_client
 
 __all__ = (
     "__version__",
@@ -47,4 +48,5 @@ __all__ = (
     "ErrorResponseType",
     "HTTPException",
     "cached_property",
+    "get_client",
 )

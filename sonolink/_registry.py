@@ -34,3 +34,21 @@ if TYPE_CHECKING:
 __all__ = ("clients",)
 
 clients: WeakKeyDictionary[Any, Client[Any]] = WeakKeyDictionary()
+
+
+def get_client(bot: Any) -> Client[Any] | None:
+    """Get the SonoLink client associated with a Discord client instance.
+
+    .. versionadded:: 1.1.0
+
+    Parameters
+    ----------
+    bot: Any
+        The Discord client instance to retrieve the client for.
+
+    Returns
+    -------
+    Client[Any] | None
+        The SonoLink client associated with the Discord client, if any. Otherwise, ``None``.
+    """
+    return clients.get(bot)
