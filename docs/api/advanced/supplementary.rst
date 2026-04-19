@@ -34,5 +34,5 @@ Messages
 Utilities API
 -------------
 
-.. autoclass:: sonolink.utils.Snowflake
 .. autofunction:: sonolink.utils.cached_property
+.. autofunction:: sonolink._registry.get_client
