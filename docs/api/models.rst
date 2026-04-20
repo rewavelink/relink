@@ -19,7 +19,7 @@ Settings
 
 .. autoclass:: sonolink.models.CacheSettings
    :no-members:
-   :no-index:
+
 
 
 Tracks and playlists
