@@ -7,52 +7,48 @@ Settings
 
 .. autoclass:: sonolink.models.AutoPlaySettings
    :no-members:
-   :no-index:
 
 .. autoclass:: sonolink.models.InactivitySettings
    :no-members:
-   :no-index:
 
 .. autoclass:: sonolink.models.HistorySettings
    :no-members:
-   :no-index:
 
 .. autoclass:: sonolink.models.CacheSettings
    :no-members:
 
 
-
 Tracks and playlists
 --------------------
 
-.. autoclass:: sonolink.models.Album()
+.. autoclass:: sonolink.models.Album
    :members:
    
 
-.. autoclass:: sonolink.models.Artist()
+.. autoclass:: sonolink.models.Artist
    :members:
    
 
-.. autoclass:: sonolink.models.Playable()
+.. autoclass:: sonolink.models.Playable
    :members:
    
 
-.. autoclass:: sonolink.models.Playlist()
+.. autoclass:: sonolink.models.Playlist
    :members:
    
 
 Search and node models
 ----------------------
 
-.. autoclass:: sonolink.models.SearchResult()
+.. autoclass:: sonolink.models.SearchResult
    :members:
    
 
-.. autoclass:: sonolink.models.PlayerInfo()
+.. autoclass:: sonolink.models.PlayerInfo
    :members:
    
 
-.. autoclass:: sonolink.models.ServerInfo()
+.. autoclass:: sonolink.models.ServerInfo
    :members:
    
 
