@@ -9,5 +9,5 @@ Find the guide that matches your current library and follow along from there.
 .. toctree::
    :maxdepth: 1
 
-   moving-from-wavelink
-   moving-from-mafic
+   wavelink
+   mafic
