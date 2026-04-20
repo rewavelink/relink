@@ -83,7 +83,7 @@ html_js_files = [
     f"js/{path.name}" for path in sorted((DOCS_PATH / "_static" / "js").iterdir())
 ]
 html_title = f"{project} {release} documentation"
-# html_favicon = "_static/images/logo.svg"
+html_favicon = "_static/images/logo.svg"
 templates_path = ["_templates"]
 
 html_theme_options = {
