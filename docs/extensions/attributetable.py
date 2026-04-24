@@ -189,7 +189,7 @@ def process_attributetable(app: Sphinx, doctree: nodes.Node, fromdocname: str) -
     env = app.builder.env
 
     lookup = build_lookup_table(env)
-    for node in doctree.traverse(attributetableplaceholder):
+    for node in doctree.findall(attributetableplaceholder):
         modulename, classname, fullname = (
             node["python-module"],
             node["python-class"],
@@ -214,8 +214,12 @@ def process_attributetable(app: Sphinx, doctree: nodes.Node, fromdocname: str) -
 
 def get_class_results(
     lookup: dict[str, list[str]], modulename: str, name: str, fullname: str
-) -> dict[str, list[TableElement]]:
-    module = importlib.import_module(modulename)
+) -> dict[str, list[TableElement]]: 
+    try:
+        module = importlib.import_module(modulename)
+    except Exception:
+        return {_("Attributes"): [], _("Methods"): []}
+        
     cls = getattr(module, name)
 
     groups: dict[str, list[TableElement]] = {

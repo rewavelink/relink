@@ -14,6 +14,7 @@ from .gateway import *
 from .network.errors import *
 from .rest import *
 from .utils import *
+from ._registry import get_client
 
 __all__ = (
     "__version__",
@@ -49,4 +50,5 @@ __all__ = (
     "HTTPException",
     "WebSocketError",
     "cached_property",
+    "get_client",
 )
