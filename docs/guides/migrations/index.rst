@@ -11,3 +11,4 @@ Find the guide that matches your current library and follow along from there.
 
    wavelink
    mafic
+   lavalink.py
