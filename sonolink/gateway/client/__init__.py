@@ -245,6 +245,22 @@ class Client(Generic[N]):
         self._nodes[node.id] = node
         return node
 
+    def get_node(self, id: str, /) -> N | None:
+        """
+        Retrieves a :class:`Node` by its ID.
+
+        Parameters
+        ----------
+        id: :class:`str`
+            The ID of the node to retrieve.
+
+        Returns
+        -------
+        :class:`Node` | :data:`None`
+            The node if found, otherwise ``None``.
+        """
+        return self._nodes.get(id)
+
     def remove_node(self, identifier: str, /) -> None:
         """
         Removes a Node from this client.
