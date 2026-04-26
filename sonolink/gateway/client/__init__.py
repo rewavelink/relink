@@ -249,6 +249,8 @@ class Client(Generic[N]):
         """
         Retrieves a :class:`Node` by its ID.
 
+        .. versionadded:: 1.1.0
+
         Parameters
         ----------
         id: :class:`str`
