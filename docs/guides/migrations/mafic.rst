@@ -296,6 +296,10 @@ from your bot's own events:
      - :func:`on_sonolink_node_ready(payload) <on_sonolink_node_ready>`
    * - ``on_node_unavailable(node)``
      - :func:`on_sonolink_node_close(node) <on_sonolink_node_close>`
+   * - ``on_websocket_closed(event)``
+     - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
+   * - ``on_node_stats(node)``
+     - *No direct equivalent*   
 
 See :doc:`/api/events` for the full event reference and payload types.
 
