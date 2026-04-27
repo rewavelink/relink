@@ -254,25 +254,36 @@ See :doc:`/guides/filters` for the full filter reference.
 Events
 ------
 
-Wavelink has event names such as ``on_wavelink_node_ready`` and
-``on_wavelink_track_start`` that are dispatched through the underlying Discord client.
+Wavelink dispatches events through the Discord client with the ``wavelink_`` prefix, while
+SonoLink works the same way, using the ``sonolink_`` prefix instead:
 
-SonoLink does the same, but with the ``sonolink_`` prefix instead of ``wavelink_``.
-The event system is otherwise similar, with the same dispatch mechanism and handler signature.
+.. list-table::
+   :header-rows: 1
 
-The available events are:
-
-* :func:`on_sonolink_node_ready` — a node has connected and is ready to use.
-* :func:`on_sonolink_node_close` — a node connection was closed.
-* :func:`on_sonolink_player_update` — periodic position and state sync from the node.
-* :func:`on_sonolink_track_start` — a track has started playing.
-* :func:`on_sonolink_track_end` — a track finished, was stopped, or was replaced.
-* :func:`on_sonolink_track_exception` — a track encountered a playback error.
-* :func:`on_sonolink_track_stuck` — a track stalled and could not continue.
-* :func:`on_sonolink_unknown_event` — an unrecognized event type was received from the node.
-
-When moving, keep playback flow explicit in commands and services first, then reintroduce
-event-driven logic where still needed.
+   * - Wavelink
+     - SonoLink
+   * - ``on_wavelink_node_ready(payload)``
+     - :func:`on_sonolink_node_ready(payload) <on_sonolink_node_ready>`
+   * - ``on_wavelink_node_closed(node, disconnected)``
+     - :func:`on_sonolink_node_close(node) <on_sonolink_node_close>`
+   * - ``on_wavelink_player_update(payload)``
+     - :func:`on_sonolink_player_update(player, payload) <on_sonolink_player_update>`
+   * - ``on_wavelink_track_start(payload)``
+     - :func:`on_sonolink_track_start(player, payload) <on_sonolink_track_start>`
+   * - ``on_wavelink_track_end(payload)``
+     - :func:`on_sonolink_track_end(player, payload) <on_sonolink_track_end>`
+   * - ``on_wavelink_track_exception(payload)``
+     - :func:`on_sonolink_track_exception(player, payload) <on_sonolink_track_exception>`
+   * - ``on_wavelink_track_stuck(payload)``
+     - :func:`on_sonolink_track_stuck(player, payload) <on_sonolink_track_stuck>`
+   * - ``on_wavelink_websocket_closed(payload)``
+     - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
+   * - ``on_wavelink_extra_event(payload)``
+     - :func:`on_sonolink_unknown_event(player, payload) <on_sonolink_unknown_event>`
+   * - ``on_wavelink_inactive_player(player)``
+     - *Handled internally; configure via* :class:`~sonolink.models.InactivitySettings` 
+   * - ``on_wavelink_stats_update(payload)``
+     - *No direct equivalent*
 
 Autoplay
 --------
