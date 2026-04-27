@@ -191,8 +191,17 @@ provides it.
 Playback
 --------
 
-Lavalink.py's ``DefaultPlayer`` exposes ``play``, ``stop``, ``skip``, ``seek``, ``set_volume``,
-``set_pause``, and ``set_repeat``. SonoLink's :class:`sonolink.Player` provides equivalents.
+:class:`sonolink.Player` exposes the same playback controls as Lavalink.py's
+``DefaultPlayer``. The main difference is the queue: rather than a plain list,
+:attr:`~sonolink.Player.queue` is a :class:`sonolink.Queue` object with history-backed
+navigation, autoplay integration, and additional configuration via
+:class:`~sonolink.models.AutoPlaySettings` and :class:`~sonolink.models.HistorySettings`.
+Tracks are added via :meth:`~sonolink.Queue.put` rather than ``player.queue.append``.
+
+Pausing is split into explicit :meth:`~sonolink.Player.pause` and
+:meth:`~sonolink.Player.resume` methods rather than ``set_pause(True/False)``.
+
+See :doc:`/guides/players` for the full playback reference.
 
 Filters
 -------
@@ -220,6 +229,11 @@ restarts the current track position after applying:
 
    filters = Filters(karaoke=Karaoke(level=0.5))
    await player.set_filters(filters, seek=True)
+
+.. note::
+   Lavalink.py's ``lavalink.Volume`` filter class has no equivalent in SonoLink.
+   Volume is controlled directly on the player via :attr:`sonolink.Player.volume`
+   rather than through the :class:`~sonolink.models.Filters` system.
 
 See :doc:`/guides/filters` for the full filter reference.
 
@@ -282,9 +296,11 @@ The event name mapping is:
    * - ``PlayerUpdateEvent``
      - :func:`on_sonolink_player_update(player, payload) <on_sonolink_player_update>`
    * - ``WebSocketClosedEvent``
-     - :func:`on_sonolink_unknown_event(player, payload) <on_sonolink_unknown_event>`
+     - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
    * - ``QueueEndEvent``
      - *(handled internally; configure autoplay instead — see below)*
+   * - ``NodeChangedEvent``
+     - *(handled internally; SonoLink manages node failover automatically)*
 
 See :doc:`/api/events` for the full event reference and payload types.
 
