@@ -99,6 +99,25 @@ Node Close
    node: :class:`sonolink.Node`
        The node that was closed.
 
+Node Stats
+++++++++++
+
+.. function:: on_sonolink_stats_receive(node: sonolink.Node, payload: sonolink.gateway.StatsEvent)
+
+   Called when the node receives ``stats`` OP from Lavalink.
+
+   .. versionadded:: 1.1.0
+
+   Parameters
+   ----------
+   node: :class:`sonolink.Node`
+       The node that sent the statistics.
+   payload: :class:`sonolink.gateway.StatsEvent`
+       The event payload containing information about the node's resource usage,
+       player counts, and uptime.
+
+.. autoclass:: sonolink.gateway.StatsEvent()
+
 Player
 ------
 
