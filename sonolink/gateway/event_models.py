@@ -44,7 +44,7 @@ __all__ = (
     "ReadyEvent",
     "PlayerUpdateEvent",
     "StatsEvent",
-    "WSCloseEvent",
+    "WebSocketClosedEvent",
     "TrackStartEvent",
     "TrackEndEvent",
     "TrackExceptionEvent",
@@ -141,7 +141,7 @@ class StatsEvent(EventModel["receive.StatsEvent"]):
     """The frame stats of the node."""
 
 
-class WSCloseEvent(EventModel["receive.WebSocketClosedEvent"]):
+class WebSocketClosedEvent(EventModel["receive.WebSocketClosedEvent"]):
     """Represents a ws_close event."""
 
     __repr_attr__ = (
