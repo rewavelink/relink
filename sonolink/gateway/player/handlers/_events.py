@@ -39,12 +39,18 @@ from sonolink.gateway.schemas.events import (
     TrackStartEvent as TrackStartEventPayload,
     TrackStuckEvent as TrackStuckEventPayload,
 )
-from sonolink.gateway.schemas.receive import PlayerState, WebSocketClosedEvent
+from sonolink.gateway.schemas.receive import (
+    PlayerState,
+    StatsEvent as StatsEventPayload,
+    WebSocketClosedEvent as WebSocketClosedEventPayload,
+)
 from sonolink.gateway.event_models import (
+    StatsEvent,
     TrackEndEvent,
     TrackExceptionEvent,
     TrackStartEvent,
     TrackStuckEvent,
+    WebSocketClosedEvent,
 )
 from ._base import HandlerBase, _log
 
@@ -133,8 +139,17 @@ class EventsHandler(HandlerBase):
                     TrackStuckEvent(payload, self._player._node),
                 )
 
+            case "Stats":
+                payload = msgspec.convert(data, StatsEventPayload)
+
+                self._player._node._client._dispatch(
+                    "stats_receive",
+                    self._player._node,
+                    StatsEvent(payload, self._player._node),
+                )
+
             case "WebSocketClosedEvent":
-                payload = msgspec.convert(data, WebSocketClosedEvent)
+                payload = msgspec.convert(data, WebSocketClosedEventPayload)
 
                 _log.warning(
                     "Player %s: Lavalink voice WS closed. Code %s, Reason: %s",
@@ -149,7 +164,7 @@ class EventsHandler(HandlerBase):
                 self._player._node._client._dispatch(
                     "websocket_closed",
                     self._player,
-                    payload,
+                    WebSocketClosedEvent(payload, self._player._node),
                 )
 
             case _:
