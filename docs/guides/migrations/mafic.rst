@@ -299,7 +299,7 @@ from your bot's own events:
    * - ``on_websocket_closed(event)``
      - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
    * - ``on_node_stats(node)``
-     - *No direct equivalent*   
+     - :func:`on_sonolink_stats_receive(node, payload) <on_sonolink_stats_receive>`
 
 See :doc:`/api/events` for the full event reference and payload types.
 

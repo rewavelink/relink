@@ -280,10 +280,10 @@ SonoLink works the same way, using the ``sonolink_`` prefix instead:
      - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
    * - ``on_wavelink_extra_event(payload)``
      - :func:`on_sonolink_unknown_event(player, payload) <on_sonolink_unknown_event>`
+   * - ``on_wavelink_stats_update(payload)``
+     - :func:`on_sonolink_stats_receive(node, payload) <on_sonolink_stats_receive>`
    * - ``on_wavelink_inactive_player(player)``
      - *Handled internally; configure via* :class:`~sonolink.models.InactivitySettings` 
-   * - ``on_wavelink_stats_update(payload)``
-     - *No direct equivalent*
 
 Autoplay
 --------
