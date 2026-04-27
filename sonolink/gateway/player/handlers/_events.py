@@ -146,6 +146,12 @@ class EventsHandler(HandlerBase):
                 if not payload.by_remote:
                     await self._dispatch_voice_update()
 
+                self._player._node._client._dispatch(
+                    "websocket_closed",
+                    self._player,
+                    payload,
+                )
+
             case _:
                 _log.debug(
                     "Player %s received unhandled event type: %s",
