@@ -58,6 +58,19 @@ async def on_sonolink_node_close(node: sonolink.Node) -> None:
     print(f"Node {node.id!r} closed.")
 
 
+# Fired when the voice WebSocket connection to Lavalink is closed.
+# 'event.code' is the WebSocket close code, 'event.reason' describes why,
+# and 'event.by_remote' indicates whether the close was initiated by the remote end.
+@bot.event
+async def on_sonolink_websocket_closed(
+    player: sonolink.Player, event: sonolink.gateway.WebSocketClosedEvent
+) -> None:
+    print(
+        f"[{player.guild}] Voice WS closed. "
+        f"code={event.code}, reason={event.reason!r}, by_remote={event.by_remote}"
+    )
+
+
 # Fired each time Lavalink sends a position/state update for a player.
 # This happens frequently (roughly every 5 seconds by default).
 @bot.event
