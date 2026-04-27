@@ -55,6 +55,20 @@ async def on_sonolink_node_close(node: sonolink.Node) -> None:
     print(f"Node {node.id!r} closed.")
 
 
+# Fired when Lavalink sends a statistics update for the node.
+# 'event.players' and 'event.playing_players' give player counts,
+# 'event.uptime' is the node uptime in milliseconds,
+# and 'event.memory' / 'event.cpu' contain resource usage stats.
+@bot.event
+async def on_sonolink_stats_receive(
+    node: sonolink.Node, event: sonolink.gateway.StatsEvent
+) -> None:
+    print(
+        f"Node {node.id!r}: {event.playing_players}/{event.players} players, "
+        f"uptime={event.uptime}ms"
+    )
+
+
 # Fired when the voice WebSocket connection to Lavalink is closed.
 # 'event.code' is the WebSocket close code, 'event.reason' describes why,
 # and 'event.by_remote' indicates whether the close was initiated by the remote end.
