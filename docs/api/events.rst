@@ -118,6 +118,25 @@ Player Update
 
 .. autoclass:: sonolink.gateway.PlayerUpdateEvent()
 
+WebSocket Closed
+++++++++++++++++
+
+.. function:: on_sonolink_websocket_closed(player: sonolink.Player, payload: sonolink.gateway.WebSocketClosedEvent)
+
+   Called when the voice WebSocket connection to Lavalink is closed.
+
+   .. versionadded:: 1.1.0
+
+   Parameters
+   ----------
+   player: :class:`sonolink.Player`
+       The player whose voice WebSocket was closed.
+   payload: :class:`sonolink.gateway.WebSocketClosedEvent`
+       The event payload containing the close code, reason, and whether the
+       close was initiated by the remote end.
+
+.. autoclass:: sonolink.gateway.WebSocketClosedEvent()
+
 Miscellaneous
 -------------
 
