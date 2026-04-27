@@ -11,6 +11,7 @@ A high-performance Lavalink v4 wrapper for Python, inspired by WaveLink.
 from . import gateway, models, rest, utils
 from ._version import __version__, version_info
 from .gateway import *
+from .network.errors import *
 from .rest import *
 from .utils import *
 from ._registry import get_client
@@ -47,6 +48,7 @@ __all__ = (
     "IPBlockType",
     "ErrorResponseType",
     "HTTPException",
+    "WebSocketError",
     "cached_property",
     "get_client",
 )

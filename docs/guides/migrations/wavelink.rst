@@ -1,7 +1,7 @@
 .. currentmodule:: sonolink
 
 Moving From Wavelink
-=====================
+====================
 
 This guide is for anyone moving over from `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_.
 
@@ -71,10 +71,10 @@ In SonoLink, the equivalent flow is explicit and instance-based:
 
 .. note::
    :meth:`sonolink.Client.start` should be called once your Discord client is ready,
-   typically in :meth:`discord:discord.Client.setup_hook` (discord.py), :func:`pycord:discord.on_connect` (py-cord)
-   , :func:`disnake:disnake.on_connect` (disnake) or :func:`nextcord:nextcord.on_connect` (nextcord)
+   typically in :meth:`discord:discord.Client.setup_hook` (discord.py), :func:`pycord:discord.on_connect` (py-cord),
+   :func:`disnake:disnake.on_connect` (disnake) or :func:`nextcord:nextcord.on_connect` (nextcord)
    rather than in the ``on_ready`` event.
-   
+
 Settings
 --------
 
@@ -88,7 +88,8 @@ over behavior that Wavelink left to ad-hoc configuration:
 * :class:`sonolink.models.AutoPlaySettings` — configures autoplay mode, search provider,
   discovery count, and seed limits.
 * :class:`sonolink.models.HistorySettings` — enables or limits the track history that
-  ``previous`` and autoplay depend on.
+  ``previous`` and autoplay depend on. Autoplay requires history to be enabled — see
+  `Autoplay`_ for details.
 
 .. code-block:: python
 
@@ -132,9 +133,11 @@ In Wavelink, the search flow is usually:
        return
 
    if isinstance(tracks, wavelink.Playlist):
-       track = tracks.tracks[0]
+       play_track = tracks.tracks[0]
+       rest = tracks.tracks[1:]
    else:
-       track = tracks[0]
+       play_track = tracks[0]
+       rest = tracks[1:]
 
 In SonoLink, searching returns a wrapper object that makes the result type explicit:
 
@@ -150,6 +153,7 @@ In SonoLink, searching returns a wrapper object that makes the result type expli
 
    if isinstance(data, list):
        play_track = data[0]
+       rest = data[1:]
    elif isinstance(data, sonolink.models.Playlist):
        play_track = data.tracks[0]
        rest = data.tracks[1:]
@@ -200,12 +204,14 @@ See :doc:`/guides/players` for the full player reference.
 Playback flow
 -------------
 
-SonoLink does not expose a ``playing`` property. The common pattern is to call
-:meth:`sonolink.Player.play` directly when nothing is currently playing, and put remaining
-tracks into the queue. Queue progression after a track ends is handled automatically:
+SonoLink does not expose a ``playing`` property — use :attr:`sonolink.Player.current` instead
+(see `State helpers`_). The common pattern is to call :meth:`sonolink.Player.play` directly
+when nothing is currently playing, and put remaining tracks into the queue. Queue progression
+after a track ends is handled automatically:
 
 .. code-block:: python
 
+   # play_track and rest come from the search result — see Searching above
    if not vc.current:
        await vc.play(play_track)
    else:
@@ -221,13 +227,26 @@ the player if neither applies. You do not need to drive this manually.
 Filters
 -------
 
-SonoLink applies filters with the same player method name, but the type is different:
+Wavelink uses a single ``wavelink.Filters`` object that is mutated in place and re-applied
+via ``player.set_filters``:
 
 .. code-block:: python
 
-   from sonolink.models import Filters
+   # Wavelink
+   filters = player.filters
+   filters.karaoke.set(level=0.5)
+   await player.set_filters(filters)
 
-   filters = Filters()
+SonoLink works similarly but constructs a fresh :class:`sonolink.models.Filters` object each
+time, passing filter instances directly as constructor arguments. The ``seek`` parameter
+optionally restarts the current track position after applying:
+
+.. code-block:: python
+
+   # SonoLink
+   from sonolink.models import Filters, Karaoke
+
+   filters = Filters(karaoke=Karaoke(level=0.5))
    await player.set_filters(filters, seek=True)
 
 See :doc:`/guides/filters` for the full filter reference.
@@ -235,25 +254,36 @@ See :doc:`/guides/filters` for the full filter reference.
 Events
 ------
 
-Wavelink has event names such as ``on_wavelink_node_ready`` and
-``on_wavelink_track_start`` that are dispatched through the underlying Discord client.
+Wavelink dispatches events through the Discord client with the ``wavelink_`` prefix, while
+SonoLink works the same way, using the ``sonolink_`` prefix instead:
 
-SonoLink does the same, but with the ``sonolink_`` prefix instead of ``wavelink_``. 
-The event system is otherwise similar, with the same dispatch mechanism and handler signature.
+.. list-table::
+   :header-rows: 1
 
-The available events are:
-
-* :func:`on_sonolink_node_ready` — a node has connected and is ready to use.
-* :func:`on_sonolink_node_close` — a node connection was closed.
-* :func:`on_sonolink_player_update` — periodic position and state sync from the node.
-* :func:`on_sonolink_track_start` — a track has started playing.
-* :func:`on_sonolink_track_end` — a track finished, was stopped, or was replaced.
-* :func:`on_sonolink_track_exception` — a track encountered a playback error.
-* :func:`on_sonolink_track_stuck` — a track stalled and could not continue.
-* :func:`on_sonolink_unknown_event` — an unrecognized event type was received from the node.
-
-When moving, keep playback flow explicit in commands and services first, then reintroduce
-event-driven logic where still needed.
+   * - Wavelink
+     - SonoLink
+   * - ``on_wavelink_node_ready(payload)``
+     - :func:`on_sonolink_node_ready(payload) <on_sonolink_node_ready>`
+   * - ``on_wavelink_node_closed(node, disconnected)``
+     - :func:`on_sonolink_node_close(node) <on_sonolink_node_close>`
+   * - ``on_wavelink_player_update(payload)``
+     - :func:`on_sonolink_player_update(player, payload) <on_sonolink_player_update>`
+   * - ``on_wavelink_track_start(payload)``
+     - :func:`on_sonolink_track_start(player, payload) <on_sonolink_track_start>`
+   * - ``on_wavelink_track_end(payload)``
+     - :func:`on_sonolink_track_end(player, payload) <on_sonolink_track_end>`
+   * - ``on_wavelink_track_exception(payload)``
+     - :func:`on_sonolink_track_exception(player, payload) <on_sonolink_track_exception>`
+   * - ``on_wavelink_track_stuck(payload)``
+     - :func:`on_sonolink_track_stuck(player, payload) <on_sonolink_track_stuck>`
+   * - ``on_wavelink_websocket_closed(payload)``
+     - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
+   * - ``on_wavelink_extra_event(payload)``
+     - :func:`on_sonolink_unknown_event(player, payload) <on_sonolink_unknown_event>`
+   * - ``on_wavelink_stats_update(payload)``
+     - :func:`on_sonolink_stats_receive(node, payload) <on_sonolink_stats_receive>`
+   * - ``on_wavelink_inactive_player(player)``
+     - *Handled internally; configure via* :class:`~sonolink.models.InactivitySettings` 
 
 Autoplay
 --------
@@ -275,13 +305,27 @@ The search provider used for discovery is configured via :class:`sonolink.Search
 
 .. warning::
    Autoplay uses the track history as its seed. Ensure :class:`sonolink.models.HistorySettings`
-   has history enabled, otherwise autoplay will have no reference track to discover from.
+   has history enabled when creating the player, otherwise autoplay will have no reference
+   track to discover from. See `Settings`_ for an example.
 
 State helpers
 -------------
 
-Wavelink exposes ``player.playing`` and similar helpers. SonoLink does not have a ``playing``
-property. The public player state is:
+Wavelink exposes ``player.playing`` and ``player.paused`` as the primary state checks.
+SonoLink does not have a ``playing`` property — replace any ``player.playing`` checks with
+``player.current is not None``:
+
+.. code-block:: python
+
+   # Wavelink
+   if player.playing:
+       ...
+
+   # SonoLink
+   if player.current is not None:
+       ...
+
+The full public player state in SonoLink is:
 
 * :attr:`sonolink.Player.current` — the track currently playing, or ``None``.
 * :attr:`sonolink.Player.paused` — whether the player is paused.
