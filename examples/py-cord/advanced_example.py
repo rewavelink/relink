@@ -289,7 +289,9 @@ async def queue(ctx: discord.ApplicationContext) -> None:
 
     if vc.current:
         ap_label = " `[AutoPlay]`" if vc.current.autoplay else ""
-        lines.append(f"**Now playing:** `{vc.current.title}` by `{vc.current.author}`{ap_label}\n")
+        lines.append(
+            f"**Now playing:** `{vc.current.title}` by `{vc.current.author}`{ap_label}\n"
+        )
 
     if tracks:
         lines.append("**Up next:**")
