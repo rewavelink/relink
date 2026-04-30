@@ -50,6 +50,7 @@ class Queue(MutableQueueBase):
         "_waiters",
         "_history",
         "_current_track",
+        "_autoplay_items",
     )
 
     def __init__(
@@ -66,6 +67,7 @@ class Queue(MutableQueueBase):
 
         self._history: History = History(settings=history_settings)
         self._current_track: Playable | None = None
+        self._autoplay_items: deque[Playable] = deque()
 
     @property
     def current_track(self) -> Playable | None:
@@ -128,9 +130,9 @@ class Queue(MutableQueueBase):
         """
         The list of tracks currently in the queue.
 
-        This does not include the :attr:`current_track`. Modifying this list
-        will not affect the actual queue; use methods like :meth:`put` or
-        :meth:`pop_at` for modifications.
+        This does not include the :attr:`current_track` or AutoPlay-discovered
+        tracks. Modifying this list will not affect the actual queue; use methods
+        like :meth:`put` or :meth:`pop_at` for modifications.
 
         Returns
         -------
@@ -139,10 +141,29 @@ class Queue(MutableQueueBase):
         """
         return list(self._items)
 
+    @property
+    def autoplay_tracks(self) -> list[Playable]:
+        """
+        The list of AutoPlay-discovered tracks currently staged in the queue.
+
+        These tracks are only played once all user-added tracks are exhausted.
+        Modifying this list will not affect the actual queue.
+
+        Returns
+        -------
+        list[:class:`Playable`]
+            A list of AutoPlay tracks.
+
+        .. versionadded:: 1.1.0
+        """
+        return list(self._autoplay_items)
+
     def get(self) -> Playable:
         """
         Get the next track from the queue, respecting the current queue mode.
 
+        User-added tracks always take priority over AutoPlay-discovered tracks.
+        If the user lane is empty, falls back to the AutoPlay lane.
         If the queue is in ``LOOP`` mode, returns the current track.
         If the queue is in ``LOOP_ALL`` mode and empty, restores tracks from history.
 
@@ -154,12 +175,12 @@ class Queue(MutableQueueBase):
         Raises
         ------
         :class:`QueueEmpty`
-            The queue is empty and cannot retrieve a track.
+            Both the user queue and AutoPlay queue are empty.
         """
         if self._mode is QueueMode.LOOP and self._current_track is not None:
             return self._current_track
 
-        if self._mode is QueueMode.LOOP_ALL and not self:
+        if self._mode is QueueMode.LOOP_ALL and not self._items:
             if len(self._history) > 0:
                 self._items.extend(self._history)
                 self._history._clear()
@@ -168,7 +189,13 @@ class Queue(MutableQueueBase):
                 self._items.append(self._current_track)
                 self._current_track = None
 
-        return self.pop()
+        if self._items:
+            return self.pop()
+
+        if self._autoplay_items:
+            return self._pop_autoplay()
+
+        raise QueueEmpty("Queue is empty.")
 
     async def get_wait(self) -> Playable:
         """
@@ -341,6 +368,44 @@ class Queue(MutableQueueBase):
             await asyncio.sleep(0)
         return count
 
+    def put_autoplay(
+        self,
+        tracks: Iterable[Playable] | Playable,
+        /,
+    ) -> int:
+        """
+        Add AutoPlay-discovered tracks to the AutoPlay lane.
+
+        These tracks are only played once all user-added tracks are exhausted.
+        Each track is automatically tagged with :attr:`~sonolink.models.Playable.autoplay`.
+
+        Parameters
+        ----------
+        tracks: :class:`sonolink.models.Playable` | Iterable[:class:`sonolink.models.Playable`]
+            The AutoPlay track(s) to stage.
+
+        Returns
+        -------
+        :class:`int`
+            The number of tracks added.
+
+        .. versionadded:: 1.1.0
+        """
+        if isinstance(tracks, Playable):
+            tracks = (tracks,)
+
+        tracks = list(tracks)
+        for track in tracks:
+            track.autoplay = True
+
+        self._autoplay_items.extend(tracks)
+        count = len(tracks)
+
+        if count:
+            self._wakeup_next()
+
+        return count
+
     async def remove_wait(
         self,
         tracks: Iterable[Playable] | Playable | Playlist,
@@ -389,6 +454,7 @@ class Queue(MutableQueueBase):
         new_queue._items = deque(self._items)
         new_queue._current_track = self._current_track
         new_queue._history = self._history._copy()
+        new_queue._autoplay_items = deque(self._autoplay_items)
         return new_queue
 
     def shuffle(self) -> None:
@@ -429,6 +495,7 @@ class Queue(MutableQueueBase):
 
         This will:
         - Clear all items from the queue
+        - Clear AutoPlay-discovered tracks
         - Clear history
         - Reset the mode to :class:`QueueMode.NORMAL`
         - Clear the current track
@@ -439,6 +506,7 @@ class Queue(MutableQueueBase):
 
         self._current_track = None
         self._mode = QueueMode.NORMAL
+        self._autoplay_items.clear()
 
         while self._waiters:
             waiter = self._waiters.popleft()
@@ -446,6 +514,17 @@ class Queue(MutableQueueBase):
                 waiter.cancel()
 
         self._waiters.clear()
+
+    def _pop_autoplay(self) -> Playable:
+        if not self._autoplay_items:
+            raise QueueEmpty("AutoPlay queue is empty.")
+
+        if self._current_track is not None:
+            self._history._push(self._current_track)
+
+        track = self._autoplay_items.popleft()
+        self._current_track = track
+        return track
 
     def _wakeup_next(self) -> None:
         while self._waiters:
