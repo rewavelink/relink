@@ -34,11 +34,11 @@ module.exports = async ({ github, context, core }) => {
         return;
     };
 
-    const section = match[1];
+    const section = match[1].replace(/\\\r?\n/g, '\n');
     const labelsToApply = [];
 
     for (const [text, label] of Object.entries(tags)) {
-        const regex = new RegExp(`- \\[[xX]\\][^\r\n]*${text}`, 'i');
+        const regex = new RegExp(`^- \\[[xX]\\][^\r\n]*${text}`, 'im');
         if (regex.test(section)) {
             labelsToApply.push(label);
         };
