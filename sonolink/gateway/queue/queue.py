@@ -193,7 +193,12 @@ class Queue(MutableQueueBase):
             return self.pop()
 
         if self._autoplay_items:
-            return self._pop_autoplay()
+            if self._current_track is not None:
+                self._history._push(self._current_track)
+
+            track = self._autoplay_items.popleft()
+            self._current_track = track
+            return track
 
         raise QueueEmpty("Queue is empty.")
 
@@ -514,17 +519,6 @@ class Queue(MutableQueueBase):
                 waiter.cancel()
 
         self._waiters.clear()
-
-    def _pop_autoplay(self) -> Playable:
-        if not self._autoplay_items:
-            raise QueueEmpty("AutoPlay queue is empty.")
-
-        if self._current_track is not None:
-            self._history._push(self._current_track)
-
-        track = self._autoplay_items.popleft()
-        self._current_track = track
-        return track
 
     def _wakeup_next(self) -> None:
         while self._waiters:
