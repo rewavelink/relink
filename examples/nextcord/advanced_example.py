@@ -301,25 +301,33 @@ async def queue(inter: nextcord.Interaction[Bot]) -> None:
         return
 
     tracks = vc.queue.tracks
+    autoplay_tracks = vc.queue.autoplay_tracks
 
-    if not tracks and not vc.current:
+    if not tracks and not autoplay_tracks and not vc.current:
         await inter.response.send_message("The queue is empty!")
         return
 
     lines: list[str] = []
 
     if vc.current:
+        ap_label = " `[AutoPlay]`" if vc.current.autoplay else ""
         lines.append(
-            f"**Now playing:** `{vc.current.title}` by `{vc.current.author}`\n"
+            f"**Now playing:** `{vc.current.title}` by `{vc.current.author}`{ap_label}\n"
         )
 
     if tracks:
         lines.append("**Up next:**")
         for i, track in enumerate(tracks[:10], start=1):
             lines.append(f"`{i}.` `{track.title}` by `{track.author}`")
-
         if len(tracks) > 10:
-            lines.append(f"\n*...and {len(tracks) - 10} more tracks.*")
+            lines.append(f"*...and {len(tracks) - 10} more.*")
+
+    if autoplay_tracks:
+        lines.append("\n**AutoPlay suggestions:**")
+        for i, track in enumerate(autoplay_tracks[:5], start=1):
+            lines.append(f"`{i}.` `{track.title}` by `{track.author}`")
+        if len(autoplay_tracks) > 5:
+            lines.append(f"*...and {len(autoplay_tracks) - 5} more.*")
 
     await inter.response.send_message("\n".join(lines))
 
