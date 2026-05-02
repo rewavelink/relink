@@ -3,7 +3,7 @@
 Moving From Pomice
 ==================
 
-This guide is for anyone moving over from `Pomice <https://github.com/cloudwithax/pomice>`_.
+This guide is for migrating from `Pomice <https://github.com/cloudwithax/pomice>`_ to SonoLink.
 
 It walks through the main differences between SonoLink and Pomice 2.x, so you can get a feel
 for what changes and what stays familiar.

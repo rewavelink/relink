@@ -3,7 +3,7 @@
 Moving From Mafic
 =================
 
-This guide is for anyone moving over from `Mafic <https://github.com/ooliver1/mafic>`_.
+This guide is for migrating from `Mafic <https://github.com/ooliver1/mafic>`_ to SonoLink.
 
 It walks through the main differences between SonoLink and Mafic, so you can get a feel for
 what changes and what stays familiar.

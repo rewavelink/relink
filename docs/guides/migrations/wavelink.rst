@@ -3,7 +3,7 @@
 Moving From Wavelink
 ====================
 
-This guide is for anyone moving over from `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_.
+This guide is for migrating from `Wavelink <https://github.com/PythonistaGuild/Wavelink>`_ to SonoLink.
 
 It walks through the main differences between SonoLink and Wavelink 3.x, so you can get a feel for what
 changes and what stays familiar.
