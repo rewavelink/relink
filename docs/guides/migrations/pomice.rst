@@ -12,11 +12,10 @@ What stays familiar
 -------------------
 
 * Lavalink remains the backend.
-* Pomice integrates with discord.py through a custom ``discord.VoiceProtocol``. SonoLink keeps
-  that pattern and also supports py-cord, disnake, and nextcord.
-* The main runtime objects are still nodes, players, tracks, playlists, queues, and filters.
-* Searching can still be performed from either a node-level object or from the object you use
-  for playback.
+* Pomice is built specifically around discord.py. SonoLink supports discord.py, py-cord,
+  disnake, and nextcord, each using a custom ``discord.VoiceProtocol`` for voice integration.
+* The main runtime objects are still a coordinator, nodes, players, queues,
+  tracks, playlists, and filters.
 
 What changes
 ------------
