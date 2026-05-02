@@ -141,10 +141,6 @@ class Playable(BaseModel[Track]):
         """
         return self._autoplay
 
-    @autoplay.setter
-    def autoplay(self, value: bool) -> None:
-        self._autoplay = value
-
     @property
     def identifier(self) -> str:
         """The unique identifier for this track based on its source (e.g., YouTube Video ID)."""

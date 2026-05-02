@@ -118,7 +118,7 @@ class AutoPlayHandler(HandlerBase):
             return None
 
         track = tracks.pop(0)
-        track.autoplay = True
+        track._autoplay = True
 
         if self._settings.mode == AutoPlayMode.ENABLED:
             queue_limit = max(0, self._settings.discovery_count - 1)

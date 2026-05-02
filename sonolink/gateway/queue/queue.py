@@ -401,7 +401,7 @@ class Queue(MutableQueueBase):
 
         tracks = list(tracks)
         for track in tracks:
-            track.autoplay = True
+            track._autoplay = True
 
         self._autoplay_items.extend(tracks)
         count = len(tracks)
