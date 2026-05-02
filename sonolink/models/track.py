@@ -98,7 +98,7 @@ class Playable(BaseModel[Track]):
     a high-level interface for accessing track metadata and state.
     """
 
-    __slots__ = ("_playlist", "_extras")
+    __slots__ = ("_autoplay", "_playlist", "_extras")
 
     def __init__(
         self,
@@ -108,6 +108,8 @@ class Playable(BaseModel[Track]):
         playlist: Playlist | None = None,
     ) -> None:
         super().__init__(client=client, data=data)
+
+        self._autoplay: bool = False
         self._playlist: Playlist | None = playlist
         self._extras: types.SimpleNamespace = types.SimpleNamespace(
             **(data.user_data or {})
@@ -129,6 +131,15 @@ class Playable(BaseModel[Track]):
     def __hash__(self) -> int:
         """Hashes the track based on its encoded string"""
         return hash(self.encoded)
+
+    @property
+    def autoplay(self) -> bool:
+        """
+        Whether this track was added by AutoPlay rather than a user.
+
+        .. versionadded:: 1.1.0
+        """
+        return self._autoplay
 
     @property
     def identifier(self) -> str:
