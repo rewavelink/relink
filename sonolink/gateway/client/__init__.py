@@ -350,7 +350,7 @@ class Client(Generic[N]):
 
         return min(
             connected_nodes,
-            key=lambda node: node.stats.penalty if node.stats else 0.0,
+            key=lambda node: node.stats.penalty if node.stats else float("inf"),
         )
 
     async def search_track(
