@@ -38,14 +38,11 @@ Examples may be found in the [examples](https://github.com/sonolink/sonolink/tre
 ### Requirements:
 - Python 3.12 or higher
 - A running Lavalink 4.x server ([guide on setup](https://sonolink.readthedocs.io/en/latest/guides/lavalink-setup.html))
-- One of the following discord libraries:
-
-| Library | Minimum Version |
-|---|---|
-| [discord.py](https://pypi.org/project/discord.py)[voice] | 2.7+ |
-| [py-cord](https://pypi.org/project/py-cord)[voice] | 2.8+ |
-| [disnake](https://pypi.org/project/disnake)[voice] | 2.12+ |
-| [nextcord](https://pypi.org/project/nextcord)[voice] | 3.1.1+ |
+- One of the following discord libraries with the `[voice]` extra:
+  - [discord.py](https://pypi.org/project/discord.py) 2.7+
+  - [py-cord](https://pypi.org/project/py-cord) 2.8+
+  - [disnake](https://pypi.org/project/disnake) 2.12+
+  - [nextcord](https://pypi.org/project/nextcord) 3.1.1+
   
 ### Install
 
