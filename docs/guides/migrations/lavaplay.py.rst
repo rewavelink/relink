@@ -199,3 +199,108 @@ a :class:`sonolink.TrackSourceType` enum member or string.
 
 :class:`sonolink.models.SearchResult` covers all possible outcomes: a single track, a
 playlist, a search result list, an empty result, or an error.
+
+Tracks
+------
+
+Lavaplay.py provides the ``lavaplay.Track`` model for individual tracks. The SonoLink equivalent is
+:class:`sonolink.models.Playable`. SonoLink tracks additionally carry :class:`sonolink.models.Album`
+and :class:`sonolink.models.Artist` metadata when the source provides it.
+
+Playback
+--------
+
+SonoLink's :class:`sonolink.Player` exposes almost the same methods as Lavaplay.py's ``Player`` class.
+With the following main differences:
+
+* unlike Lavaplay.py, :attr:`sonolink.Player.queue` is a :class:`sonolink.Queue` object, which also provides
+history-backed navigation, autoplay integration, and additional configuration via :class:`~sonolink.models.AutoPlaySettings`
+and :class:`~sonolink.models.HistorySettings`. This also implies tracks are added via :meth:`~sonolink.Queue.put` rather than
+``player.queue.append``, and moves all queue-related methods under :attr:`sonolink.Player.queue`.
+* Lavaplay.py offers the ``player.play`` and ``player.play_playlist`` methods, the former has a direct SonoLink equivalent,
+:meth:`~sonolink.Player.play`, while the latter does not and requires manual iteration through the playlist tracks and
+calling ``play`` on each of them.
+* in SonoLink, pausing and resuming are splitted into two different methods: :meth:`~sonolink.Player.pause` and :meth:`~sonolink.Player.resume`,
+unlike Lavaplay.py in which you had to call ``player.pause(True/False)``.
+
+See :doc:`/guides/players` for the full playback reference.
+
+Filters
+-------
+
+In Lavaplay.py, filters are all encapsulated in the ``Filters`` class, offering methods such as ``Filters.equalizer``
+or ``Filters.karaoke`` to update or set a new filter, and updated using ``player.filters(filters)``.
+
+.. code-block:: python
+
+    # Lavaplay.py
+    filters = lavaplay.Filters()
+    filters.equalizer([(0, 0.5)])  # update band 0 to 0.5Hz freq
+
+    await player.filters(filters)
+
+In SonoLink, we have a similar approach, the :class:`~sonolink.models.Filters` class takes as arguments all filters you
+want to update, then, you can call :meth:`~sonolink.Player.set_filters` to update it. The ``seek`` parameter optionally
+restarts the current track position after applying:
+
+.. code-block:: python
+    # SonoLink
+    filters = sonolink.models.Filters(
+        equalizer=[
+            sonolink.models.Equalizer(
+                band=0,
+                gain=0.5,
+            ),
+        ],
+    )
+
+    await player.set_filters(filters)
+
+See :doc:`/guides/filters` for the full filter reference.
+
+Events
+------
+
+Lavaplay.py uses their ``@node.listener`` decorator on each ``Node`` instance to attach and handle events, in which you may pass
+the event model, or the event name:
+
+.. code-block:: python
+
+    # Lavaplay.py
+    @node.listener(lavaplay.TrackStartEvent)
+    async def on_track_start(event: lavaplay.TrackStartEvent) -> None:
+        print("New track started playing:", event.track.title)
+
+    @node.listener("TrackEndEvent")
+    async def on_track_end(event: lavaplay.TrackEndEvent) -> None:
+        print("Track finished playing:", event.track.title)
+
+SonoLink instead dispatches events through your library's client with the ``sonolink_`` prefix, passing a typed
+payload object alongside the player. You register handles as standard Discord event listeners:
+
+.. code-block:: python
+
+    # SonoLink
+    @bot.event
+    async def on_sonolink_track_start(player: sonolink.Player, payload: sonolink.gateway.TrackStartEvent) -> None:
+        print("New track started playing:", payload.track.title)
+
+    @bot.event
+    async def on_sonolink_track_end(player: sonolink.Player, payload: sonolink.gateway.TrackEndEvent) -> None:
+        print("Track finished playing:", payload.track.title)
+
+The event name mapping is:
+
+.. list-table::
+    :header-rows: 1
+
+    * - Lavaplay.py event class or name
+      - SonoLink event
+    * - ``ReadyEvent``
+      - :func:`on_sonolink_node_ready(payload) <on_sonolink_node_ready>`
+    * - ``TrackStartEvent``
+      - :func:`on_sonolink_track_start(player, payload) <on_sonolink_track_start>`
+    * - ``TrackEndEvent``
+      - :func:`on_sonolink_track_end(player, payload) <on_sonolink_track_end>`
+    * - ``StatsUpdateEvent``
+      - :func:`on_sonolink_stats`
