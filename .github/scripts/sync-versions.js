@@ -39,6 +39,8 @@ module.exports = async ({ github, context, core }) => {
         const updatedYaml = yaml.dump(doc, { indent: 2, lineWidth: -1 });
         
         fs.writeFileSync(templatePath, updatedYaml);
+        
+        core.setOutput("version_tags", tags.join(', '));
         core.info(`Successfully updated "${dropdownId}" with: ${tags.join(', ')}`);
 
     } catch (error) {

@@ -6,6 +6,7 @@ on:
 
 permissions:
     contents: write
+    pull-requests: write
 
 jobs:
     sync-versions:
@@ -18,6 +19,7 @@ jobs:
               run: npm install js-yaml
 
             - name: Update Issue Template
+              id: sync_script
               uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -25,10 +27,13 @@ jobs:
                       const script = require('./.github/scripts/sync-versions.js');
                       await script({ github, context, core });
 
-            - name: Commit and Push changes
-              run: |
-                  git config --local user.email "github-actions[bot]@users.noreply.github.com"
-                  git config --local user.name "github-actions[bot]"
-                  git add .github/ISSUE_TEMPLATE/bug_report.yml
-                  git commit -m "chore: update sonolink_version dropdown [skip ci]" || echo "No changes"
-                  git push
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v8
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  commit-message: "chore: update sonolink_version dropdown [skip ci]"
+                  title: "chore: add ${{ steps.sync_script.outputs.version_tags }} to sonolink_version dropdown"
+                  body: "Automated update of bug report version dropdown based on latest releases."
+                  branch: chore/sync-template-versions
+                  base: main
+                  delete-branch: true
