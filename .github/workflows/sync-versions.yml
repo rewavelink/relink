@@ -14,6 +14,9 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v6
 
+            - name: Install js-yaml
+              run: npm install js-yaml
+
             - name: Update Issue Template
               uses: actions/github-script@v8
               with:
