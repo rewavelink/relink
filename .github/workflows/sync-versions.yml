@@ -1,0 +1,31 @@
+name: Update issue template versions
+on:
+    release:
+        types: [ published, edited, deleted ]
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    sync-versions:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Update Issue Template
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const script = require('./.github/scripts/sync-versions.js');
+                      await script({ github, context, core });
+
+            - name: Commit and Push changes
+              run: |
+                  git config --local user.email "github-actions[bot]@users.noreply.github.com"
+                  git config --local user.name "github-actions[bot]"
+                  git add .github/ISSUE_TEMPLATE/bug_report.yml
+                  git commit -m "chore: update sonolink_version dropdown [skip ci]" || echo "No changes"
+                  git push
