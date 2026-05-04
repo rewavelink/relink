@@ -13,3 +13,4 @@ Find the guide that matches your current library and follow along from there.
    mafic
    lavalink.py
    lavaplay.py
+   pomice

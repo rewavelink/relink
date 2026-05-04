@@ -3,7 +3,7 @@
 Moving From Lavalink.py
 =======================
 
-This guide is for anyone moving over from `Lavalink.py <https://github.com/Devoxin/Lavalink.py>`_.
+This guide is for migrating from `Lavalink.py <https://github.com/Devoxin/Lavalink.py>`_ to SonoLink.
 
 It walks through the main differences between SonoLink and Lavalink.py, so you can get a feel
 for what changes and what stays familiar.
