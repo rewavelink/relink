@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const yaml = require("js-yaml"); // Pre-installed on GitHub Runners
+const yaml = require("js-yaml");
 
 module.exports = async ({ github, context, core }) => {
     try {
@@ -39,7 +39,7 @@ module.exports = async ({ github, context, core }) => {
         const updatedYaml = yaml.dump(doc, { indent: 2, lineWidth: -1 });
         
         fs.writeFileSync(templatePath, updatedYaml);
-        
+
         core.setOutput("version_tags", tags.join(', '));
         core.info(`Successfully updated "${dropdownId}" with: ${tags.join(', ')}`);
 
