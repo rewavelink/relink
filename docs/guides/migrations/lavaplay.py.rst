@@ -400,3 +400,9 @@ for them:
       - :exc:`sonolink.NodeURINotFound`
 
 See :doc:`/api/exceptions` for the full exception reference.
+
+Useful references
+-----------------
+
+* `Lavaplay.py repository <https://github.com/HazemMeqdad/lavaplay.py>`
+* `Lavaplay.py API reference <https://lavaplay.readthedocs.io/en/latest>`
