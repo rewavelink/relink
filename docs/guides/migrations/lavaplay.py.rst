@@ -303,4 +303,100 @@ The event name mapping is:
     * - ``TrackEndEvent``
       - :func:`on_sonolink_track_end(player, payload) <on_sonolink_track_end>`
     * - ``StatsUpdateEvent``
-      - :func:`on_sonolink_stats`
+      - *(handled internally; you may access the updated data via* :attr:`~sonolink.Node.stats` *)*
+    * - ``TrackExceptionEvent``
+      - :func:`on_sonolink_track_exception(player, payload) <on_sonolink_track_exception>`
+    * - ``TrackStuckEvent``
+      - :func:`on_sonolink_track_stuck(player, payload) <on_sonolink_track_stuck>`
+    * - ``WebSocketClosedEvent``
+      - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
+    * - ``PlayerUpdateEvent``
+      - :func:`on_sonolink_player_update(payload) <on_sonolink_player_update>`
+
+See :doc:`/api/events` for the full event reference and payload types.
+
+Settings
+--------
+
+SonoLink introduces a settings system with no Lavaplay.py equivalent. Settings are dataclass-like
+objects passed at node or player creation time, giving you structured control over behaviour that
+Lavaplay.py left to manual implementation in event handlers:
+
+* :class:`sonolink.models.InactivitySettings` — controls how long a player waits before disconnecting
+when the channel is inactive, and what counts as inactive, and what counts as inactive.
+* :class:`sonolink.models.CacheSettings` — configures the node-level LFU search result cache.
+* :class:`sonolink.models.AutoPlaySettings` — configures autoplay mode, search provider,
+  discovery count, and seed limits.
+* :class:`sonolink.models.HistorySettings` — enables or limits the track history that ``previous``
+and autoplay depend on.
+
+.. code-block:: python
+
+    from sonolink.models import AutoPlaySettings, CacheSettings, HistorySettings, InactivitySettings
+    from sonolink.gateway import AutoPlayMode, InactivityMode
+
+    sl_client.create_node(
+        uri="http://localhost:2333",
+        password="youshallnotpass",
+        inactivity_settings=InactivitySettings(
+            timeout=300,
+            mode=InactivityMode.ALL_BOTS,
+        ),
+        cache_settings=CacheSettings(
+            enabled=True,
+            max_items=1000,
+        ),
+    )
+
+Autoplay and track history
+--------------------------
+
+Lavaplay.py has no history or autoplay system — bots that want either must build them manually, although
+it provides helpful methods such as ``Node.auto_search_tracks``. SonoLink introduces both features by default.
+
+Autoplay is configured through :class:`sonolink.models.AutoPlaySettings` at player creation time, and toggled
+via :attr:`sonolink.Player.autoplay`, which accepts an :class:`sonolink.AutoPlayMode` value:
+
+* :attr:`sonolink.AutoPlayMode.DISABLED` — the player stops when the queue empties.
+* :attr:`sonolink.AutoPlayMode.PARTIAL` — SonoLink manages queue progression autonomously but does not fill the
+  queue automatically.
+* :attr:`sonolink.AutoPlayMode.ENABLED` — when the queue empties, SonoLink discovers related tracks and fills
+  the queue automatically.
+
+Track history is enabled via :class:`sonolink.models.HistorySettings` and exposed through :attr:`sonolink.Player.queue`
+as a :class:`sonolink.History` object. Autoplay uses history as its seed, so the two features work together.
+
+.. warning::
+    Autoplay requires history to be enabled. If :class:`sonolink.models.HistorySettings` is left at its default,
+    autoplay will have no reference track to discover from.
+
+Errors and exceptions
+---------------------
+
+Lavaplay.py exposes different errors as ``Exception`` subclasses. SonoLink provides a subclass-based hierarchy
+for them:
+
+.. list-table::
+    :header-rows: 1
+
+    * - Lavaplay.py
+      - SonoLink
+    * - ``FiltersError`` and ``VolumeError``
+      - *(no direct SonoLink equivalent)*
+    * - ``NotConnectedError`` and ``ConnectedError``
+      - :exc:`RuntimeError`, raised for their corresponding methods (e.g ``RuntimeError`` when calling :meth:`Node.connect`
+        means the node is already connected)
+    * - ``TrackLoadFailed``
+      - *(surface via* ``result.is_error()`` *on* :class:`sonolink.models.SearchResult` *)*
+    * - ``requestFailed`` (HTTP failures)
+      - :exc:`sonolink.HTTPException`
+    * - *(no equivalent)*
+      - :exc:`sonolink.QueueEmpty`
+    * - *(no equivalent)*
+      - :exc:`sonolink.HistoryEmpty`
+    * - *(no equivalent)*
+      - :exc:`sonolink.WebSocketError`
+    * - *(no equivalent)*
+      - :exc:`sonolink.NodeURINotFound`
+
+See :doc:`/api/exceptions` for the full exception reference.
