@@ -188,7 +188,7 @@ class Node:
     async def _wait_session(self) -> bool:
         try:
             return await asyncio.wait_for(self._has_resume_session.wait(), timeout=10.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise RuntimeError("Timed out waiting for node READY payload.")
 
     @property
