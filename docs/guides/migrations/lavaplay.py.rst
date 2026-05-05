@@ -244,6 +244,7 @@ want to update, then, you can call :meth:`~sonolink.Player.set_filters` to updat
 restarts the current track position after applying:
 
 .. code-block:: python
+    
     # SonoLink
     filters = sonolink.models.Filters(
         equalizer=[
