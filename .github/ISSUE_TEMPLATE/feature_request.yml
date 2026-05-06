@@ -1,6 +1,6 @@
 name: Feature Proposal
 description: Propose a new capability or API enhancement for the library.
-labels: [ "idea: new feature" ]
+labels: ["idea: new feature"]
 body:
   - type: textarea
     id: summary
@@ -28,8 +28,7 @@ body:
     id: problem_statement
     attributes:
       label: Problem Statement
-      description: What specific limitation or architectural friction does this
-        feature address?
+      description: What specific limitation or architectural friction does this feature address?
       placeholder: "Currently, the library requires manual payload construction for..."
     validations:
       required: true
@@ -37,8 +36,7 @@ body:
     id: proposed_implementation
     attributes:
       label: Proposed Implementation
-      description: Describe your ideal solution. Including a code snippet helps us
-        understand the intended API.
+      description: Describe your ideal solution. Including a code snippet helps us understand the intended API.
       render: python
       placeholder: |
         # Proposed API usage
@@ -57,12 +55,11 @@ body:
     attributes:
       label: Submission Requirements
       options:
-        - label: I have verified this feature does not already exist in the latest
-            version.
+        - label: I have verified this feature does not already exist in the latest version.
           required: true
         - label: I have searched existing issues and discussions for similar proposals.
           required: true
         - label: >
-            I understand that if this proposal falls outside the library's
-            scope,  it may be closed as "status: wontfix".
+            I understand that if this proposal falls outside the library's scope, 
+            it may be closed as "status: wontfix".
           required: true
