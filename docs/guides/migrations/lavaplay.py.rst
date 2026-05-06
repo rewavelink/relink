@@ -11,27 +11,19 @@ changes and what stays familiar.
 What stays familiar
 -------------------
 
-* Lavalink remains the backend
-* SonoLink suppors discord.py, py-cord, disnake, and nextcord via a custom
+* Lavalink remains the backend.
+* SonoLink supports discord.py, py-cord, disnake, and nextcord via a custom
   ``discord.VoiceProtocol`` for voice integration.
 * The main runtime objects are still a coordinator, nodes, players, tracks, playlists, and filters.
 
 What changes
 ------------
 
-Lavaplay is library-independent, which essentially means it does not require any library to run with,
-this also means that all objects are controlled by Lavaplay and not the library you are using. On the
-other hand, SonoLink, even though it is library-dependent, allows all objects to be managed by the library
-you use.
-
-For instance, ``discord.py`` provides a voice connection cache and management, and due to Lavaplay being library
-independent, it can not interfere with ``discord.py``'s voice connection's cache unless done manually either with
-a subclass, or manually injecting the voice connection. This essentially results on utility objects, functions,
-and properties such as ``Context.voice_client`` being ``None`` when a client is in fact connected.
-
-Being library-independent is useful when you are not using any library, or just using a library that does not
-have any LavaLink support specifically for it. Or just simply prefer full control over Lavalink and separate it from
-any library.
+Lavaplay is library-independent, which means it does not integrate with ``discord.py``'s voice
+connection cache — utilities such as ``Context.voice_client`` return ``None`` even when connected,
+and voice state updates must be forwarded manually. SonoLink is library-dependent and handles all
+of this automatically through ``discord.VoiceProtocol``. It also adds a structured settings system,
+an automated queue with history and autoplay, and automatic node selection.
 
 Concept mapping
 ---------------
@@ -47,7 +39,7 @@ Concept mapping
       - :class:`sonolink.Node`
     * - ``lavaplay.Player``
       - :class:`sonolink.Player`
-    * - ``lavaplay.Node.search_youtube`` / ``lavaplay.Node.search_soundcloud`` / ``lavaplay.Node.search_youtube_music`` / ``lavaplay.Node.get_track`` / ``lavaplay.Node.auto_search_track``
+    * - ``lavaplay.Node.search_youtube`` / ``lavaplay.Node.search_soundcloud`` / ``lavaplay.Node.search_youtube_music`` / ``lavaplay.Node.get_track`` / ``lavaplay.Node.auto_search_tracks``
       - :meth:`sonolink.Client.search_track` / :meth:`sonolink.Node.search_track`
     * - ``lavaplay.Track``
       - :class:`sonolink.models.Playable`
@@ -99,13 +91,13 @@ In SonoLink, this is essentially the same, but with some changes:
     :meth:`sonolink.Client.start` should be called in :meth:`discord:discord.Client.setup_hook`
     (discord.py), :func:`pycord:discord.on_connect` (py-cord),
     :func:`disnake:disnake.on_connect` (disnake), or :func:`nextcord:nextcord.on_connect`
-    (nextcord) - not in ``on_ready``.
+    (nextcord) — not in ``on_ready``.
 
 Node management
 ---------------
 
 Lavaplay only allows for one node to be created per process, so its management resides only in one
-``Node`` class, which is the player's are bound to.
+``Node`` class, which the players are bound to.
 
 SonoLink handles all nodes internally, but still allows for node selection per player, exposing
 :meth:`sonolink.Node.create_player`, similar to Lavaplay's ``Node.create_player``.
@@ -115,7 +107,7 @@ SonoLink handles all nodes internally, but still allows for node selection per p
     node = sl_client.get_node(id="main")
     player = node.create_player(...)
 
-For most bots, the automatic node selection SonoLink offers is sufficient and you will not need to call this function
+For most bots, the automatic node selection SonoLink offers is sufficient and you will not need to call this
 directly.
 
 Players and voice connection
@@ -161,7 +153,7 @@ Searching and loading tracks
 ----------------------------
 
 In Lavaplay.py, searching is done through any ``Node.search_X`` method, or ``Node.get_tracks``,
-which returns a list of ``Track``s, a ``PlayList``, or a ``TrackLoadFailed``.
+which returns a list of ``Track``\s, a ``Playlist``, or a ``TrackLoadFailed``.
 
 .. code-block:: python
 
@@ -176,9 +168,9 @@ which returns a list of ``Track``s, a ``PlayList``, or a ``TrackLoadFailed``.
     else:
         track = result[0]
 
-In SonoLink, searching is done through :meth:`sonolink.Client.search_track` (or its equivalent in
-node: :meth:`sonolink.Node.search_track`). This method returns a :class:`sonolink.models.SearchResult`
-wrapper. If you want to provide a source, you can either do it passing a prefix to ``query``, or passing
+In SonoLink, searching is done through :meth:`sonolink.Client.search_track` (or its equivalent on
+the node: :meth:`sonolink.Node.search_track`). This method returns a :class:`sonolink.models.SearchResult`
+wrapper. If you want to specify a source, you can either pass a prefix in ``query``, or pass
 a :class:`sonolink.TrackSourceType` enum member or string.
 
 .. code-block:: python
@@ -210,18 +202,18 @@ and :class:`sonolink.models.Artist` metadata when the source provides it.
 Playback
 --------
 
-SonoLink's :class:`sonolink.Player` exposes almost the same methods as Lavaplay.py's ``Player`` class.
-With the following main differences:
+:class:`sonolink.Player` exposes almost the same methods as Lavaplay.py's ``Player`` class,
+with the following main differences:
 
-* unlike Lavaplay.py, :attr:`sonolink.Player.queue` is a :class:`sonolink.Queue` object, which also provides
-history-backed navigation, autoplay integration, and additional configuration via :class:`~sonolink.models.AutoPlaySettings`
-and :class:`~sonolink.models.HistorySettings`. This also implies tracks are added via :meth:`~sonolink.Queue.put` rather than
-``player.queue.append``, and moves all queue-related methods under :attr:`sonolink.Player.queue`.
-* Lavaplay.py offers the ``player.play`` and ``player.play_playlist`` methods, the former has a direct SonoLink equivalent,
-:meth:`~sonolink.Player.play`, while the latter does not and requires manual iteration through the playlist tracks and
-calling ``play`` on each of them.
-* in SonoLink, pausing and resuming are splitted into two different methods: :meth:`~sonolink.Player.pause` and :meth:`~sonolink.Player.resume`,
-unlike Lavaplay.py in which you had to call ``player.pause(True/False)``.
+* Unlike Lavaplay.py, :attr:`sonolink.Player.queue` is a :class:`sonolink.Queue` object, which also provides
+  history-backed navigation, autoplay integration, and additional configuration via :class:`~sonolink.models.AutoPlaySettings`
+  and :class:`~sonolink.models.HistorySettings`. Tracks are added via :meth:`~sonolink.Queue.put` rather than
+  ``player.queue.append``, and all queue-related methods live under :attr:`sonolink.Player.queue`.
+* Lavaplay.py offers ``player.play`` and ``player.play_playlist``. The former has a direct SonoLink equivalent,
+  :meth:`~sonolink.Player.play`, while the latter does not and requires manual iteration through the playlist tracks
+  calling ``play`` on each.
+* In SonoLink, pausing and resuming are split into two separate methods: :meth:`~sonolink.Player.pause` and
+  :meth:`~sonolink.Player.resume`, unlike Lavaplay.py where you called ``player.pause(True/False)``.
 
 See :doc:`/guides/players` for the full playback reference.
 
@@ -229,22 +221,22 @@ Filters
 -------
 
 In Lavaplay.py, filters are all encapsulated in the ``Filters`` class, offering methods such as ``Filters.equalizer``
-or ``Filters.karaoke`` to update or set a new filter, and updated using ``player.filters(filters)``.
+or ``Filters.karaoke`` to update or set a filter, applied via ``player.filters(filters)``.
 
 .. code-block:: python
 
     # Lavaplay.py
     filters = lavaplay.Filters()
-    filters.equalizer([(0, 0.5)])  # update band 0 to 0.5Hz freq
+    filters.equalizer([(0, 0.5)])  # set band 0 gain to 0.5
 
     await player.filters(filters)
 
-In SonoLink, we have a similar approach, the :class:`~sonolink.models.Filters` class takes as arguments all filters you
-want to update, then, you can call :meth:`~sonolink.Player.set_filters` to update it. The ``seek`` parameter optionally
+In SonoLink, the :class:`~sonolink.models.Filters` class takes all filters you want to update as constructor
+arguments, then you call :meth:`~sonolink.Player.set_filters` to apply them. The ``seek`` parameter optionally
 restarts the current track position after applying:
 
 .. code-block:: python
-    
+
     # SonoLink
     filters = sonolink.models.Filters(
         equalizer=[
@@ -262,8 +254,8 @@ See :doc:`/guides/filters` for the full filter reference.
 Events
 ------
 
-Lavaplay.py uses their ``@node.listener`` decorator on each ``Node`` instance to attach and handle events, in which you may pass
-the event model, or the event name:
+Lavaplay.py uses a ``@node.listener`` decorator on each ``Node`` instance to attach and handle events, passing
+the event model or event name:
 
 .. code-block:: python
 
@@ -277,7 +269,7 @@ the event model, or the event name:
         print("Track finished playing:", event.track.title)
 
 SonoLink instead dispatches events through your library's client with the ``sonolink_`` prefix, passing a typed
-payload object alongside the player. You register handles as standard Discord event listeners:
+payload object alongside the player. You register handlers as standard Discord event listeners:
 
 .. code-block:: python
 
@@ -324,12 +316,12 @@ objects passed at node or player creation time, giving you structured control ov
 Lavaplay.py left to manual implementation in event handlers:
 
 * :class:`sonolink.models.InactivitySettings` — controls how long a player waits before disconnecting
-when the channel is inactive, and what counts as inactive, and what counts as inactive.
+  when the channel is inactive, and what counts as inactive.
 * :class:`sonolink.models.CacheSettings` — configures the node-level LFU search result cache.
 * :class:`sonolink.models.AutoPlaySettings` — configures autoplay mode, search provider,
   discovery count, and seed limits.
 * :class:`sonolink.models.HistorySettings` — enables or limits the track history that ``previous``
-and autoplay depend on.
+  and autoplay depend on.
 
 .. code-block:: python
 
@@ -385,7 +377,7 @@ for them:
     * - ``FiltersError`` and ``VolumeError``
       - *(no direct SonoLink equivalent)*
     * - ``NotConnectedError`` and ``ConnectedError``
-      - :exc:`RuntimeError`, raised for their corresponding methods (e.g ``RuntimeError`` when calling :meth:`Node.connect`
+      - :exc:`RuntimeError`, raised for their corresponding methods (e.g. ``RuntimeError`` when calling :meth:`Node.connect`
         means the node is already connected)
     * - ``TrackLoadFailed``
       - *(surface via* ``result.is_error()`` *on* :class:`sonolink.models.SearchResult` *)*
@@ -405,5 +397,5 @@ See :doc:`/api/exceptions` for the full exception reference.
 Useful references
 -----------------
 
-* `Lavaplay.py repository <https://github.com/HazemMeqdad/lavaplay.py>`
-* `Lavaplay.py API reference <https://lavaplay.readthedocs.io/en/latest>`
+* `Lavaplay.py repository <https://github.com/HazemMeqdad/lavaplay.py>`_
+* `Lavaplay.py API reference <https://lavaplay.readthedocs.io/en/latest>`_
