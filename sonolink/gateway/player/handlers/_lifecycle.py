@@ -25,10 +25,12 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import msgspec
 
+from sonolink.gateway.enums import DisconnectTriggerType
+from sonolink.gateway.schemas import PlayerDisconnectEvent
 from sonolink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 from sonolink.utils.snowflake import Snowflake
 
@@ -75,13 +77,23 @@ class LifecycleHandler(HandlerBase):
         try:
             async with asyncio.timeout(timeout):
                 await self._player._connection._connected_flag.wait()
-        except (TimeoutError, asyncio.CancelledError):
-            await self.disconnect(force=True)
+        except (TimeoutError, asyncio.CancelledError) as exc:
+            await self.disconnect(
+                force=True,
+                trigger=DisconnectTriggerType.ERROR,
+                extra_event_data=exc,
+            )
             raise ConnectionError(
                 f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
             )
 
-    async def disconnect(self, *, force: bool = False) -> None:
+    async def disconnect(
+        self,
+        *,
+        force: bool = False,
+        trigger: DisconnectTriggerType = DisconnectTriggerType.UNKNOWN,
+        extra_event_data: Any = None,
+    ) -> None:
         try:
             if self._player._node is None:
                 return
@@ -112,9 +124,21 @@ class LifecycleHandler(HandlerBase):
 
         finally:
             await self._player.guild.change_voice_state(channel=None)
+
             self._player.cleanup()
             self._player._queue.reset()
             self._player._connection._connected_flag.clear()
+
+            assert self._player._node is not None
+            assert self._player._node.client is not None
+
+            event_payload = PlayerDisconnectEvent(
+                trigger=trigger,
+                extra_data=extra_event_data,
+            )
+            self._player._node.client._dispatch(
+                "player_disconnect", self._player, event_payload
+            )
 
     async def move_to(self, node: Node, /) -> None:
         if self._player._node is node:

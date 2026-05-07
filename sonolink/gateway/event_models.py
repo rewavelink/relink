@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import abc
+import types
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import msgspec
@@ -33,22 +34,23 @@ from sonolink.models.track import Playable
 from sonolink.utils import cached_property
 
 if TYPE_CHECKING:
-    from .enums import TrackEndReason
+    from .enums import DisconnectTriggerType, TrackEndReason
     from .node import Node
     from .schemas import events, receive
 
-T = TypeVar("T", bound=msgspec.Struct, covariant=True)
+T = TypeVar("T", bound=msgspec.Struct | types.SimpleNamespace, covariant=True)
 
 __all__ = (
     "EventModel",
-    "ReadyEvent",
+    "PlayerDisconnectEvent",
     "PlayerUpdateEvent",
+    "ReadyEvent",
     "StatsEvent",
-    "WebSocketClosedEvent",
     "TrackStartEvent",
     "TrackEndEvent",
     "TrackExceptionEvent",
     "TrackStuckEvent",
+    "WebSocketClosedEvent",
 )
 
 
@@ -83,6 +85,18 @@ class EventModel(abc.ABC, Generic[T]):
         return f"<{self.__class__.__name__} {attrs}>"
 
 
+class PlayerUpdateEvent(EventModel["receive.PlayerUpdateEvent"]):
+    """Represents a player_update event."""
+
+    __repr_attrs__ = ("state", "guild_id")
+
+    state: receive.PlayerState
+    """The state of the player."""
+
+    guild_id: int
+    """The guild ID of the player."""
+
+
 class ReadyEvent(EventModel["receive.ReadyEvent"]):
     """Represents a ready event."""
 
@@ -96,18 +110,6 @@ class ReadyEvent(EventModel["receive.ReadyEvent"]):
 
     session_id: str
     """The secret session ID."""
-
-
-class PlayerUpdateEvent(EventModel["receive.PlayerUpdateEvent"]):
-    """Represents a player_update event."""
-
-    __repr_attrs__ = ("state", "guild_id")
-
-    state: receive.PlayerState
-    """The state of the player."""
-
-    guild_id: int
-    """The guild ID of the player."""
 
 
 class StatsEvent(EventModel["receive.StatsEvent"]):
@@ -139,25 +141,6 @@ class StatsEvent(EventModel["receive.StatsEvent"]):
 
     frame_stats: receive.FrameStats | None
     """The frame stats of the node."""
-
-
-class WebSocketClosedEvent(EventModel["receive.WebSocketClosedEvent"]):
-    """Represents a ws_close event."""
-
-    __repr_attr__ = (
-        "code",
-        "reason",
-        "by_remote",
-    )
-
-    code: int
-    """The Discord close event code."""
-
-    reason: str
-    """The reason why the connection was closed."""
-
-    by_remote: bool
-    """Whether the closure was made by Discord."""
 
 
 class TrackStartEvent(EventModel["events.TrackStartEvent"]):
@@ -232,3 +215,31 @@ class TrackStuckEvent(EventModel["events.TrackStuckEvent"]):
         return Playable(
             client=self.node.client, data=self._underlying.track, playlist=None
         )
+
+
+class PlayerDisconnectEvent(EventModel["events.PlayerDisconnectEvent"]):
+    """Represents a player disconnected event."""
+
+    __repr_attrs__ = ("trigger",)
+
+    trigger: DisconnectTriggerType
+    """The trigger that caused the disconnect."""
+
+
+class WebSocketClosedEvent(EventModel["receive.WebSocketClosedEvent"]):
+    """Represents a ws_close event."""
+
+    __repr_attr__ = (
+        "code",
+        "reason",
+        "by_remote",
+    )
+
+    code: int
+    """The Discord close event code."""
+
+    reason: str
+    """The reason why the connection was closed."""
+
+    by_remote: bool
+    """Whether the closure was made by Discord."""

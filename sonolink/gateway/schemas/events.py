@@ -24,26 +24,38 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import types
+from typing import Any
+
 import msgspec
 
 from sonolink.rest.schemas.track import Track
 
-from ..enums import TrackEndReason, TrackExceptionSeverity
+from ..enums import (
+    DisconnectTriggerType,
+    TrackEndReason,
+    TrackExceptionSeverity,
+)
 
 __all__ = (
-    "TrackStartEvent",
+    "PlayerDisconnectEvent",
     "TrackEndEvent",
-    "TrackExceptionEvent",
     "TrackException",
+    "TrackExceptionEvent",
+    "TrackStartEvent",
     "TrackStuckEvent",
 )
 
 
-class TrackStartEvent(msgspec.Struct):
-    """Represents a track start event dispatched whenever a new track starts playing."""
+class PlayerDisconnectEvent(types.SimpleNamespace):
+    trigger: DisconnectTriggerType
+    """The trigger that caused the disconnect."""
+    extra_data: Any | None
+    """Extra data from the trigger.
 
-    track: Track
-    """The track that started playing."""
+    When :attr:`trigger` is :attr:`sonolink.gateway.DisconnectTriggerType.ERROR`, this usually
+    is an :exc:`Exception` object.
+    """
 
 
 class TrackEndEvent(msgspec.Struct):
@@ -53,15 +65,6 @@ class TrackEndEvent(msgspec.Struct):
     """The track that ended playing."""
     reason: TrackEndReason
     """The reason the track ended."""
-
-
-class TrackExceptionEvent(msgspec.Struct):
-    """Represents a track exception event dispatched whenever an error is found when playing a track."""
-
-    track: Track
-    """The track that threw the exception."""
-    exception: TrackException
-    """The occurred exception."""
 
 
 class TrackException(msgspec.Struct):
@@ -75,6 +78,22 @@ class TrackException(msgspec.Struct):
     """The cause of the exception."""
     cause_stack_trace: str = msgspec.field(name="causeStackTrace")
     """The full stack trace of the cause."""
+
+
+class TrackExceptionEvent(msgspec.Struct):
+    """Represents a track exception event dispatched whenever an error is found when playing a track."""
+
+    track: Track
+    """The track that threw the exception."""
+    exception: TrackException
+    """The occurred exception."""
+
+
+class TrackStartEvent(msgspec.Struct):
+    """Represents a track start event dispatched whenever a new track starts playing."""
+
+    track: Track
+    """The track that started playing."""
 
 
 class TrackStuckEvent(msgspec.Struct):
