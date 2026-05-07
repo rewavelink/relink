@@ -32,26 +32,30 @@ import msgspec
 from sonolink.rest.schemas.track import Track
 
 from ..enums import (
+    DisconnectTriggerType,
     TrackEndReason,
     TrackExceptionSeverity,
-    DisconnectTriggerType,
 )
 
 __all__ = (
-    "TrackStartEvent",
-    "TrackEndEvent",
-    "TrackExceptionEvent",
-    "TrackException",
-    "TrackStuckEvent",
     "PlayerDisconnectEvent",
+    "TrackEndEvent",
+    "TrackException",
+    "TrackExceptionEvent",
+    "TrackStartEvent",
+    "TrackStuckEvent",
 )
 
 
-class TrackStartEvent(msgspec.Struct):
-    """Represents a track start event dispatched whenever a new track starts playing."""
+class PlayerDisconnectEvent(types.SimpleNamespace):
+    trigger: DisconnectTriggerType
+    """The trigger that caused the disconnect."""
+    extra_data: Any | None
+    """Extra data from the trigger.
 
-    track: Track
-    """The track that started playing."""
+    When :attr:`trigger` is :attr:`sonolink.gateway.DisconnectTriggerType.ERROR`, this usually
+    is an :exc:`Exception` object.
+    """
 
 
 class TrackEndEvent(msgspec.Struct):
@@ -61,15 +65,6 @@ class TrackEndEvent(msgspec.Struct):
     """The track that ended playing."""
     reason: TrackEndReason
     """The reason the track ended."""
-
-
-class TrackExceptionEvent(msgspec.Struct):
-    """Represents a track exception event dispatched whenever an error is found when playing a track."""
-
-    track: Track
-    """The track that threw the exception."""
-    exception: TrackException
-    """The occurred exception."""
 
 
 class TrackException(msgspec.Struct):
@@ -85,6 +80,22 @@ class TrackException(msgspec.Struct):
     """The full stack trace of the cause."""
 
 
+class TrackExceptionEvent(msgspec.Struct):
+    """Represents a track exception event dispatched whenever an error is found when playing a track."""
+
+    track: Track
+    """The track that threw the exception."""
+    exception: TrackException
+    """The occurred exception."""
+
+
+class TrackStartEvent(msgspec.Struct):
+    """Represents a track start event dispatched whenever a new track starts playing."""
+
+    track: Track
+    """The track that started playing."""
+
+
 class TrackStuckEvent(msgspec.Struct):
     """Represents a track stuck event dispatched whenever a track gets stuck while playing."""
 
@@ -92,14 +103,3 @@ class TrackStuckEvent(msgspec.Struct):
     """The track that got stuck."""
     threshold: int = msgspec.field(name="thresholdMs")
     """The threshold in milliseconds that was exceeded."""
-
-
-class PlayerDisconnectEvent(types.SimpleNamespace):
-    trigger: DisconnectTriggerType
-    """The trigger that caused the disconnect."""
-    extra_data: Any | None
-    """Extra data from the trigger.
-
-    When :attr:`trigger` is :attr:`sonolink.gateway.DisconnectTriggerType.ERROR`, this usually
-    is an :exc:`Exception` object.
-    """

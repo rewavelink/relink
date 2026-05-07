@@ -124,12 +124,17 @@ class LifecycleHandler(HandlerBase):
 
         finally:
             await self._player.guild.change_voice_state(channel=None)
+
             self._player.cleanup()
             self._player._queue.reset()
             self._player._connection._connected_flag.clear()
 
+            assert self._player._node is not None
+            assert self._player._node.client is not None
+
             event_payload = PlayerDisconnectEvent(
-                trigger=trigger, extra_data=extra_event_data
+                trigger=trigger,
+                extra_data=extra_event_data,
             )
             self._player._node.client._dispatch(
                 "player_disconnect", self._player, event_payload

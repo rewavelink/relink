@@ -27,15 +27,57 @@ from __future__ import annotations
 from enum import Enum, StrEnum
 
 __all__ = (
+    "AutoPlayMode",
+    "DisconnectTriggerType",
+    "InactivityMode",
     "NodeStatus",
+    "QueueMode",
+    "SearchProvider",
     "TrackEndReason",
     "TrackExceptionSeverity",
-    "QueueMode",
-    "AutoPlayMode",
-    "InactivityMode",
-    "SearchProvider",
-    "DisconnectTriggerType",
 )
+
+
+class AutoPlayMode(StrEnum):
+    """Enum representing the autoplay behavior of the player.
+
+    :ivar ENABLED: AutoPlay works fully autonomously and fills the auto_queue with recommended tracks.
+        If a track is added to the player's standard queue, AutoPlay will treat it as a priority.
+    :ivar PARTIAL: AutoPlay works autonomously but does **not** fill the auto_queue with recommended tracks.
+    :ivar DISABLED: AutoPlay is completely disabled and will not perform any automatic actions.
+    """
+
+    ENABLED = "enabled"
+    PARTIAL = "partial"
+    DISABLED = "disabled"
+
+
+class DisconnectTriggerType(Enum):
+    """Enum representing what triggered a disconnect from a Player.
+
+    :ivar MANUAL: The disconnect was triggered manually, usually by calling :meth:`Player.disconnect`.
+    :ivar INACTIVITY: The disconnect was triggered by the inactivity handler.
+    :ivar ERROR: The disconnect was triggered due to an error.
+    :ivar UNKNOWN: The disconnect was triggered by an unknown source.
+    """
+
+    MANUAL = 1
+    INACTIVITY = 2
+    ERROR = 3
+    UNKNOWN = 4
+
+
+class InactivityMode(Enum):
+    """Represents the mode used to determine if a player is inactive.
+
+    :ivar ALL_BOTS: The player is considered inactive if no non-bot members are in the voice channel.
+    :ivar ONLY_SELF: The player is considered inactive only if it is the only member in the voice channel.
+    :ivar IGNORED_USERS: The player is considered inactive if none of the specified "Keep Alive" user IDs are in the voice channel.
+    """
+
+    ALL_BOTS = 1
+    ONLY_SELF = 2
+    IGNORED_USERS = 3
 
 
 class NodeStatus(Enum):
@@ -49,6 +91,34 @@ class NodeStatus(Enum):
     DISCONNECTED = 1
     CONNECTED = 2
     CONNECTING = 3
+
+
+class QueueMode(StrEnum):
+    """Enum representing the various modes on :class:`sonolink.Queue`
+
+    :ivar NORMAL: Normal queue mode. Tracks are played in the order they were added.
+    :ivar LOOP: Loop the current track indefinitely. The next track will not be played until the current track is stopped or replaced.
+    :ivar LOOP_ALL: Loop the entire queue indefinitely. Once the queue is empty, it will be refilled with the tracks in the
+        history (if enabled) and playback will continue. If history is not enabled, the queue will simply start over
+        with the original tracks.
+    """
+
+    NORMAL = "normal"
+    LOOP = "loop"
+    LOOP_ALL = "loop_all"
+
+
+class SearchProvider(StrEnum):
+    """Enum representing search providers for AutoPlay.
+
+    :ivar YOUTUBE: YouTube Radio (RD) mix based on a video identifier.
+    :ivar SPOTIFY: Spotify recommendations based on a track identifier.
+    :ivar DEEZER: Deezer track/artist radio based on an identifier.
+    """
+
+    YOUTUBE = "https://www.youtube.com/watch?v={identifier}&list=RD{identifier}"
+    SPOTIFY = "sprec:{identifier}"
+    DEEZER = "dzrec:{identifier}"
 
 
 class TrackEndReason(StrEnum):
@@ -94,73 +164,3 @@ class TrackExceptionSeverity(StrEnum):
     COMMON = "common"
     SUSPICIOUS = "suspicious"
     FAULT = "fault"
-
-
-class QueueMode(StrEnum):
-    """Enum representing the various modes on :class:`sonolink.Queue`
-
-    :ivar NORMAL: Normal queue mode. Tracks are played in the order they were added.
-    :ivar LOOP: Loop the current track indefinitely. The next track will not be played until the current track is stopped or replaced.
-    :ivar LOOP_ALL: Loop the entire queue indefinitely. Once the queue is empty, it will be refilled with the tracks in the
-        history (if enabled) and playback will continue. If history is not enabled, the queue will simply start over
-        with the original tracks.
-    """
-
-    NORMAL = "normal"
-    LOOP = "loop"
-    LOOP_ALL = "loop_all"
-
-
-class AutoPlayMode(StrEnum):
-    """Enum representing the autoplay behavior of the player.
-
-    :ivar ENABLED: AutoPlay works fully autonomously and fills the auto_queue with recommended tracks.
-        If a track is added to the player's standard queue, AutoPlay will treat it as a priority.
-    :ivar PARTIAL: AutoPlay works autonomously but does **not** fill the auto_queue with recommended tracks.
-    :ivar DISABLED: AutoPlay is completely disabled and will not perform any automatic actions.
-    """
-
-    ENABLED = "enabled"
-    PARTIAL = "partial"
-    DISABLED = "disabled"
-
-
-class InactivityMode(Enum):
-    """Represents the mode used to determine if a player is inactive.
-
-    :ivar ALL_BOTS: The player is considered inactive if no non-bot members are in the voice channel.
-    :ivar ONLY_SELF: The player is considered inactive only if it is the only member in the voice channel.
-    :ivar IGNORED_USERS: The player is considered inactive if none of the specified "Keep Alive" user IDs are in the voice channel.
-    """
-
-    ALL_BOTS = 1
-    ONLY_SELF = 2
-    IGNORED_USERS = 3
-
-
-class SearchProvider(StrEnum):
-    """Enum representing search providers for AutoPlay.
-
-    :ivar YOUTUBE: YouTube Radio (RD) mix based on a video identifier.
-    :ivar SPOTIFY: Spotify recommendations based on a track identifier.
-    :ivar DEEZER: Deezer track/artist radio based on an identifier.
-    """
-
-    YOUTUBE = "https://www.youtube.com/watch?v={identifier}&list=RD{identifier}"
-    SPOTIFY = "sprec:{identifier}"
-    DEEZER = "dzrec:{identifier}"
-
-
-class DisconnectTriggerType(Enum):
-    """Enum representing what triggered a disconnect from a Player.
-
-    :ivar MANUAL: The disconnect was triggered manually, usually by calling :meth:`Player.disconnect`.
-    :ivar INACTIVITY: The disconnect was triggered by the inactivity handler.
-    :ivar ERROR: The disconnect was triggered due to an error.
-    :ivar UNKNOWN: The disconnect was triggered by an unknown source.
-    """
-
-    MANUAL = 1
-    INACTIVITY = 2
-    ERROR = 3
-    UNKNOWN = 4
