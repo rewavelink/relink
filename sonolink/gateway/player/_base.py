@@ -107,10 +107,10 @@ class BasePlayer(abc.ABC):
         The initial queue looping mode. Defaults to ``QueueMode.NORMAL``.
     autoplay_settings : :class:`~sonolink.models.AutoPlaySettings` | None
         Configuration for the AutoPlay feature. If ``None``, a default
-        configuration is used.
+        configuration is used. History must be enabled if AutoPlay is used.
     history_settings : :class:`~sonolink.models.HistorySettings` | None
         Configuration for queue history. If ``None``, a default configuration
-        is used. History must be enabled if AutoPlay is used.
+        is used. 
     volume : :class:`int` | None
         The initial volume of the player (0–1000). Defaults to ``100``.
     paused : :class:`bool` | None

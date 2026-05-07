@@ -80,9 +80,9 @@ class DpyPlayer(BasePlayer, discord.VoiceProtocol):
         The initial queue looping mode. Defaults to ``QueueMode.NORMAL``.
     autoplay_settings : :class:`~sonolink.models.AutoPlaySettings` | None
         AutoPlay configuration. ``None`` uses the default configuration.
+        History must be enabled when AutoPlay is active.
     history_settings : :class:`~sonolink.models.HistorySettings` | None
         History configuration. ``None`` uses the default configuration.
-        History must be enabled when AutoPlay is active.
     volume : :class:`int` | None
         Initial volume in the range ``0``–``1000``. Defaults to ``100``.
     paused : :class:`bool` | None
