@@ -82,6 +82,7 @@ class TrackSourceType(StrEnum):
     YOUTUBE_MUSIC = "ytmsearch"
     SOUND_CLOUD = "scsearch"
     SPOTIFY = "spsearch"
+    DEEZER = "dzsearch"
 
 
 class RoutePlannerType(StrEnum):
