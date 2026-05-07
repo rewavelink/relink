@@ -694,6 +694,7 @@ class BasePlayer(abc.ABC):
         *,
         queue_mode: QueueMode | None = None,
         autoplay_settings: AutoPlaySettings | None = None,
+        history_settings: HistorySettings | None = None,
         volume: int | None = None,
         filters: Filters | None = None,
     ) -> None:
@@ -708,16 +709,21 @@ class BasePlayer(abc.ABC):
             The new queue looping mode. If ``None``, the current mode is preserved.
         autoplay_settings : :class:`~sonolink.models.AutoPlaySettings` | None
             New AutoPlay configuration. If ``None``, the current settings are preserved.
+        history_settings : :class:`~sonolink.models.HistorySettings` | None
+            New history configuration. If ``None``, the current settings are preserved.
         volume : :class:`int` | None
             New volume in the range ``0``–``1000``. If ``None``, the current volume is preserved.
         filters : :class:`~sonolink.models.Filters` | None
             New audio filters. If ``None``, the current filters are preserved.
         """
         if queue_mode is not None:
-            self._queue.mode = queue_mode
+            self.queue_mode = queue_mode
 
         if autoplay_settings is not None:
-            self._autoplay_handler._settings = autoplay_settings
+            self.autoplay_settings = autoplay_settings
+
+        if history_settings is not None:
+            self.history_settings = history_settings
 
         if volume is not None:
             await self.set_volume(volume)
