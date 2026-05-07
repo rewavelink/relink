@@ -156,7 +156,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         self._guild = None
 
         if client is not UNSET and channel is not UNSET:
-            VoiceProtocol[Client].__init__(self, client=client, channel=channel)
+            super(BasePlayer, self).__init__(client, channel)
             if isinstance(channel, discord.abc.GuildChannel):
                 self._guild = channel.guild
             self._ready = True
@@ -185,7 +185,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         :class:`Player`
             This player instance, fully initialised.
         """
-        VoiceProtocol[Client].__init__(self, client=client, channel=channel)
+        super(BasePlayer, self).__init__(client, channel)
 
         if isinstance(channel, (discord.VoiceChannel, discord.StageChannel)):
             self._guild = channel.guild
@@ -204,4 +204,4 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         )
 
     def cleanup(self) -> None:
-        VoiceProtocol[Client].cleanup(self)
+        super(BasePlayer, self).cleanup()
