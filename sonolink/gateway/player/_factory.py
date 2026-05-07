@@ -104,7 +104,7 @@ class PlayerFactory:
         self._player_classes[framework] = player_class
         return player_class
 
-    def detect_framework(self) -> FrameworkLiteral | None:
+    def detect_framework(self) -> FrameworkLiteral:
         if env := os.environ.get("SONOLINK_FRAMEWORK"):
             return cast(FrameworkLiteral, env)
 
