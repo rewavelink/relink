@@ -110,7 +110,7 @@ class BasePlayer(abc.ABC):
         configuration is used. History must be enabled if AutoPlay is used.
     history_settings : :class:`~sonolink.models.HistorySettings` | None
         Configuration for queue history. If ``None``, a default configuration
-        is used. 
+        is used.
     volume : :class:`int` | None
         The initial volume of the player (0–1000). Defaults to ``100``.
     paused : :class:`bool` | None

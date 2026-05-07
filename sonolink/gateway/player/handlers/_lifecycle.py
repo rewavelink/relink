@@ -78,7 +78,11 @@ class LifecycleHandler(HandlerBase):
             async with asyncio.timeout(timeout):
                 await self._player._connection._connected_flag.wait()
         except (TimeoutError, asyncio.CancelledError) as exc:
-            await self.disconnect(force=True, trigger=PlayerDisconnectTriggerType.ERROR, extra_event_data=exc)
+            await self.disconnect(
+                force=True,
+                trigger=PlayerDisconnectTriggerType.ERROR,
+                extra_event_data=exc,
+            )
             raise ConnectionError(
                 f"Connecting to {channel} exceeded the {timeout:.2f} seconds timeout"
             )
@@ -124,8 +128,12 @@ class LifecycleHandler(HandlerBase):
             self._player._queue.reset()
             self._player._connection._connected_flag.clear()
 
-            event_payload = PlayerDisconnectEvent(trigger=trigger, extra_data=extra_event_data)
-            self._player._node.client._dispatch("player_disconnect", self._player, event_payload)
+            event_payload = PlayerDisconnectEvent(
+                trigger=trigger, extra_data=extra_event_data
+            )
+            self._player._node.client._dispatch(
+                "player_disconnect", self._player, event_payload
+            )
 
     async def move_to(self, node: Node, /) -> None:
         if self._player._node is node:
