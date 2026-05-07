@@ -54,7 +54,7 @@ pip install -U "sonolink[speed]" # optional speed improvements
 
 **Development** (latest from GitHub):
 ```sh
-pip install -U git+https://github.com/sonolink/sonolink
+pip install -U "sonolink @ git+https://github.com/sonolink/sonolink"
 ```
 
 > [!TIP]
