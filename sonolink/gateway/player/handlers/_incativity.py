@@ -118,7 +118,7 @@ class InactivityHandler(HandlerBase):
     async def _inactivity_timeout(self, timeout: int) -> None:
         await asyncio.sleep(timeout)
         _log.info("Player %s: Disconnecting due to inactivity.", self._player.guild.id)
-        
+
         await self._player._lifecycle_handler.disconnect(
             force=True,
             trigger=DisconnectTriggerType.INACTIVITY,
