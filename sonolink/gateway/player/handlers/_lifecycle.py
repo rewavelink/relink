@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import msgspec
 
-from sonolink.gateway.enums import PlayerDisconnectTriggerType
+from sonolink.gateway.enums import DisconnectTriggerType
 from sonolink.gateway.schemas import PlayerDisconnectEvent
 from sonolink.rest.schemas.player import UpdatePlayerRequest, UpdatePlayerTrackRequest
 from sonolink.utils.snowflake import Snowflake
@@ -80,7 +80,7 @@ class LifecycleHandler(HandlerBase):
         except (TimeoutError, asyncio.CancelledError) as exc:
             await self.disconnect(
                 force=True,
-                trigger=PlayerDisconnectTriggerType.ERROR,
+                trigger=DisconnectTriggerType.ERROR,
                 extra_event_data=exc,
             )
             raise ConnectionError(
@@ -91,7 +91,7 @@ class LifecycleHandler(HandlerBase):
         self,
         *,
         force: bool = False,
-        trigger: PlayerDisconnectTriggerType = PlayerDisconnectTriggerType.UNKNOWN,
+        trigger: DisconnectTriggerType = DisconnectTriggerType.UNKNOWN,
         extra_event_data: Any = None,
     ) -> None:
         try:

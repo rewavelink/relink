@@ -34,7 +34,7 @@ from sonolink.rest.schemas.track import Track
 from ..enums import (
     TrackEndReason,
     TrackExceptionSeverity,
-    PlayerDisconnectTriggerType,
+    DisconnectTriggerType,
 )
 
 __all__ = (
@@ -95,11 +95,11 @@ class TrackStuckEvent(msgspec.Struct):
 
 
 class PlayerDisconnectEvent(types.SimpleNamespace):
-    trigger: PlayerDisconnectTriggerType
+    trigger: DisconnectTriggerType
     """The trigger that caused the disconnect."""
     extra_data: Any | None
     """Extra data from the trigger.
 
-    When :attr:`trigger` is :attr:`sonolink.gateway.PlayerDisconnectTriggerType.ERROR`, this usually
+    When :attr:`trigger` is :attr:`sonolink.gateway.DisconnectTriggerType.ERROR`, this usually
     is an :exc:`Exception` object.
     """

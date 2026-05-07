@@ -34,7 +34,7 @@ __all__ = (
     "AutoPlayMode",
     "InactivityMode",
     "SearchProvider",
-    "PlayerDisconnectTriggerType",
+    "DisconnectTriggerType",
 )
 
 
@@ -151,7 +151,7 @@ class SearchProvider(StrEnum):
     DEEZER = "dzrec:{identifier}"
 
 
-class PlayerDisconnectTriggerType(Enum):
+class DisconnectTriggerType(Enum):
     """Enum representing what triggered a disconnect from a Player.
 
     :ivar MANUAL: The disconnect was triggered manually, usually by calling :meth:`Player.disconnect`.

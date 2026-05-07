@@ -37,7 +37,7 @@ from sonolink.gateway.player.handlers._lifecycle import LifecycleHandler
 from sonolink.gateway.player.handlers._playback import PlaybackHandler
 from sonolink.models.filters import Filters
 
-from ..enums import AutoPlayMode, PlayerDisconnectTriggerType, QueueMode
+from ..enums import AutoPlayMode, DisconnectTriggerType, QueueMode
 from ..queue.queue import Queue
 
 if TYPE_CHECKING:
@@ -461,7 +461,7 @@ class BasePlayer(abc.ABC):
         """
         await self._lifecycle_handler.disconnect(
             force=force,
-            trigger=PlayerDisconnectTriggerType.MANUAL,
+            trigger=DisconnectTriggerType.MANUAL,
         )
 
     async def move_to(self, node: Node, /) -> None:

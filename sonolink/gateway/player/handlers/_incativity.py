@@ -24,7 +24,7 @@ SOFTWARE.
 
 import asyncio
 
-from sonolink.gateway.enums import InactivityMode, PlayerDisconnectTriggerType
+from sonolink.gateway.enums import InactivityMode, DisconnectTriggerType
 
 from ._base import HandlerBase, _log
 
@@ -120,5 +120,5 @@ class InactivityHandler(HandlerBase):
         _log.info("Player %s: Disconnecting due to inactivity.", self._player.guild.id)
         await self._player._lifecycle_handler.disconnect(
             force=True,
-            trigger=PlayerDisconnectTriggerType.INACTIVITY,
+            trigger=DisconnectTriggerType.INACTIVITY,
         )

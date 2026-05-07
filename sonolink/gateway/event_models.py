@@ -34,7 +34,7 @@ from sonolink.models.track import Playable
 from sonolink.utils import cached_property
 
 if TYPE_CHECKING:
-    from .enums import TrackEndReason, PlayerDisconnectTriggerType
+    from .enums import TrackEndReason, DisconnectTriggerType
     from .node import Node
     from .schemas import events, receive
 
@@ -240,5 +240,5 @@ class PlayerDisconnectEvent(EventModel["events.PlayerDisconnectEvent"]):
 
     __repr_attrs__ = ("trigger",)
 
-    trigger: PlayerDisconnectTriggerType
+    trigger: DisconnectTriggerType
     """The trigger that caused the disconnect."""
