@@ -14,26 +14,32 @@ Gateway
 .. autoclass:: sonolink.TrackEndReason()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.TrackExceptionSeverity()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.QueueMode()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.AutoPlayMode()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.InactivityMode()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.SearchProvider()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 Rest
 ----
@@ -41,19 +47,24 @@ Rest
 .. autoclass:: sonolink.ExceptionSeverity()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.TrackLoadResult()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.TrackSourceType()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.RoutePlannerType()
    :members:
    :no-attributetable:
+   :no-inherited-members:
 
 .. autoclass:: sonolink.IPBlockType()
    :members:
    :no-attributetable:
+   :no-inherited-members:
