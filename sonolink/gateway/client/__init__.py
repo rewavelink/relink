@@ -146,9 +146,7 @@ class Client(Generic[N]):
         node_cls: type[N] = Node,
         framework: FrameworkLiteral | None = None,
     ) -> None:
-        if framework is None:
-            framework = PlayerFactory().detect_framework() or "discord.py"
-
+        framework = framework or PlayerFactory().detect_framework()
         os.environ["SONOLINK_FRAMEWORK"] = framework
 
         self._client: DiscordClient[Any] = ClientFactory.create(client, framework)

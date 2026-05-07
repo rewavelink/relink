@@ -81,9 +81,9 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         time.
     queue_mode : :class:`~sonolink.enums.QueueMode`
         The initial queue looping mode. Defaults to ``QueueMode.NORMAL``.
-    autoplay_settings : :class:`~sonolink.models.settings.AutoPlaySettings` | None
+    autoplay_settings : :class:`~sonolink.models.AutoPlaySettings` | None
         AutoPlay configuration. ``None`` uses the default configuration.
-    history_settings : :class:`~sonolink.models.settings.HistorySettings` | None
+    history_settings : :class:`~sonolink.models.HistorySettings` | None
         History configuration. ``None`` uses the default configuration.
         History must be enabled when AutoPlay is active.
     volume : :class:`int` | None
@@ -91,9 +91,9 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
     paused : :class:`bool` | None
         Whether the player should start in a paused state. Defaults to
         ``False``.
-    filters : :class:`~sonolink.models.filters.Filters` | None
+    filters : :class:`~sonolink.models.Filters` | None
         Initial audio filters. Defaults to an empty
-        :class:`~sonolink.models.filters.Filters` instance.
+        :class:`~sonolink.models.Filters` instance.
 
     Attributes
     ----------
@@ -156,7 +156,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         self._guild = None
 
         if client is not UNSET and channel is not UNSET:
-            VoiceProtocol[Client].__init__(self, client=client, channel=channel)
+            super(BasePlayer, self).__init__(client, channel)
             if isinstance(channel, discord.abc.GuildChannel):
                 self._guild = channel.guild
             self._ready = True
@@ -185,7 +185,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         :class:`Player`
             This player instance, fully initialised.
         """
-        VoiceProtocol[Client].__init__(self, client=client, channel=channel)
+        super(BasePlayer, self).__init__(client, channel)
 
         if isinstance(channel, (discord.VoiceChannel, discord.StageChannel)):
             self._guild = channel.guild
@@ -204,4 +204,4 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
         )
 
     def cleanup(self) -> None:
-        VoiceProtocol[Client].cleanup(self)
+        super(BasePlayer, self).cleanup()

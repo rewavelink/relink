@@ -22,7 +22,7 @@ from sonolink.gateway.enums import (
     QueueMode,
     SearchProvider,
 )
-from sonolink.models.settings import (
+from sonolink.models import (
     AutoPlaySettings,
     CacheSettings,
     HistorySettings,
