@@ -634,6 +634,42 @@ class BasePlayer(abc.ABC):
         """
         await self._playback_handler.set_filters(filters.payload, seek=seek)
 
+    async def update(
+        self,
+        *,
+        queue_mode: QueueMode | None = None,
+        autoplay_settings: AutoPlaySettings | None = None,
+        volume: int | None = None,
+        filters: Filters | None = None,
+    ) -> None:
+        """
+        Update the player's configuration in-place.
+
+        .. versionadded:: 1.1.0
+
+        Parameters
+        ----------
+        queue_mode : :class:`~sonolink.enums.QueueMode` | None
+            The new queue looping mode. If ``None``, the current mode is preserved.
+        autoplay_settings : :class:`~sonolink.models.settings.AutoPlaySettings` | None
+            New AutoPlay configuration. If ``None``, the current settings are preserved.
+        volume : :class:`int` | None
+            New volume in the range ``0``–``1000``. If ``None``, the current volume is preserved.
+        filters : :class:`~sonolink.models.filters.Filters` | None
+            New audio filters. If ``None``, the current filters are preserved.
+        """
+        if queue_mode is not None:
+            self._queue.mode = queue_mode
+
+        if autoplay_settings is not None:
+            self._autoplay_handler._settings = autoplay_settings
+
+        if volume is not None:
+            await self.set_volume(volume)
+
+        if filters is not None:
+            await self.set_filters(filters)
+
     @abc.abstractmethod
     async def on_voice_server_update(self, data: Any) -> None:
         """
