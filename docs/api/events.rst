@@ -150,11 +150,39 @@ WebSocket Closed
    ----------
    player: :class:`sonolink.Player`
        The player whose voice WebSocket was closed.
+
+       .. warning::
+            This player is **not** meant to be reused, you should create another Player instance
+            instead.
    payload: :class:`sonolink.gateway.WebSocketClosedEvent`
        The event payload containing the close code, reason, and whether the
        close was initiated by the remote end.
 
 .. autoclass:: sonolink.gateway.WebSocketClosedEvent()
+
+Player Disconnect
++++++++++++++++++
+
+.. function:: on_sonolink_player_disconnect(player: sonolink.Player, payload: sonolink.gateway.PlayerDisconnectEvent)
+
+    A custom SonoLink event called whenever a player is disconnected.
+
+    Unlike :func:`on_sonolink_websocket_closed`, this method is called only when you, or the library, manually
+    disconnects a :class:`sonolink.Player`.
+
+    .. versionadded:: 1.1.0
+
+    Parameters
+    ----------
+    player: :class:`sonolink.Player`
+        The player which was disconnected.
+
+        .. warning::
+            This player is **not** meant to be reused, you should create another Player instance
+            instead.
+    payload: :class:`sonolink.gateway.PlayerDisconnectEvent`
+        The event payload containing the trigger that caused the disconnect, along with
+        extra data.
 
 Miscellaneous
 -------------

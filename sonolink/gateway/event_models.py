@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import abc
+import types
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import msgspec
@@ -33,11 +34,11 @@ from sonolink.models.track import Playable
 from sonolink.utils import cached_property
 
 if TYPE_CHECKING:
-    from .enums import TrackEndReason
+    from .enums import TrackEndReason, PlayerDisconnectTriggerType
     from .node import Node
     from .schemas import events, receive
 
-T = TypeVar("T", bound=msgspec.Struct, covariant=True)
+T = TypeVar("T", bound=msgspec.Struct | types.SimpleNamespace, covariant=True)
 
 __all__ = (
     "EventModel",
@@ -232,3 +233,12 @@ class TrackStuckEvent(EventModel["events.TrackStuckEvent"]):
         return Playable(
             client=self.node.client, data=self._underlying.track, playlist=None
         )
+
+
+class PlayerDisconnectEvent(EventModel["events.PlayerDisconnectEvent"]):
+    """Represents a player disconnected event."""
+
+    __repr_attrs__ = ("trigger",)
+
+    trigger: PlayerDisconnectTriggerType
+    """The trigger that caused the disconnect."""

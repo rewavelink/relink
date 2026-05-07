@@ -34,6 +34,7 @@ __all__ = (
     "AutoPlayMode",
     "InactivityMode",
     "SearchProvider",
+    "PlayerDisconnectTriggerType",
 )
 
 
@@ -148,3 +149,18 @@ class SearchProvider(StrEnum):
     YOUTUBE = "https://www.youtube.com/watch?v={identifier}&list=RD{identifier}"
     SPOTIFY = "sprec:{identifier}"
     DEEZER = "dzrec:{identifier}"
+
+
+class PlayerDisconnectTriggerType(Enum):
+    """Enum representing what triggered a disconnect from a Player.
+
+    :ivar MANUAL: The disconnect was triggered manually, usually by calling :meth:`Player.disconnect`.
+    :ivar INACTIVITY: The disconnect was triggered by the inactivity handler.
+    :ivar ERROR: The disconnect was triggered due to an error.
+    :ivar UNKNOWN: The disconnect was triggered by an unknown source.
+    """
+
+    MANUAL = 1
+    INACTIVITY = 2
+    ERROR = 3
+    UNKNOWN = 4

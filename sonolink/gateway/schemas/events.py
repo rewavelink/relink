@@ -24,11 +24,18 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import types
+from typing import Any
+
 import msgspec
 
 from sonolink.rest.schemas.track import Track
 
-from ..enums import TrackEndReason, TrackExceptionSeverity
+from ..enums import (
+    TrackEndReason,
+    TrackExceptionSeverity,
+    PlayerDisconnectTriggerType,
+)
 
 __all__ = (
     "TrackStartEvent",
@@ -36,6 +43,7 @@ __all__ = (
     "TrackExceptionEvent",
     "TrackException",
     "TrackStuckEvent",
+    "PlayerDisconnectEvent",
 )
 
 
@@ -84,3 +92,14 @@ class TrackStuckEvent(msgspec.Struct):
     """The track that got stuck."""
     threshold: int = msgspec.field(name="thresholdMs")
     """The threshold in milliseconds that was exceeded."""
+
+
+class PlayerDisconnectEvent(types.SimpleNamespace):
+    trigger: PlayerDisconnectTriggerType
+    """The trigger that caused the disconnect."""
+    extra_data: Any | None
+    """Extra data from the trigger.
+
+    When :attr:`trigger` is :attr:`sonolink.gateway.PlayerDisconnectTriggerType.ERROR`, this usually
+    is an :exc:`Exception` object.
+    """
