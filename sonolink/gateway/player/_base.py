@@ -105,19 +105,19 @@ class BasePlayer(abc.ABC):
         will attempt to resolve an available node at connection time.
     queue_mode : :class:`~sonolink.enums.QueueMode`
         The initial queue looping mode. Defaults to ``QueueMode.NORMAL``.
-    autoplay_settings : :class:`~sonolink.models.settings.AutoPlaySettings` | None
+    autoplay_settings : :class:`~sonolink.models.AutoPlaySettings` | None
         Configuration for the AutoPlay feature. If ``None``, a default
         configuration is used.
-    history_settings : :class:`~sonolink.models.settings.HistorySettings` | None
+    history_settings : :class:`~sonolink.models.HistorySettings` | None
         Configuration for queue history. If ``None``, a default configuration
         is used. History must be enabled if AutoPlay is used.
     volume : :class:`int` | None
         The initial volume of the player (0–1000). Defaults to ``100``.
     paused : :class:`bool` | None
         Whether the player should start in a paused state. Defaults to ``False``.
-    filters : :class:`~sonolink.models.filters.Filters` | None
+    filters : :class:`~sonolink.models.Filters` | None
         The initial set of audio filters to apply. If ``None``, an empty
-        :class:`~sonolink.models.filters.Filters` instance is used.
+        :class:`~sonolink.models.Filters` instance is used.
 
     Attributes
     ----------
@@ -248,7 +248,7 @@ class BasePlayer(abc.ABC):
     def autoplay_settings(self) -> AutoPlaySettings:
         """
         The current :class:`~sonolink.models.AutoPlaySettings` for this player.
-        
+
         Can be mutated directly to update individual fields, or replaced entirely.
 
         .. versionadded:: 1.1.0
@@ -270,21 +270,21 @@ class BasePlayer(abc.ABC):
 
         Returns
         -------
-        :class:`~sonolink.models.track.Playable` | None
+        :class:`~sonolink.models.Playable` | None
         """
         return self._queue.current_track
 
     @property
     def filters(self) -> Filters:
         """
-        The :class:`~sonolink.models.filters.Filters` currently applied to this player.
+        The :class:`~sonolink.models.Filters` currently applied to this player.
 
         To apply new filters, use :meth:`set_filters` rather than mutating this
         object directly, so that the updated state is dispatched to the Lavalink node.
 
         Returns
         -------
-        :class:`~sonolink.models.filters.Filters`
+        :class:`~sonolink.models.Filters`
         """
         return self._filters
 
@@ -308,7 +308,7 @@ class BasePlayer(abc.ABC):
     @property
     def history_settings(self) -> HistorySettings:
         """
-        The current :class:`~sonolink.models.settings.HistorySettings` for this player's queue.
+        The current :class:`~sonolink.models.HistorySettings` for this player's queue.
 
         Can be mutated directly to update individual fields, or replaced entirely.
 
@@ -316,7 +316,7 @@ class BasePlayer(abc.ABC):
 
         Returns
         -------
-        :class:`~sonolink.models.settings.HistorySettings`
+        :class:`~sonolink.models.HistorySettings`
         """
         return self._queue._history._settings
 
@@ -492,7 +492,7 @@ class BasePlayer(abc.ABC):
 
         Parameters
         ----------
-        track : :class:`~sonolink.models.track.Playable`
+        track : :class:`~sonolink.models.Playable`
             The track to play.
         start : :class:`int`
             The position in milliseconds at which to begin playback.
@@ -509,7 +509,7 @@ class BasePlayer(abc.ABC):
 
         Returns
         -------
-        :class:`~sonolink.models.track.Playable`
+        :class:`~sonolink.models.Playable`
             The track that was dispatched to the Lavalink node for playback.
         """
         return await self._playback_handler.play(
@@ -591,7 +591,7 @@ class BasePlayer(abc.ABC):
 
         Returns
         -------
-        :class:`~sonolink.models.track.Playable` | None
+        :class:`~sonolink.models.Playable` | None
             The track that began playing after the skip, or ``None`` if the
             player stopped due to an empty queue with no AutoPlay fallback.
 
@@ -614,7 +614,7 @@ class BasePlayer(abc.ABC):
 
         Returns
         -------
-        :class:`~sonolink.models.track.Playable`
+        :class:`~sonolink.models.Playable`
             The historical track that is now playing.
 
         Raises
@@ -674,8 +674,8 @@ class BasePlayer(abc.ABC):
 
         Parameters
         ----------
-        filters : :class:`~sonolink.models.filters.Filters`
-            The :class:`~sonolink.models.filters.Filters` instance to apply.
+        filters : :class:`~sonolink.models.Filters`
+            The :class:`~sonolink.models.Filters` instance to apply.
         seek : :class:`bool`
             If ``True``, the player seeks to the current position immediately
             after applying filters. This forces Lavalink to process the audio
@@ -706,11 +706,11 @@ class BasePlayer(abc.ABC):
         ----------
         queue_mode : :class:`~sonolink.enums.QueueMode` | None
             The new queue looping mode. If ``None``, the current mode is preserved.
-        autoplay_settings : :class:`~sonolink.models.settings.AutoPlaySettings` | None
+        autoplay_settings : :class:`~sonolink.models.AutoPlaySettings` | None
             New AutoPlay configuration. If ``None``, the current settings are preserved.
         volume : :class:`int` | None
             New volume in the range ``0``–``1000``. If ``None``, the current volume is preserved.
-        filters : :class:`~sonolink.models.filters.Filters` | None
+        filters : :class:`~sonolink.models.Filters` | None
             New audio filters. If ``None``, the current filters are preserved.
         """
         if queue_mode is not None:
