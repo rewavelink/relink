@@ -76,7 +76,8 @@ class HistoryEmpty(SonoLinkException):
 
 
 class FrameworkClientMismatch(SonoLinkException):
-    """Exception raised when trying to initialize a Sonolink Client with a
+    """
+    Exception raised when trying to initialize a Sonolink Client with a
     client that does not match the detected framework. This likely means the
     client is from a different framework or the framework detection is incorrect.
 

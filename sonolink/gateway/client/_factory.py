@@ -51,7 +51,9 @@ class ClientFactory:
             expected_type = Client.cls
             if not isinstance(client, expected_type):
                 raise FrameworkClientMismatch(
-                    expected=expected_type, actual=type(client), framework=framework
+                    expected_type=expected_type,
+                    received_type=cast(type[Any], type(client)),
+                    framework=framework,
                 )
 
             return Client(cast(Any, client))
