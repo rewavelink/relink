@@ -184,6 +184,8 @@ Player Disconnect
         The event payload containing the trigger that caused the disconnect, along with
         extra data.
 
+.. autoclass:: sonolink.gateway.PlayerDisconnectEvent()
+
 Miscellaneous
 -------------
 

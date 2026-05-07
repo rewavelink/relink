@@ -305,6 +305,8 @@ The event name mapping is:
       - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
     * - ``PlayerUpdateEvent``
       - :func:`on_sonolink_player_update(payload) <on_sonolink_player_update>`
+    * - *(no equivalent)*
+      - :func:`on_sonolink_player_disconnect(player, payload) <on_sonolink_player_disconnect>`
 
 See :doc:`/api/events` for the full event reference and payload types.
 

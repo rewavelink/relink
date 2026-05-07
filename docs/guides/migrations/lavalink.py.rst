@@ -301,6 +301,8 @@ The event name mapping is:
      - *(handled internally; configure autoplay instead — see below)*
    * - ``NodeChangedEvent``
      - *(handled internally; SonoLink manages node failover automatically)*
+   * - *(no equivalent)*
+     - :func:`on_sonolink_player_disconnect(player, payload) <on_sonolink_player_disconnect>`
 
 See :doc:`/api/events` for the full event reference and payload types.
 

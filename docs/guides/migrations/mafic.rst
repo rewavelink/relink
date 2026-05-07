@@ -300,6 +300,8 @@ from your bot's own events:
      - :func:`on_sonolink_websocket_closed(player, payload) <on_sonolink_websocket_closed>`
    * - ``on_node_stats(node)``
      - :func:`on_sonolink_stats_receive(node, payload) <on_sonolink_stats_receive>`
+   * - *(no equivalent)*
+     - :func:`on_sonolink_player_disconnect(player, payload) <on_sonolink_player_disconnect>`
 
 See :doc:`/api/events` for the full event reference and payload types.
 
