@@ -245,6 +245,25 @@ class BasePlayer(abc.ABC):
         self._autoplay_handler._settings.mode = value
 
     @property
+    def autoplay_settings(self) -> AutoPlaySettings:
+        """
+        The current :class:`~sonolink.models.AutoPlaySettings` for this player.
+        
+        Can be mutated directly to update individual fields, or replaced entirely.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        -------
+        :class:`~sonolink.models.AutoPlaySettings`
+        """
+        return self._autoplay_handler._settings
+
+    @autoplay_settings.setter
+    def autoplay_settings(self, value: AutoPlaySettings) -> None:
+        self._autoplay_handler._settings = value
+
+    @property
     def current(self) -> Playable | None:
         """
         The track that is currently playing, or ``None`` if the player is idle.
@@ -285,6 +304,25 @@ class BasePlayer(abc.ABC):
         if self._guild is None:
             raise RuntimeError("Player is not yet attached to a guild.")
         return self._guild
+
+    @property
+    def history_settings(self) -> HistorySettings:
+        """
+        The current :class:`~sonolink.models.settings.HistorySettings` for this player's queue.
+
+        Can be mutated directly to update individual fields, or replaced entirely.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        -------
+        :class:`~sonolink.models.settings.HistorySettings`
+        """
+        return self._queue._history._settings
+
+    @history_settings.setter
+    def history_settings(self, value: HistorySettings) -> None:
+        self._queue._history._settings = value
 
     @property
     def node(self) -> Node:
@@ -345,6 +383,23 @@ class BasePlayer(abc.ABC):
         :class:`~sonolink.queue.queue.Queue`
         """
         return self._queue
+
+    @property
+    def queue_mode(self) -> QueueMode:
+        """
+        The current :class:`~sonolink.enums.QueueMode` for this player's queue.
+
+        .. versionadded:: 1.1.0
+
+        Returns
+        -------
+        :class:`~sonolink.enums.QueueMode`
+        """
+        return self._queue.mode
+
+    @queue_mode.setter
+    def queue_mode(self, value: QueueMode) -> None:
+        self._queue.mode = value
 
     @property
     def volume(self) -> int:
