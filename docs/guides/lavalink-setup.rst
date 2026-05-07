@@ -47,7 +47,7 @@ https://github.com/lavalink-devs/Lavalink/releases/latest
 Download the file named ``Lavalink.jar`` from the assets section. You do not need the source
 archives.
 
-Using the command line:
+You can also obtain this file using the command line on your preferred OS:
 
 .. code-block:: bash
 
@@ -80,7 +80,7 @@ A minimal working configuration:
      server:
        password: "youshallnotpass"
        sources:
-         youtube: true
+         youtube: false  # *native* youtube source is deprecated
          bandcamp: true
          soundcloud: true
          twitch: true
@@ -99,6 +99,36 @@ to something strong before exposing Lavalink to any non-localhost interface.
 For a full reference of every configuration option, see the official documentation:
 
 https://lavalink.dev/configuration/
+
+Using YouTube
+-------------
+
+Most users prefer to use the ``youtube`` source, but the native Lavalink support for it has been deprecated.
+This does not mean you can not use it, there is a plugin that exactly allows for this YouTube support to work
+which may be found at https://github.com/lavalink-devs/youtube-source.
+
+To add this plugin, you should add the ``plugins`` key to your ``lavalink`` as it follows:
+
+.. code-block:: yaml
+
+    lavalink:
+      # other options...
+      plugins:
+        - dependency: "dev.lavalink.youtube:youtube-plugin:X.Y.Z"  # you must replace "X.Y.Z" with a version available on their GitHub
+          snapshot: false  # may be set to true when you want to use a snapshot version
+
+This plugin can be configured the same way as the native youtube source, but must be under the ``plugins.youtube`` key. The following shows an example
+of this.
+
+.. code-block:: yaml
+
+    # other configurations, such as "lavalink", "server", etc.
+    plugins:
+      youtube:
+        enabled: true # whether youtube source is enabled
+        allowSearch: true # allows for clients to search with youtube, in SonoLink, this means whether using the TrackSourceType.YOUTUBE(_MUSIC) is allowed
+
+For further detail on this plugin, you can check their `configuration page <https://github.com/lavalink-devs/youtube-source?tab=readme-ov-file#plugin>`_.
 
 Running Lavalink
 ----------------
@@ -262,6 +292,7 @@ Or with Docker Compose alongside your bot. An example ``compose.yml``:
          - "2333:2333"
        volumes:
          - ./application.yml:/opt/Lavalink/application.yml
+         - ./plugins/:/opt/Lavalink/plugins/
 
      bot:
        build: .

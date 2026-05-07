@@ -31,5 +31,5 @@ Rest
 Network
 -------
 
-.. autoexception:: sonolink.network.errors.WebSocketError
+.. autoexception:: sonolink.WebSocketError
    :members:

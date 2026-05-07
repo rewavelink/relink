@@ -7,19 +7,15 @@ Settings
 
 .. autoclass:: sonolink.models.AutoPlaySettings
    :no-members:
-   :no-index:
 
 .. autoclass:: sonolink.models.InactivitySettings
    :no-members:
-   :no-index:
 
 .. autoclass:: sonolink.models.HistorySettings
    :no-members:
-   :no-index:
 
 .. autoclass:: sonolink.models.CacheSettings
    :no-members:
-   :no-index:
 
 
 Tracks and playlists
