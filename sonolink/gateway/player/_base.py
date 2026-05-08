@@ -554,15 +554,9 @@ class BasePlayer(abc.ABC):
             clear_history=clear_history,
         )
 
-    async def pause(self, value: bool = True, /) -> None:
+    async def pause(self) -> None:
         """
         Set the pause state of the player.
-
-        Parameters
-        ----------
-        value : :class:`bool`
-            Pass ``True`` to pause or ``False`` to resume playback.
-            Defaults to ``True``.
 
         Raises
         ------
@@ -574,8 +568,6 @@ class BasePlayer(abc.ABC):
     async def resume(self) -> None:
         """
         Resume playback if the player is currently paused.
-
-        This is a convenience alias for ``await player.pause(False)``.
 
         Raises
         ------

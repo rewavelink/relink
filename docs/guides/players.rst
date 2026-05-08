@@ -178,9 +178,6 @@ These methods simply change the state of the current track. The paused state is
 also available through :attr:`sonolink.Player.paused` if you want to show playback
 status in an embed or avoid repeating a pause or resume action.
 
-If it fits your control flow better, ``await player.pause(False)`` is equivalent
-to calling ``resume()``.
-
 :meth:`sonolink.Player.skip`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
