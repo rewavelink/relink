@@ -68,6 +68,18 @@ class ReadableCollection:
             return self._items[index]
         return list(self._items)[index]
 
+    @property
+    def count(self) -> int:
+        """
+        The number of tracks in this collection.
+
+        Returns
+        -------
+        :class:`int`
+            The total number of tracks currently held.
+        """
+        return len(self._items)
+
     def _as_playable(self, value: object) -> Playable:
         if not isinstance(value, Playable):
             raise TypeError(f"Expected Playable, got {type(value).__name__}")
