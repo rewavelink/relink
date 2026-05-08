@@ -51,7 +51,7 @@ class LifecycleHandler(HandlerBase):
         self,
         *,
         timeout: float = 10.0,
-        reconnect: bool = True,
+        reconnect: bool = True,  # noqa: ARG002  # required by VoiceProtocol
         self_deaf: bool = False,
         self_mute: bool = False,
     ) -> None:

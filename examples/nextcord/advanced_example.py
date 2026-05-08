@@ -60,7 +60,7 @@ def _player_check(
 
 
 async def query_autocomplete(
-    inter: nextcord.Interaction[Bot],
+    _: nextcord.Interaction[Bot],
     string: str,
 ) -> list[str]:
     if not string:

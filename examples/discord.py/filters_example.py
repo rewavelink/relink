@@ -421,7 +421,7 @@ def _get_player(interaction: discord.Interaction) -> sonolink.Player | None:
 
 
 async def filter_autocomplete(
-    interaction: discord.Interaction,
+    _: discord.Interaction,
     current: str,
 ) -> list[app_commands.Choice[str]]:
     return [

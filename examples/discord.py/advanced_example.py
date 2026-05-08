@@ -65,7 +65,7 @@ def _player_check(interaction: discord.Interaction) -> sonolink.Player | None:
 
 
 async def query_autocomplete(
-    interaction: discord.Interaction,
+    _: discord.Interaction,
     current: str,
 ) -> list[app_commands.Choice[str]]:
     if not current:

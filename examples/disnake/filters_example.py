@@ -416,7 +416,7 @@ def _get_player(
 
 
 async def filter_autocomplete(
-    inter: disnake.ApplicationCommandInteraction[Bot],
+    _: disnake.ApplicationCommandInteraction[Bot],
     string: str,
 ) -> list[str]:
     return [f.value for f in Filter if string.lower() in f.value.lower()][:25]

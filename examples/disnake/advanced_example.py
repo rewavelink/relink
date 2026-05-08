@@ -60,7 +60,7 @@ def _player_check(
 
 
 async def query_autocomplete(
-    inter: disnake.ApplicationCommandInteraction[Bot],
+    _: disnake.ApplicationCommandInteraction[Bot],
     string: str,
 ) -> list[str]:
     if not string:
