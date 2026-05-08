@@ -61,8 +61,8 @@ class LifecycleHandler(HandlerBase):
 
         if not guild or not channel:
             raise RuntimeError(
-                "Cannot connect without a channel or guild set. \
-                Make sure the player was set to the cls= parameter of Connectable.connect"
+                "Cannot connect without a channel or guild set. "
+                "Make sure the player was set to the cls= parameter of Connectable.connect"
             )
 
         if not node:
@@ -94,24 +94,29 @@ class LifecycleHandler(HandlerBase):
         trigger: DisconnectTriggerType = DisconnectTriggerType.UNKNOWN,
         extra_event_data: Any = None,
     ) -> None:
+        node = self._player._node
+
+        if node is None and not force:
+            return
+
         try:
-            if self._player._node is None:
+            if node is None:
                 return
 
-            self._player._node._remove_player(self._player.guild.id)
+            node._remove_player(self._player.guild.id)
 
-            if self._player._node._resume_session is None:
+            if node._resume_session is None:
                 return
 
-            await self._player._node._manager.destroy_player(
-                session_id=self._player._node._resume_session,
+            await node._manager.destroy_player(
+                session_id=node._resume_session,
                 guild_id=str(self._player.guild.id),
             )
 
             _log.info(
                 "Player %s: Disconnected and removed from Node %r.",
                 self._player.guild.id,
-                self._player._node.id,
+                node.id,
             )
 
         except Exception as exc:
@@ -129,16 +134,14 @@ class LifecycleHandler(HandlerBase):
             self._player._queue.reset()
             self._player._connection._connected_flag.clear()
 
-            assert self._player._node is not None
-            assert self._player._node.client is not None
+            if node is None or node.client is None:
+                return
 
             event_payload = PlayerDisconnectEvent(
                 trigger=trigger,
                 extra_data=extra_event_data,
             )
-            self._player._node.client._dispatch(
-                "player_disconnect", self._player, event_payload
-            )
+            node.client._dispatch("player_disconnect", self._player, event_payload)
 
     async def move_to(self, node: Node, /) -> None:
         if self._player._node is node:
@@ -149,6 +152,7 @@ class LifecycleHandler(HandlerBase):
 
         if old_node:
             old_node._remove_player(self._player.guild.id)
+
         node._add_player(self._player)
 
         await self._player._dispatch_voice_update()
@@ -173,7 +177,7 @@ class LifecycleHandler(HandlerBase):
             data=data,
         )
 
-        if old_node and old_node._resume_session:
+        if old_node is not None and old_node._resume_session is not None:
             try:
                 await old_node._manager.destroy_player(
                     session_id=old_node._resume_session,
