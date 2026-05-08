@@ -28,6 +28,7 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from sonolink.gateway.enums import AutoPlayMode
+from sonolink.gateway.errors import AutoPlaySeedMissing
 from sonolink.models.playlist import Playlist
 from sonolink.models.settings import AutoPlaySettings
 from sonolink.models.track import Playable
@@ -73,8 +74,9 @@ class AutoPlayHandler(HandlerBase):
         )
 
         if not reference or not reference.identifier:
-            _log.debug("Player %s: No valid seed for AutoPlay.", self._player.guild.id)
-            return None
+            raise AutoPlaySeedMissing(
+                "Could not find a valid track identifier to generate recommendations from."
+            )
 
         if len(self._seeds) > self._settings.max_seeds:
             self._seeds.clear()

@@ -34,12 +34,13 @@ if TYPE_CHECKING:
 
 __all__ = (
     "NodeError",
+    "AutoPlaySeedMissing",
+    "FrameworkClientMismatch",
+    "FrameworkImportError",
+    "HistoryEmpty",
     "InvalidNodePassword",
     "NodeURINotFound",
     "QueueEmpty",
-    "HistoryEmpty",
-    "FrameworkClientMismatch",
-    "FrameworkImportError",
 )
 
 
@@ -47,32 +48,8 @@ class NodeError(SonoLinkException):
     """Base class for all Node-related errors."""
 
 
-class InvalidNodePassword(NodeError):
-    """Exception raised when a Node attempts to connect with an invalid password."""
-
-    node: Node
-    """The node that failed connecting."""
-
-    def __init__(self, node: Node) -> None:
-        self.node = node
-
-
-class NodeURINotFound(NodeError):
-    """Exception raised when a Node's uri is not found when connecting."""
-
-    node: Node
-    """The Node which URI is not found."""
-
-    def __init__(self, node: Node) -> None:
-        self.node = node
-
-
-class QueueEmpty(SonoLinkException):
-    """Exception raised when trying to get a track from an empty queue."""
-
-
-class HistoryEmpty(SonoLinkException):
-    """Exception raised when trying to get a track from an empty history."""
+class AutoPlaySeedMissing(SonoLinkException):
+    """Exception raised when AutoPlay cannot find a valid track to use as a discovery seed."""
 
 
 class FrameworkClientMismatch(SonoLinkException):
@@ -120,3 +97,31 @@ class FrameworkImportError(SonoLinkException):
 
         msg = f"Could not import detected framework '{framework}'. Make sure the framework is installed and up to date."
         super().__init__(msg)
+
+
+class HistoryEmpty(SonoLinkException):
+    """Exception raised when trying to get a track from an empty history."""
+
+
+class InvalidNodePassword(NodeError):
+    """Exception raised when a Node attempts to connect with an invalid password."""
+
+    node: Node
+    """The node that failed connecting."""
+
+    def __init__(self, node: Node) -> None:
+        self.node = node
+
+
+class NodeURINotFound(NodeError):
+    """Exception raised when a Node's uri is not found when connecting."""
+
+    node: Node
+    """The Node which URI is not found."""
+
+    def __init__(self, node: Node) -> None:
+        self.node = node
+
+
+class QueueEmpty(SonoLinkException):
+    """Exception raised when trying to get a track from an empty queue."""
