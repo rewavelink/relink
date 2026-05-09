@@ -1,0 +1,136 @@
+"""
+MIT License
+
+Copyright (c) 2026-present SonoLink Development Team.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+
+from sonolink.gateway.enums import NodeStatus
+from sonolink.gateway.errors import InvalidNodePassword, NodeURINotFound
+from sonolink.network.errors import WebSocketError
+
+from ._base import BaseNodeComponent
+
+__all__ = ("ConnectionManager",)
+
+_log = logging.getLogger(__name__)
+
+
+class ConnectionManager(BaseNodeComponent):
+    """Internal component responsible for managing node connections."""
+
+    async def connect(self) -> None:
+        if self.node._client is None:
+            raise RuntimeError("Cannot connect a node that is not bound to a client.")
+
+        if self.node._keep_alive is not None:
+            raise RuntimeError("This node is already connected.")
+
+        await self.node._manager.setup()
+        self.node._status = NodeStatus.CONNECTING
+
+        await self.attempt_connect()
+
+    async def close(self) -> None:
+        if self.node._client is None:
+            raise RuntimeError("Can not close a Node that is not bound to a client.")
+
+        if not self.node.is_connected:
+            raise RuntimeError("This Node is not connected.")
+
+        if self.node._keep_alive and not self.node._keep_alive.cancelled():
+            self.node._keep_alive.cancel()
+
+        if self.node._ws and self.node._ws.is_connected:
+            await self.node._ws.close()
+
+        if not self.node._manager.is_closed:
+            await self.node._manager.close()
+
+        self.node._ws = None
+        self.node._keep_alive = None
+        self.node._resume_session = None
+        self.node._status = NodeStatus.DISCONNECTED
+
+        self.node._client._dispatch("node_close", self.node)
+        await self.node.cleanup()
+
+    async def attempt_connect(self) -> None:
+        assert self.node._client is not None
+
+        headers = self.node._ws_bridge.build_headers()
+
+        retries = 1 if self.node.retries is None else self.node.retries
+        base_delay = 0.5
+        max_delay = 10.0
+
+        for attempt in range(1, retries + 1):
+            _log.info(
+                "Starting connection attempt %d/%d on Node %r",
+                attempt,
+                retries,
+                self.node,
+            )
+
+            try:
+                if await self.node._ws_bridge.connect_ws(headers):
+                    _log.info(
+                        "Successfully connected node %r (attempt %d/%d)",
+                        self.node,
+                        attempt,
+                        retries,
+                    )
+                    break
+            except WebSocketError as exc:
+                await self.handle_connection_error(exc)
+
+            if (attempt - 1) >= retries:
+                _log.warning(
+                    "%r exhausted %d connection attempts. Node will remain disconnected.",
+                    self.node,
+                    retries,
+                )
+                self.node._status = NodeStatus.DISCONNECTED
+                await self.node.cleanup()
+                return
+
+            delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
+            _log.debug("Retrying %r in %.2f seconds...", self.node, delay)
+            await asyncio.sleep(delay)
+
+        self.node._status = NodeStatus.CONNECTED
+
+    async def handle_connection_error(self, exc: WebSocketError) -> None:
+        if exc.status in (3000, 3003, 401):
+            await self.node.cleanup()
+            raise InvalidNodePassword(self.node) from exc
+
+        if exc.status in (1014, 404):
+            await self.node.cleanup()
+            raise NodeURINotFound(self.node) from exc
+
+        _log.warning(
+            "Unexpected error while connecting %r to Lavalink: %s", self.node, exc
+        )
