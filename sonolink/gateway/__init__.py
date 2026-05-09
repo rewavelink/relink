@@ -18,7 +18,10 @@ from .queue import *
 
 __all__ = (
     "AutoPlayMode",
+    "AutoPlaySeedMissing",
     "Client",
+    "FrameworkClientMismatch",
+    "FrameworkImportError",
     "History",
     "HistoryEmpty",
     "InactivityMode",

@@ -6,6 +6,18 @@ Exceptions
 Gateway
 -------
 
+.. autoexception:: sonolink.AutoPlaySeedMissing
+   :members:
+
+.. autoexception:: sonolink.FrameworkClientMismatch
+   :members:
+
+.. autoexception:: sonolink.FrameworkImportError
+   :members:
+
+.. autoexception:: sonolink.HistoryEmpty
+   :members:
+
 .. autoexception:: sonolink.InvalidNodePassword
    :members:
 
@@ -13,9 +25,6 @@ Gateway
    :members:
 
 .. autoexception:: sonolink.QueueEmpty
-   :members:
-
-.. autoexception:: sonolink.HistoryEmpty
    :members:
 
 Rest

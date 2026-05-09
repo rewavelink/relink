@@ -49,7 +49,11 @@ class NodeError(SonoLinkException):
 
 
 class AutoPlaySeedMissing(SonoLinkException):
-    """Exception raised when AutoPlay cannot find a valid track to use as a discovery seed."""
+    """
+    Exception raised when AutoPlay cannot find a valid track to use as a discovery seed.
+
+    .. versionadded:: 1.1.0
+    """
 
 
 class FrameworkClientMismatch(SonoLinkException):

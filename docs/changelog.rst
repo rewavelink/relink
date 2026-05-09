@@ -1,5 +1,4 @@
 .. currentmodule:: sonolink
-
 .. _whats_new:
 
 Changelog
@@ -7,6 +6,73 @@ Changelog
 
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
+
+.. _vp1p1p0:
+
+v1.1.0 - 2026-05-09
+-------------------
+
+**Added**
+~~~~~~~~~
+
+- Added support for `nextcord <https://github.com/nextcord/nextcord>`_ via :class:`.adapters._nextcord.NextcordPlayer`.
+
+  See the `nextcord examples <https://github.com/sonolink/sonolink/tree/main/examples/nextcord>`_ for usage.
+- Added :func:`sonolink._registry.get_client` for retrieving the active client instance.
+- Added :meth:`Client.get_node` to retrieve a specific node from the client.
+- Added three new events:
+
+  - :func:`on_sonolink_websocket_closed` (:class:`WebSocketClosedEvent`)
+  - :func:`on_sonolink_stats_receive` (:class:`StatsEvent`)
+  - :func:`on_sonolink_player_disconnect` (:class:`PlayerDisconnectEvent`)
+
+- Added :meth:`Player.update` to quickly update multiple player settings at once.
+  :attr:`Player.autoplay_settings`, :attr:`Player.history_settings`, and :attr:`Player.queue_mode`
+  are now exposed and can be set directly.
+- Added :attr:`TrackSourceType.DEEZER` as a supported track source.
+- Added :attr:`Queue.count` and :attr:`History.count` properties.
+- Added :attr:`Queue.autoplay_tracks` and :meth:`Queue.put_autoplay` to fix autoplay queue priority
+  via a dedicated stream. :attr:`Playable.autoplay` is also now exposed.
+- Added :exc:`AutoPlaySeedMissing`, a specific error raised when autoplay has no seed tracks to
+  generate from.
+- Added framework-specific import and mismatch exceptions:
+
+  - :exc:`FrameworkClientMismatch`
+  - :exc:`FrameworkImportError`
+
+- Added four new migration guides:
+
+  - `Mafic <https://sonolink.readthedocs.io/en/latest/guides/migrations/mafic.html>`_
+  - `Lavalink.py <https://sonolink.readthedocs.io/en/latest/guides/migrations/lavalink.py.html>`_
+  - `Lavaplay.py <https://sonolink.readthedocs.io/en/latest/guides/migrations/lavaplay.py.html>`_
+  - `Pomice <https://sonolink.readthedocs.io/en/latest/guides/migrations/pomice.html>`_
+
+  The existing `WaveLink <https://sonolink.readthedocs.io/en/latest/guides/migrations/wavelink.html>`_ guide has also been updated.
+
+- Added a ``py.typed`` marker file for improved typing compatibility with type checkers.
+
+**Changed**
+~~~~~~~~~~~
+
+- :class:`WSCloseEvent` has been renamed to :class:`WebSocketClosedEvent`.
+- :meth:`get_best_node` now prefers nodes with known stats over nodes with no reported stats.
+- Swapped :exc:`asyncio.TimeoutError` with the built-in :exc:`TimeoutError` throughout.
+- Cleaned up documentation for all enums.
+
+**Removed**
+~~~~~~~~~~~
+
+- Removed the fallback to ``discord.py`` as the default framework.
+- Removed the unused ``value`` argument from :meth:`Player.pause`.
+
+  :meth:`Player.resume` is no longer an alias for unpausing — it must be called explicitly to
+  resume playback.
+
+**Fixed**
+~~~~~~~~~
+
+- Fixed incorrect generics on the :class:`.adapters._pycord.PycordPlayer`.
+- Fixed ``force`` parameter handling in :meth:`._base.BasePlayer.disconnect`.
 
 .. _vp1p0p1:
 
