@@ -484,7 +484,12 @@ class Node:
             An error occurred while making the request.
         """
         return await self._rest.send(
-            method, path, headers=headers, params=params, json=json, data=data
+            method,
+            path,
+            headers=headers,
+            params=params,
+            json=json,
+            data=data,
         )
 
     async def cleanup(self) -> None:

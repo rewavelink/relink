@@ -54,17 +54,19 @@ class EventRouter(BaseNodeComponent):
         self.node._status = NodeStatus.CONNECTED
 
         try:
+            timeout = int(self.node.resume_timeout)
             update_data = UpdateSessionRequest(
-                resuming=True, timeout=int(self.node.resume_timeout)
+                resuming=timeout > 0, timeout=max(0, timeout)
             )
 
             await self.node._manager.update_session(
                 session_id=self.node._resume_session, data=update_data
             )
             _log.info(
-                "Node %r: Session resumption configured (timeout: %ds).",
+                "Node %r: Session resumption configured (resuming: %s, timeout: %ds).",
                 self.node._id,
-                self.node.resume_timeout,
+                timeout > 0,
+                timeout,
             )
         except Exception as exc:
             _log.error(

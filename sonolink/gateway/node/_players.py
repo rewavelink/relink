@@ -56,8 +56,8 @@ class PlayerRegistry(BaseNodeComponent):
 
         player = player_cls(
             node=self.node,
-            volume=volume or 100,
-            paused=paused or False,
+            volume=volume,
+            paused=paused,
             filters=filters,
             queue_mode=queue_mode,
             autoplay_settings=autoplay_settings,
