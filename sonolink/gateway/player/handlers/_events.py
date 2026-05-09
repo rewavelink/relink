@@ -33,6 +33,7 @@ from sonolink.rest.schemas.player import (
 )
 
 from sonolink.gateway.enums import TrackEndReason
+from sonolink.gateway.errors import AutoPlaySeedMissing, QueueEmpty
 from sonolink.gateway.schemas.events import (
     TrackEndEvent as TrackEndEventPayload,
     TrackExceptionEvent as TrackExceptionEventPayload,
@@ -102,7 +103,10 @@ class EventsHandler(HandlerBase):
                     self._player._last_update = 0.0
 
                 if payload.reason.can_start_next:
-                    await self._player.skip()
+                    try:
+                        await self._player.skip()
+                    except (QueueEmpty, AutoPlaySeedMissing):
+                        pass
 
                 self._player._node._client._dispatch(
                     "track_end",

@@ -153,14 +153,13 @@ class PlaybackHandler(HandlerBase):
         handler = self._player._autoplay_handler
         if handler._settings.mode != AutoPlayMode.DISABLED:
             try:
-                if autoplay_track := await handler.auto_play():
-                    return autoplay_track
+                track = await handler.auto_play()
             except AutoPlaySeedMissing:
                 await self.stop()
                 raise
-            
-            await self.stop()
-            return None
+
+            if track is not None:
+                return track
 
         await self.stop()
         raise QueueEmpty
