@@ -29,7 +29,7 @@ import time
 import msgspec
 
 from sonolink.gateway.enums import AutoPlayMode, QueueMode
-from sonolink.gateway.errors import QueueEmpty
+from sonolink.gateway.errors import AutoPlaySeedMissing, QueueEmpty
 from sonolink.models.filters import Filters
 from sonolink.models.track import Playable
 from sonolink.rest.schemas.filters import PlayerFilters
@@ -152,11 +152,17 @@ class PlaybackHandler(HandlerBase):
 
         handler = self._player._autoplay_handler
         if handler._settings.mode != AutoPlayMode.DISABLED:
-            if autoplay_track := await handler.auto_play():
-                return autoplay_track
+            try:
+                if autoplay_track := await handler.auto_play():
+                    return autoplay_track
+            except AutoPlaySeedMissing:
+                await self.stop()
+                raise
+
             return None
 
         await self.stop()
+        raise QueueEmpty
 
     async def seek(self, position: int, /) -> None:
         node = self._player.node
