@@ -49,6 +49,7 @@ __all__ = ("RESTWrapper",)
 
 _log = logging.getLogger(__name__)
 
+
 class RESTWrapper(BaseNodeComponent):
     """Internal component responsible for handling REST requests."""
 
@@ -142,7 +143,9 @@ class RESTWrapper(BaseNodeComponent):
         except HTTPException:
             raise
         except Exception as exc:  # noqa: BLE001 # no choice here
-            _log.warning("Unexpected error while sending request to %r: %s", self.node, exc)
+            _log.warning(
+                "Unexpected error while sending request to %r: %s", self.node, exc
+            )
             return None
 
         if response is None:

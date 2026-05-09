@@ -34,6 +34,6 @@ __all__ = ("BaseNodeComponent",)
 
 class BaseNodeComponent:
     """Base class for all internal node components."""
-    
+
     def __init__(self, node: Node) -> None:
         self.node = node
