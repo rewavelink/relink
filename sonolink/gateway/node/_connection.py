@@ -55,7 +55,7 @@ class ConnectionManager(BaseNodeComponent):
 
     async def close(self) -> None:
         if self.node._client is None:
-            raise RuntimeError("Can not close a Node that is not bound to a client.")
+            raise RuntimeError("Cannot close a Node that is not bound to a client.")
 
         if not self.node.is_connected:
             raise RuntimeError("This Node is not connected.")
@@ -102,25 +102,23 @@ class ConnectionManager(BaseNodeComponent):
                         attempt,
                         retries,
                     )
-                    break
+                    self.node._status = NodeStatus.CONNECTED
+                    return
             except WebSocketError as exc:
                 await self.handle_connection_error(exc)
 
-            if (attempt - 1) >= retries:
-                _log.warning(
-                    "%r exhausted %d connection attempts. Node will remain disconnected.",
-                    self.node,
-                    retries,
-                )
-                self.node._status = NodeStatus.DISCONNECTED
-                await self.node.cleanup()
-                return
+            if attempt < retries:
+                delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
+                _log.debug("Retrying %r in %.2f seconds...", self.node, delay)
+                await asyncio.sleep(delay)
 
-            delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
-            _log.debug("Retrying %r in %.2f seconds...", self.node, delay)
-            await asyncio.sleep(delay)
-
-        self.node._status = NodeStatus.CONNECTED
+        _log.warning(
+            "%r exhausted %d connection attempts. Node will remain disconnected.",
+            self.node,
+            retries,
+        )
+        self.node._status = NodeStatus.DISCONNECTED
+        await self.node.cleanup()
 
     async def handle_connection_error(self, exc: WebSocketError) -> None:
         if exc.status in (3000, 3003, 401):
