@@ -158,7 +158,8 @@ class PlaybackHandler(HandlerBase):
             except AutoPlaySeedMissing:
                 await self.stop()
                 raise
-
+            
+            await self.stop()
             return None
 
         await self.stop()
