@@ -31,14 +31,14 @@ from sonolink.gateway.enums import NodeStatus
 from sonolink.gateway.errors import InvalidNodePassword, NodeURINotFound
 from sonolink.network.errors import WebSocketError
 
-from ._base import BaseNodeComponent
+from ._base import NodeComponent
 
 __all__ = ("ConnectionManager",)
 
 _log = logging.getLogger(__name__)
 
 
-class ConnectionManager(BaseNodeComponent):
+class ConnectionManager(NodeComponent):
     """Internal component responsible for managing node connections."""
 
     async def connect(self) -> None:
@@ -58,7 +58,7 @@ class ConnectionManager(BaseNodeComponent):
             raise RuntimeError("Cannot close a Node that is not bound to a client.")
 
         if not self.node.is_connected:
-            raise RuntimeError("This Node is not connected.")
+            raise RuntimeError("This Node is not connected yet.")
 
         if self.node._keep_alive and not self.node._keep_alive.cancelled():
             self.node._keep_alive.cancel()
@@ -79,12 +79,12 @@ class ConnectionManager(BaseNodeComponent):
 
     async def attempt_connect(self) -> None:
         assert self.node._client is not None
-
-        headers = self.node._ws_bridge.build_headers()
-
-        retries = 1 if self.node.retries is None else self.node.retries
+        
         base_delay = 0.5
         max_delay = 10.0
+
+        headers = self.node._ws_client.build_headers()
+        retries = self.node.retries if self.node.retries is not None else 1
 
         for attempt in range(1, retries + 1):
             _log.info(
@@ -95,17 +95,18 @@ class ConnectionManager(BaseNodeComponent):
             )
 
             try:
-                if await self.node._ws_bridge.connect_ws(headers):
-                    _log.info(
-                        "Successfully connected node %r (attempt %d/%d)",
-                        self.node,
-                        attempt,
-                        retries,
-                    )
-                    self.node._status = NodeStatus.CONNECTED
-                    return
+                await self.node._ws_client.connect_ws(headers)
             except WebSocketError as exc:
                 await self.handle_connection_error(exc)
+            else:
+                _log.info(
+                    "Successfully connected node %r (attempt %d/%d)",
+                    self.node,
+                    attempt,
+                    retries,
+                )
+                self.node._status = NodeStatus.CONNECTED
+                return
 
             if attempt < retries:
                 delay = min(base_delay * (2 ** (attempt - 1)), max_delay)

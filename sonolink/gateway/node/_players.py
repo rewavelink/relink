@@ -33,12 +33,12 @@ from sonolink.models.settings import AutoPlaySettings, HistorySettings
 if TYPE_CHECKING:
     from sonolink.gateway.player import BasePlayer, Player
 
-from ._base import BaseNodeComponent
+from ._base import NodeComponent
 
 __all__ = ("PlayerRegistry",)
 
 
-class PlayerRegistry(BaseNodeComponent):
+class PlayerRegistry(NodeComponent):
     """Internal component responsible for managing player registry."""
 
     def create_player(

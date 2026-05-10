@@ -50,8 +50,8 @@ from sonolink.rest.schemas.info import StatsResponse
 from ._connection import ConnectionManager
 from ._events import EventRouter
 from ._players import PlayerRegistry
-from ._rest import RESTWrapper
-from ._websocket import WebsocketBridge
+from ._rest import HTTPClient
+from ._websocket import WebsocketClient
 
 if TYPE_CHECKING:
     from sonolink.gateway.client import Client
@@ -148,10 +148,10 @@ class Node:
         self._uri = uri.removesuffix("/")
 
         self._connection = ConnectionManager(self)
-        self._ws_bridge = WebsocketBridge(self)
-        self._rest = RESTWrapper(self)
-        self._player_registry = PlayerRegistry(self)
         self._events = EventRouter(self)
+        self._ws_client = WebsocketClient(self)
+        self._rest = HTTPClient(self)
+        self._player_registry = PlayerRegistry(self)
 
         self._manager = self._rest.init_manager(session)
 
@@ -421,14 +421,6 @@ class Node:
         """Gets a player connected to this node."""
         return self._player_registry.get_player(guild_id)
 
-    def _add_player(self, player: BasePlayer) -> None:
-        """Internal helper to register a player to this node."""
-        self._player_registry.add_player(player)
-
-    def _remove_player(self, guild_id: int) -> None:
-        """Internal helper to unregister a player from this node."""
-        self._player_registry.remove_player(guild_id)
-
     async def send(
         self,
         method: Literal["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
@@ -500,3 +492,11 @@ class Node:
         This is automatically called by the library.
         """
         ...
+
+    def _add_player(self, player: BasePlayer) -> None:
+        """Internal helper to register a player to this node."""
+        self._player_registry.add_player(player)
+
+    def _remove_player(self, guild_id: int) -> None:
+        """Internal helper to unregister a player from this node."""
+        self._player_registry.remove_player(guild_id)

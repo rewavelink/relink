@@ -26,31 +26,37 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Callable, Coroutine, cast
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, cast
 
 import msgspec
 
 from sonolink.gateway.enums import NodeStatus
 from sonolink.network.message import MessageType
 
-from ._base import BaseNodeComponent
+from ._base import NodeComponent
 
-__all__ = ("WebsocketBridge",)
+if TYPE_CHECKING:
+    from sonolink.gateway.node import Node
+
+
+__all__ = ("WebsocketClient",)
 
 _log = logging.getLogger(__name__)
 
 type EventHandler = Callable[[dict[str, Any]], Coroutine[Any, Any, None] | None]
 
 
-class WebsocketBridge(BaseNodeComponent):
+class WebsocketClient(NodeComponent):
     """Internal component responsible for managing websocket connections."""
 
-    _EVENT_HANDLERS: dict[str, str] = {
-        "ready": "handle_ready",
-        "playerUpdate": "handle_player_update",
-        "stats": "handle_stats",
-        "event": "handle_event",
-    }
+    def __init__(self, node: Node) -> None:
+        super().__init__(node)
+        self._event_handlers: dict[str, EventHandler] = {
+            "ready": node._events.handle_ready,
+            "playerUpdate": node._events.handle_player_update,
+            "stats": node._events.handle_stats,
+            "event": node._events.handle_event,
+        }
 
     def build_headers(self) -> dict[str, str]:
         assert self.node._client is not None
@@ -61,12 +67,11 @@ class WebsocketBridge(BaseNodeComponent):
 
         return headers
 
-    async def connect_ws(self, headers: dict[str, str]) -> bool:
+    async def connect_ws(self, headers: dict[str, str]) -> None:
         self.node._ws = await self.node._manager.connect_ws(
             "/v4/websocket", headers=headers
         )
         self.node._keep_alive = asyncio.create_task(self.keep_alive_coro())
-        return True
 
     async def keep_alive_coro(self) -> None:
         assert self.node._ws is not None
@@ -90,12 +95,7 @@ class WebsocketBridge(BaseNodeComponent):
                 _log.debug("Received a None message from the websocket. Ignoring.")
                 continue
 
-            raw = (
-                msg.data
-                if isinstance(msg.data, bytes)
-                else cast(str, msg.data).encode("utf-8")
-            )
-            data = cast(dict[str, Any], msgspec.json.decode(raw))
+            data = cast(dict[str, Any], msgspec.json.decode(msg.data))
             event_type = data.pop("op", None)
             _log.debug("Received event OP=%s ; D=%r", event_type, data)
 
@@ -111,16 +111,14 @@ class WebsocketBridge(BaseNodeComponent):
                 )
 
     async def _dispatch_event(self, event_type: str, data: dict[str, Any]) -> None:
-        method_name = self._EVENT_HANDLERS.get(event_type)
+        handler = self._event_handlers.get(event_type)
 
-        if method_name is None:
+        if handler is None:
             _log.debug(
                 "Received unhandled event type %r from Node %r", event_type, self.node
             )
             return
 
-        handler = cast(EventHandler, getattr(self.node._events, method_name))
         result = handler(data)
-
         if asyncio.iscoroutine(result):
             await result

@@ -36,14 +36,14 @@ from sonolink.gateway.schemas.receive import ReadyEvent as ReadyPayload
 from sonolink.rest.schemas.info import StatsResponse
 from sonolink.rest.schemas.session import UpdateSessionRequest
 
-from ._base import BaseNodeComponent
+from ._base import NodeComponent
 
 __all__ = ("EventRouter",)
 
 _log = logging.getLogger(__name__)
 
 
-class EventRouter(BaseNodeComponent):
+class EventRouter(NodeComponent):
     """Internal component responsible for routing node events."""
 
     async def handle_ready(self, data: dict[str, Any]) -> None:

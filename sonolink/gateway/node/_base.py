@@ -29,10 +29,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sonolink.gateway.node import Node
 
-__all__ = ("BaseNodeComponent",)
+__all__ = ("NodeComponent",)
 
 
-class BaseNodeComponent:
+class NodeComponent:
     """Base class for all internal node components."""
 
     def __init__(self, node: Node) -> None:

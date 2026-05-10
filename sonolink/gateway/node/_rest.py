@@ -43,14 +43,14 @@ from sonolink.rest.http import RESTClient
 if TYPE_CHECKING:
     from sonolink.network import SessionType
 
-from ._base import BaseNodeComponent
+from ._base import NodeComponent
 
-__all__ = ("RESTWrapper",)
+__all__ = ("HTTPClient",)
 
 _log = logging.getLogger(__name__)
 
 
-class RESTWrapper(BaseNodeComponent):
+class HTTPClient(NodeComponent):
     """Internal component responsible for handling REST requests."""
 
     def init_manager(self, session: SessionType | None) -> RESTClient:
@@ -142,7 +142,7 @@ class RESTWrapper(BaseNodeComponent):
             )
         except HTTPException:
             raise
-        except Exception as exc:  # noqa: BLE001 # no choice here
+        except Exception as exc:  
             _log.warning(
                 "Unexpected error while sending request to %r: %s", self.node, exc
             )
