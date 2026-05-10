@@ -79,7 +79,7 @@ class ConnectionManager(NodeComponent):
 
     async def attempt_connect(self) -> None:
         assert self.node._client is not None
-        
+
         base_delay = 0.5
         max_delay = 10.0
 

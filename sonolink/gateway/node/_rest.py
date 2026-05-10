@@ -142,7 +142,7 @@ class HTTPClient(NodeComponent):
             )
         except HTTPException:
             raise
-        except Exception as exc:  
+        except Exception as exc:
             _log.warning(
                 "Unexpected error while sending request to %r: %s", self.node, exc
             )
