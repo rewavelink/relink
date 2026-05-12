@@ -74,6 +74,12 @@ v1.1.0 - 2026-05-09
 - Fixed incorrect generics on the :class:`.adapters._pycord.PycordPlayer`.
 - Fixed ``force`` parameter handling in :meth:`._base.BasePlayer.disconnect`.
 
+**Miscellaneous**
+~~~~~~~~~~~~~~~~~
+
+- :class:`sonolink.gateway.Node` has been split into multiple components internally for better separation of concerns and maintainability. 
+This is not a breaking change as the public API remains the same, but it should improve code readability and future extensibility.
+
 .. _vp1p0p1:
 
 v1.0.1 - 2026-04-12
