@@ -28,14 +28,14 @@ from typing import Iterable
 
 from sonolink.gateway.enums import AutoPlayMode, InactivityMode, SearchProvider
 
-from .base import BaseSettings
 from ..utils.snowflake import Snowflake
+from .base import BaseSettings
 
 __all__ = (
     "AutoPlaySettings",
-    "InactivitySettings",
-    "HistorySettings",
     "CacheSettings",
+    "HistorySettings",
+    "InactivitySettings",
 )
 
 

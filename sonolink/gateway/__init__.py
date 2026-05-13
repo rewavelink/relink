@@ -32,10 +32,12 @@ __all__ = (
     "NodeURINotFound",
     "Player",
     "PlayerConnectionState",
+    "PlayerDisconnectEvent",
     "Queue",
     "QueueEmpty",
     "QueueMode",
     "SearchProvider",
     "TrackEndReason",
     "TrackExceptionSeverity",
+    "WebSocketClosedEvent",
 )

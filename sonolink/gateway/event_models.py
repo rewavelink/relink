@@ -46,9 +46,9 @@ __all__ = (
     "PlayerUpdateEvent",
     "ReadyEvent",
     "StatsEvent",
-    "TrackStartEvent",
     "TrackEndEvent",
     "TrackExceptionEvent",
+    "TrackStartEvent",
     "TrackStuckEvent",
     "WebSocketClosedEvent",
 )

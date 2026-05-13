@@ -60,16 +60,16 @@ _SINGLE_FILTER_ATTRS: tuple[str, ...] = (
 
 
 __all__ = (
+    "ChannelMix",
+    "Distortion",
     "Equalizer",
+    "Filters",
     "Karaoke",
+    "LowPass",
+    "Rotation",
     "Timescale",
     "Tremolo",
     "Vibrato",
-    "Rotation",
-    "Distortion",
-    "ChannelMix",
-    "LowPass",
-    "Filters",
 )
 
 

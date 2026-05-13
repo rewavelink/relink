@@ -32,15 +32,15 @@ from .filters import PlayerFilters
 from .track import Track
 
 __all__ = (
+    "DestroyPlayerResponse",
+    "GetPlayerResponse",
+    "GetPlayersResponse",
     "Player",
     "PlayerState",
     "PlayerVoiceState",
     "UpdatePlayerRequest",
-    "UpdatePlayerTrackRequest",
-    "GetPlayersResponse",
-    "GetPlayerResponse",
     "UpdatePlayerResponse",
-    "DestroyPlayerResponse",
+    "UpdatePlayerTrackRequest",
 )
 
 

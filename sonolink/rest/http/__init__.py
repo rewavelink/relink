@@ -5,8 +5,8 @@ sonolink.rest.http
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from sonolink.network import HTTPFactory

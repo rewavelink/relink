@@ -26,8 +26,12 @@ from __future__ import annotations
 
 from sonolink.utils import cached_property
 
-from ..rest.schemas.player import Player as PlayerInfoPayload
-from ..rest.schemas.player import PlayerFilters, PlayerState, PlayerVoiceState
+from ..rest.schemas.player import (
+    Player as PlayerInfoPayload,
+    PlayerFilters,
+    PlayerState,
+    PlayerVoiceState,
+)
 from .base import BaseModel
 from .track import Playable
 

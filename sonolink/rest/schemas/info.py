@@ -27,14 +27,14 @@ from __future__ import annotations
 import msgspec
 
 __all__ = (
-    "InfoResponse",
-    "VersionObject",
-    "GitObject",
-    "PluginObject",
-    "StatsResponse",
-    "MemoryObject",
     "CPUObject",
     "FrameStatsObject",
+    "GitObject",
+    "InfoResponse",
+    "MemoryObject",
+    "PluginObject",
+    "StatsResponse",
+    "VersionObject",
     "VersionResponse",
 )
 

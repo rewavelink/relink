@@ -33,12 +33,12 @@ if TYPE_CHECKING:
     from .player import FrameworkLiteral
 
 __all__ = (
-    "NodeError",
     "AutoPlaySeedMissing",
     "FrameworkClientMismatch",
     "FrameworkImportError",
     "HistoryEmpty",
     "InvalidNodePassword",
+    "NodeError",
     "NodeURINotFound",
     "QueueEmpty",
 )

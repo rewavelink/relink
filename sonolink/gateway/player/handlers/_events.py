@@ -27,13 +27,16 @@ from typing import Any
 
 import msgspec
 
-from sonolink.rest.schemas.player import (
-    PlayerVoiceState,
-    UpdatePlayerRequest,
-)
-
 from sonolink.gateway.enums import TrackEndReason
 from sonolink.gateway.errors import AutoPlaySeedMissing, QueueEmpty
+from sonolink.gateway.event_models import (
+    StatsEvent,
+    TrackEndEvent,
+    TrackExceptionEvent,
+    TrackStartEvent,
+    TrackStuckEvent,
+    WebSocketClosedEvent,
+)
 from sonolink.gateway.schemas.events import (
     TrackEndEvent as TrackEndEventPayload,
     TrackExceptionEvent as TrackExceptionEventPayload,
@@ -45,14 +48,11 @@ from sonolink.gateway.schemas.receive import (
     StatsEvent as StatsEventPayload,
     WebSocketClosedEvent as WebSocketClosedEventPayload,
 )
-from sonolink.gateway.event_models import (
-    StatsEvent,
-    TrackEndEvent,
-    TrackExceptionEvent,
-    TrackStartEvent,
-    TrackStuckEvent,
-    WebSocketClosedEvent,
+from sonolink.rest.schemas.player import (
+    PlayerVoiceState,
+    UpdatePlayerRequest,
 )
+
 from ._base import HandlerBase, _log
 
 __all__ = ()

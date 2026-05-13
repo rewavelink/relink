@@ -26,10 +26,10 @@ from __future__ import annotations
 
 import msgspec
 
-from sonolink.rest.enums import TrackLoadResult
-from sonolink.utils import cached_property
-from sonolink.rest.schemas import Track, PlaylistData, TrackLoadingResponse
 from sonolink.gateway.schemas import TrackException
+from sonolink.rest.enums import TrackLoadResult
+from sonolink.rest.schemas import PlaylistData, Track, TrackLoadingResponse
+from sonolink.utils import cached_property
 
 from .base import BaseModel
 from .playlist import Playlist
