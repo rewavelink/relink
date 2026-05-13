@@ -27,12 +27,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import urllib.parse
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal
 
-import msgspec
-
+from sonolink.gateway.cache import LFUCache
+from sonolink.gateway.enums import NodeStatus, QueueMode
 from sonolink.gateway.player._factory import PlayerFactory
 from sonolink.models.filters import Filters
 from sonolink.models.info import ServerInfo
@@ -45,27 +44,19 @@ from sonolink.models.settings import (
     InactivitySettings,
 )
 from sonolink.models.track import Playable
-from sonolink.network import BaseWebsocketManager, HTTPFactory
-from sonolink.network.errors import WebSocketError
-from sonolink.network.message import MessageType
 from sonolink.rest.enums import TrackSourceType
-from sonolink.rest.errors import HTTPException
-from sonolink.rest.http import RESTClient
 from sonolink.rest.schemas.info import StatsResponse
-from sonolink.rest.schemas.session import UpdateSessionRequest
 
-from .cache import LFUCache
-from .enums import NodeStatus, QueueMode
-from .errors import InvalidNodePassword, NodeURINotFound
-from .event_models import PlayerUpdateEvent, ReadyEvent
-from .player import BasePlayer, Player
-from .schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
-from .schemas.receive import ReadyEvent as ReadyPayload
+from ._connection import ConnectionManager
+from ._events import EventRouter
+from ._players import PlayerRegistry
+from ._rest import HTTPClient
+from ._websocket import WebsocketClient
 
 if TYPE_CHECKING:
-    from sonolink.network import SessionType
-
-    from .client import Client
+    from sonolink.gateway.client import Client
+    from sonolink.gateway.player import BasePlayer, Player
+    from sonolink.network import BaseWebsocketManager, SessionType
 
 _log = logging.getLogger(__name__)
 
@@ -155,28 +146,17 @@ class Node:
         self._cache: LFUCache[str, Any] = LFUCache(settings=cache_settings)
 
         self._uri = uri.removesuffix("/")
-        self._manager: RESTClient = self._init_manager(session)
+
+        self._connection = ConnectionManager(self)
+        self._events = EventRouter(self)
+        self._ws_client = WebsocketClient(self)
+        self._rest = HTTPClient(self)
+        self._player_registry = PlayerRegistry(self)
+
+        self._manager = self._rest.init_manager(session)
 
     def __repr__(self) -> str:
         return f"<Node id={self._id} status={self._status.name} players={len(self._players)} uri={self._uri}>"
-
-    def _init_manager(self, session: SessionType | None) -> RESTClient:
-        headers = {"Authorization": self.password}
-        if session:
-            manager = HTTPFactory.from_http(session)
-        else:
-            manager_cls = HTTPFactory.http_manager()
-            manager = manager_cls()
-        return RESTClient(manager, base_url=self._uri, headers=headers)
-
-    def _build_headers(self) -> dict[str, str]:
-        assert self._client is not None
-
-        headers = self._client._build_ws_headers()
-        if self._resume_session:
-            headers["Session-Id"] = self._resume_session
-
-        return headers
 
     def _ensure_client(self) -> Client[Any]:
         if not self._client:
@@ -263,16 +243,7 @@ class Node:
 
         This can only be done when the node has been attached to a pool.
         """
-        if self._client is None:
-            raise RuntimeError("Cannot connect a node that is not bound to a client.")
-
-        if self._keep_alive is not None:
-            raise RuntimeError("This node is already connected.")
-
-        await self._manager.setup()
-        self._status = NodeStatus.CONNECTING
-
-        await self._attempt_connect()
+        await self._connection.connect()
 
     async def close(self) -> None:
         """
@@ -284,29 +255,7 @@ class Node:
 
         This dispatches a ``on_node_close`` event.
         """
-
-        if self._client is None:
-            raise RuntimeError("Can not close a Node that is not bound to a client.")
-
-        if not self.is_connected:
-            raise RuntimeError("This Node is not connected.")
-
-        if self._keep_alive and not self._keep_alive.cancelled():
-            self._keep_alive.cancel()
-
-        if self._ws and self._ws.is_connected:
-            await self._ws.close()
-
-        if not self._manager.is_closed:
-            await self._manager.close()
-
-        self._ws = None
-        self._keep_alive = None
-        self._resume_session = None
-        self._status = NodeStatus.DISCONNECTED
-
-        self._client._dispatch("node_close", self)
-        await self.cleanup()
+        await self._connection.close()
 
     def create_player(
         self,
@@ -346,20 +295,14 @@ class Node:
             - :meth:`disnake:disnake.VoiceChannel.connect` (disnake)
             - :meth:`nextcord:nextcord.VoiceChannel.connect` (nextcord)
         """
-        client = self._ensure_client()
-        player_cls = self._player_factory.get_player(client.framework)
-
-        player = player_cls(
-            node=self,
-            volume=volume or 100,
-            paused=paused or False,
+        return self._player_registry.create_player(
+            volume=volume,
+            paused=paused,
             filters=filters,
             queue_mode=queue_mode,
             autoplay_settings=autoplay_settings,
             history_settings=history_settings,
         )
-
-        return cast(Player, player)
 
     async def search_track(
         self,
@@ -384,23 +327,7 @@ class Node:
         :class:`SearchResult`
             The search result.
         """
-        client = self._ensure_client()
-
-        is_url = query.startswith(("http://", "https://"))
-        formatted = (
-            query if is_url or source is None else f"{source.removesuffix(':')}:{query}"
-        )
-
-        encoded = urllib.parse.quote(formatted)
-        cached_result = self._cache.get(encoded)
-
-        if isinstance(cached_result, SearchResult):
-            return cached_result
-
-        data = await self._manager.load_track(formatted)
-        result = SearchResult(client=client, data=data)
-        self._cache.put(encoded, result)
-        return result
+        return await self._rest.search_track(query, source=source)
 
     async def decode_track(self, encoded: str) -> Playable:
         """
@@ -419,10 +346,7 @@ class Node:
         :class:`sonolink.models.Playable`
             The decoded resolved track.
         """
-
-        client = self._ensure_client()
-        data = await self._manager.decode_track(encoded)
-        return Playable(client=client, data=data)
+        return await self._rest.decode_track(encoded)
 
     async def decode_tracks(self, *encoded: str) -> list[Playable]:
         """
@@ -438,10 +362,7 @@ class Node:
         ``list[Playable]``
             The decoded resolved tracks.
         """
-
-        client = self._ensure_client()
-        data = await self._manager.decode_tracks(list(encoded))
-        return [Playable(client=client, data=d) for d in data]
+        return await self._rest.decode_tracks(*encoded)
 
     async def fetch_info(self) -> ServerInfo:
         """
@@ -452,10 +373,7 @@ class Node:
         :class:`sonolink.models.ServerInfo`
             The server info.
         """
-
-        client = self._ensure_client()
-        data = await self._manager.lavalink_info()
-        return ServerInfo(client=client, data=data)
+        return await self._rest.fetch_info()
 
     async def fetch_players(self) -> list[PlayerInfo]:
         """
@@ -468,10 +386,7 @@ class Node:
         ``list[PlayerInfo]``
             The players connected to this node.
         """
-
-        client = self._ensure_client()
-        data = await self._manager.get_players(self.session_id)
-        return [PlayerInfo(client=client, data=d) for d in data]
+        return await self._rest.fetch_players()
 
     async def fetch_player(self, guild_id: int) -> PlayerInfo:
         """
@@ -489,13 +404,7 @@ class Node:
         :class:`PlayerInfo`
             The player connected to the guild ID.
         """
-
-        client = self._ensure_client()
-        data = await self._manager.get_player(
-            session_id=self.session_id,
-            guild_id=str(guild_id),
-        )
-        return PlayerInfo(client=client, data=data)
+        return await self._rest.fetch_player(guild_id)
 
     async def disconnect_player(self, guild_id: int) -> None:
         """
@@ -506,203 +415,11 @@ class Node:
         guild_id: :class:`int`
             The guild ID to disconnect the player from.
         """
-        _ = self._ensure_client()
-        await self._manager.destroy_player(
-            session_id=self.session_id,
-            guild_id=str(guild_id),
-        )
+        await self._rest.disconnect_player(guild_id)
 
     def get_player(self, guild_id: int, /) -> BasePlayer | None:
         """Gets a player connected to this node."""
-        return self._players.get(guild_id)
-
-    def _add_player(self, player: BasePlayer) -> None:
-        """Internal helper to register a player to this node."""
-        self._players[player.guild.id] = player
-
-    def _remove_player(self, guild_id: int) -> None:
-        """Internal helper to unregister a player from this node."""
-        self._players.pop(guild_id, None)
-
-    async def _attempt_connect(self) -> None:
-        assert self._client is not None
-
-        headers = self._build_headers()
-
-        retries = 1 if self.retries is None else self.retries
-        base_delay = 0.5
-        max_delay = 10.0
-
-        for attempt in range(1, retries + 1):
-            _log.info(
-                "Starting connection attempt %d/%d on Node %r",
-                attempt,
-                retries,
-                self,
-            )
-
-            try:
-                if await self._connect_ws(headers):
-                    _log.info(
-                        "Successfully connected node %r (attempt %d/%d)",
-                        self,
-                        attempt,
-                        retries,
-                    )
-                    break
-            except WebSocketError as exc:
-                await self._handle_connection_error(exc)
-
-            if (attempt - 1) >= retries:
-                _log.warning(
-                    "%r exhausted %d connection attempts. Node will remain disconnected.",
-                    self,
-                    retries,
-                )
-                self._status = NodeStatus.DISCONNECTED
-                await self.cleanup()
-                return
-
-            delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
-            _log.debug("Retrying %r in %.2f seconds...", self, delay)
-            await asyncio.sleep(delay)
-
-        self._status = NodeStatus.CONNECTED
-
-    async def _connect_ws(self, headers: dict[str, str]) -> bool:
-        self._ws = await self._manager.connect_ws("/v4/websocket", headers=headers)
-        self._keep_alive = asyncio.create_task(self._keep_alive_coro())
-        return True
-
-    async def _keep_alive_coro(self) -> None:
-        assert self._ws is not None
-        assert self._client
-
-        while True:
-            msg = await self._ws.receive()
-
-            if MessageType.CLOSE in msg.flags:
-                self._client._dispatch("node_close", self)
-
-                if self.auto_reconnect and self._status not in (
-                    NodeStatus.CONNECTING,
-                    NodeStatus.DISCONNECTED,
-                ):
-                    _log.info("%r WS closed, attempting reconnect...", self)
-                    asyncio.create_task(self.connect())
-                break
-
-            if msg.data is None:
-                _log.debug("Received a None message from the websocket. Ignoring.")
-                continue
-
-            raw = msg.data
-            if isinstance(raw, str):
-                raw = raw.encode("utf-8")
-            data = msgspec.json.decode(raw)
-
-            event_type = data.pop("op", None)
-            _log.debug("Received event OP=%s ; D=%r", event_type, data)
-
-            try:
-                match event_type:
-                    case "ready":
-                        await self._handle_ready(data)
-                    case "playerUpdate":
-                        await self._handle_player_update(data)
-                    case "stats":
-                        self._handle_stats(data)
-                    case "event":
-                        await self._handle_event(data)
-                    case _:
-                        _log.debug(
-                            "Received unhandled event type %r from Node %r",
-                            event_type,
-                            self,
-                        )
-            except Exception as exc:
-                _log.error(
-                    "Node %r: Unhandled exception while processing OP=%s: %s",
-                    self._id,
-                    event_type,
-                    exc,
-                    exc_info=True,
-                )
-
-    async def _handle_ready(self, data: dict[str, Any]) -> None:
-        assert self._client is not None
-
-        payload = msgspec.convert(data, ReadyPayload)
-        self._resume_session = payload.session_id
-        self._status = NodeStatus.CONNECTED
-
-        try:
-            update_data = UpdateSessionRequest(
-                resuming=True, timeout=int(self.resume_timeout)
-            )
-
-            await self._manager.update_session(
-                session_id=self._resume_session, data=update_data
-            )
-            _log.info(
-                "Node %r: Session resumption configured (timeout: %ds).",
-                self._id,
-                self.resume_timeout,
-            )
-        except Exception as exc:
-            _log.error(
-                "Node %r: Failed to configure session resumption: %s",
-                self._id,
-                exc,
-            )
-
-        event = ReadyEvent(payload, self)
-        self._client._dispatch("node_ready", event)
-        self._has_resume_session.set()
-
-    async def _handle_player_update(self, data: dict[str, Any]) -> None:
-        assert self._client is not None
-
-        payload = msgspec.convert(data, PlayerUpdatePayload)
-
-        guild_id = int(payload.guild_id)
-        player = self.get_player(guild_id)
-
-        if player:
-            player._update_state(payload.state)
-
-        event = PlayerUpdateEvent(payload, self)
-        self._client._dispatch("player_update", event)
-
-    def _handle_stats(self, data: dict[str, Any]) -> None:
-        self._stats = msgspec.convert(data, StatsResponse)
-
-    async def _handle_event(self, data: dict[str, Any]) -> None:
-        assert self._client is not None
-
-        guild_id = int(data.get("guildId", 0))
-        player = self.get_player(guild_id)
-
-        if player is None:
-            _log.debug(
-                "Received event %r for unknown player in guild %s",
-                data.get("type"),
-                guild_id,
-            )
-            return
-
-        await player._dispatch_event(data)
-
-    async def _handle_connection_error(self, exc: WebSocketError) -> None:
-        if exc.status in (3000, 3003, 401):
-            await self.cleanup()
-            raise InvalidNodePassword(self) from exc
-
-        if exc.status in (1014, 404):
-            await self.cleanup()
-            raise NodeURINotFound(self) from exc
-
-        _log.warning("Unexpected error while connecting %r to Lavalink: %s", self, exc)
+        return self._player_registry.get_player(guild_id)
 
     async def send(
         self,
@@ -715,8 +432,6 @@ class Node:
         data: Any | None = None,
     ) -> dict[str, Any] | list[Any] | str | bytes | None:
         """Method for doing manual requests to the Lavalink node.
-
-        .. versionadded:: 1.1.0
 
         .. warning::
 
@@ -760,35 +475,14 @@ class Node:
         :exc:`sonolink.HTTPException`
             An error occurred while making the request.
         """
-        try:
-            response = await self._manager.request(
-                method=method,
-                url=path,
-                data=data,
-                params=params,
-                json=json,
-                headers=headers,
-            )
-        except HTTPException:
-            raise
-        except Exception as exc:  # noqa: BLE001 # no choice here
-            _log.warning("Unexpected error while sending request to %r: %s", self, exc)
-            return None
-
-        if response is None:
-            return None
-
-        try:
-            data = msgspec.json.decode(response)
-        except msgspec.DecodeError:
-            pass
-        else:
-            return data
-
-        try:
-            return response.decode("utf-8")
-        except UnicodeDecodeError:
-            return response
+        return await self._rest.send(
+            method,
+            path,
+            headers=headers,
+            params=params,
+            json=json,
+            data=data,
+        )
 
     async def cleanup(self) -> None:
         """
@@ -798,3 +492,11 @@ class Node:
         This is automatically called by the library.
         """
         ...
+
+    def _add_player(self, player: BasePlayer) -> None:
+        """Internal helper to register a player to this node."""
+        self._player_registry.add_player(player)
+
+    def _remove_player(self, guild_id: int) -> None:
+        """Internal helper to unregister a player from this node."""
+        self._player_registry.remove_player(guild_id)
