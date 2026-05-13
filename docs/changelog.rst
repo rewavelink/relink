@@ -15,10 +15,10 @@ v1.1.0 - 2026-05-09
 **Added**
 ~~~~~~~~~
 
-- Added support for `nextcord <https://github.com/nextcord/nextcord>`_ via :class:`.adapters._nextcord.NextcordPlayer`.
+- Added support for `Nextcord <https://github.com/nextcord/nextcord>`_ via :class:`NextcordPlayer <.adapters._nextcord.NextcordPlayer>`.
 
-  See the `nextcord examples <https://github.com/sonolink/sonolink/tree/main/examples/nextcord>`_ for usage.
-- Added :func:`sonolink._registry.get_client` for retrieving the active client instance.
+  See the `Nextcord examples <https://github.com/sonolink/sonolink/tree/main/examples/nextcord>`_ for usage.
+- Added :func:`sonolink.get_client <sonolink._registry.get_client>` for retrieving the active client instance.
 - Added :meth:`Client.get_node` to retrieve a specific node from the client.
 - Added three new events:
 
@@ -50,11 +50,11 @@ v1.1.0 - 2026-05-09
 
   The existing `WaveLink <https://sonolink.readthedocs.io/en/latest/guides/migrations/wavelink.html>`_ guide has also been updated.
 
-- Added a ``py.typed`` marker file for improved typing compatibility with type checkers.
-- Added two new keyword arguments to :meth:`Client.create_node`: ``host`` and ``port`` for specifying the node URI in parts as an 
-alternative to the single ``uri`` string; ``uri`` is now optional to allow for this.
-- Added a `Code of Conduct <https://github.com/sonolink/sonolink/blob/main/.github/CODE_OF_CONDUCT.md>`_
-  for project community guidelines.
+- Added a `py.typed <https://typing.python.org/en/latest/spec/distributing.html#packaging-typed-libraries>`_ marker file for improved typing compatibility with type checkers.
+- Added two new keyword arguments to :meth:`Client.create_node`: ``host`` and ``port`` for
+  specifying the node URI in parts as an alternative to the single ``uri`` string; ``uri``
+  is now optional to allow for this.
+- Added a `Code of Conduct <https://github.com/sonolink/sonolink/blob/main/.github/CODE_OF_CONDUCT.md>`_ for project community guidelines.
 
 **Changed**
 ~~~~~~~~~~~
@@ -69,23 +69,23 @@ alternative to the single ``uri`` string; ``uri`` is now optional to allow for t
 
 - Removed the fallback to ``discord.py`` as the default framework.
 - Removed the unused ``value`` argument from :meth:`Player.pause`.
-
   :meth:`Player.resume` is no longer an alias for unpausing — it must be called explicitly to
   resume playback.
 
 **Fixed**
 ~~~~~~~~~
 
-- Fixed incorrect generics on the :class:`.adapters._pycord.PycordPlayer`.
-- Fixed ``force`` parameter handling in :meth:`._base.BasePlayer.disconnect`.
-- Fixed the library raising `QueueEmpty` when skipping tracks for the user interally. 
+- Fixed incorrect generics on the :class:`PycordPlayer <.adapters._pycord.PycordPlayer>`.
+- Fixed ``force`` parameter handling in :meth:`Player.disconnect <._base.BasePlayer.disconnect>`.
+- Fixed the library raising :class:`QueueEmpty <sonolink.QueueEmpty>` when skipping tracks for the user interally. 
 
 **Miscellaneous**
 ~~~~~~~~~~~~~~~~~
 
-- :class:`sonolink.gateway.Node` has been split into multiple components internally for better separation of concerns and maintainability. 
-This is not a breaking change as the public API remains the same, but it should improve code readability and future extensibility.
-- Formatted the project with `Ruff <https://docs.astral.sh/ruff/>` for consistent code style and linting.
+- :class:`sonolink.gateway.Node <sonolink.gateway.node.Node>` has been split into multiple components internally for
+  better separation of concerns and maintainability. This is not a breaking change as the
+  public API remains the same, but it should improve code readability and future extensibility.
+- Formatted the project with `Ruff <https://docs.astral.sh/ruff/>`_ for consistent code style and linting.
 
 .. _vp1p0p1:
 
