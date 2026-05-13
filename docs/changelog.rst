@@ -40,6 +40,7 @@ v1.1.0 - 2026-05-09
   - :exc:`FrameworkClientMismatch`
   - :exc:`FrameworkImportError`
 
+- Added a :doc:`Getting Started </guides/getting-started>` guide.
 - Added four new migration guides:
 
   - `Mafic <https://sonolink.readthedocs.io/en/latest/guides/migrations/mafic.html>`_
