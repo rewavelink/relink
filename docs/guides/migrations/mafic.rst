@@ -8,6 +8,9 @@ This guide is for migrating from `Mafic <https://github.com/ooliver1/mafic>`_ to
 It walks through the main differences between SonoLink and Mafic, so you can get a feel for
 what changes and what stays familiar.
 
+If you are not migrating an existing Mafic bot, start with :doc:`/guides/getting-started`
+instead.
+
 What stays familiar
 -------------------
 

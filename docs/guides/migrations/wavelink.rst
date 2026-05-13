@@ -8,6 +8,9 @@ This guide is for migrating from `Wavelink <https://github.com/PythonistaGuild/W
 It walks through the main differences between SonoLink and Wavelink 3.x, so you can get a feel for what
 changes and what stays familiar.
 
+If you are not migrating an existing Wavelink bot, start with :doc:`/guides/getting-started`
+instead.
+
 What stays familiar
 -------------------
 

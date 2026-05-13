@@ -8,6 +8,9 @@ This guide is for migrating from `Lavaplay.py <https://github.com/HazemMeqdad/la
 It walks through the main differences between SonoLink and Lavaplay, so you can get a feel for what
 changes and what stays familiar.
 
+If you are not migrating an existing Lavaplay bot, start with :doc:`/guides/getting-started`
+instead.
+
 What stays familiar
 -------------------
 
