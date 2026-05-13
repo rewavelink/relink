@@ -29,9 +29,11 @@ from typing import TYPE_CHECKING
 
 from sonolink.utils import cached_property
 
-from ..rest.schemas.info import GitObject as GitPayload
-from ..rest.schemas.info import InfoResponse as ServerInfoPayload
-from ..rest.schemas.info import VersionObject as VersionPayload
+from ..rest.schemas.info import (
+    GitObject as GitPayload,
+    InfoResponse as ServerInfoPayload,
+    VersionObject as VersionPayload,
+)
 from .base import BaseModel
 
 if TYPE_CHECKING:

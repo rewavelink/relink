@@ -37,8 +37,10 @@ from sonolink.models.filters import Filters
 from .._base import BasePlayer
 
 if TYPE_CHECKING:
-    from discord.raw_models import RawVoiceServerUpdateEvent as VoiceServerUpdate
-    from discord.raw_models import RawVoiceStateUpdateEvent as VoiceStateUpdate
+    from discord.raw_models import (
+        RawVoiceServerUpdateEvent as VoiceServerUpdate,
+        RawVoiceStateUpdateEvent as VoiceStateUpdate,
+    )
 
     from sonolink.gateway.node import Node
     from sonolink.models.settings import AutoPlaySettings, HistorySettings

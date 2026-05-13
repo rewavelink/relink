@@ -39,23 +39,13 @@ from sonolink.gateway.event_models import (
 )
 from sonolink.gateway.schemas.events import (
     TrackEndEvent as TrackEndEventPayload,
-)
-from sonolink.gateway.schemas.events import (
     TrackExceptionEvent as TrackExceptionEventPayload,
-)
-from sonolink.gateway.schemas.events import (
     TrackStartEvent as TrackStartEventPayload,
-)
-from sonolink.gateway.schemas.events import (
     TrackStuckEvent as TrackStuckEventPayload,
 )
 from sonolink.gateway.schemas.receive import (
     PlayerState,
-)
-from sonolink.gateway.schemas.receive import (
     StatsEvent as StatsEventPayload,
-)
-from sonolink.gateway.schemas.receive import (
     WebSocketClosedEvent as WebSocketClosedEventPayload,
 )
 from sonolink.rest.schemas.player import (

@@ -85,5 +85,9 @@ exclude = ["docs/"]
 [tool.ruff.lint]
 ignore = ["F405", "F403"]
 
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-wrap-aliases = true
+
 [tool.setuptools.dynamic]
 version = { attr = "sonolink._version.__version__" }

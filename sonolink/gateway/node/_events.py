@@ -31,8 +31,10 @@ import msgspec
 
 from sonolink.gateway.enums import NodeStatus
 from sonolink.gateway.event_models import PlayerUpdateEvent, ReadyEvent
-from sonolink.gateway.schemas.receive import PlayerUpdateEvent as PlayerUpdatePayload
-from sonolink.gateway.schemas.receive import ReadyEvent as ReadyPayload
+from sonolink.gateway.schemas.receive import (
+    PlayerUpdateEvent as PlayerUpdatePayload,
+    ReadyEvent as ReadyPayload,
+)
 from sonolink.rest.schemas.info import StatsResponse
 from sonolink.rest.schemas.session import UpdateSessionRequest
 
