@@ -87,9 +87,11 @@ Nextcord (see more about that below).
            intents = discord.Intents(guilds=True, voice_states=True)
            super().__init__(command_prefix=[], intents=intents)
 
+           # The SonoLink client owns your Lavalink nodes and is attached to this bot.
            self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
        async def setup_hook(self) -> None:
+           # Start opens the registered Lavalink node connections.
            await self.sl_client.start()
            await self.tree.sync()
 
@@ -197,12 +199,14 @@ guild's :class:`sonolink.Player`.
            await interaction.followup.send("The bot is already connected with another voice client.")
            return
 
+       # Ask Lavalink to resolve the user's query through the SonoLink client.
        result = await bot.sl_client.search_track(query)
 
        if result.is_error() or result.is_empty() or result.result is None:
            await interaction.followup.send("No tracks found.")
            return
 
+       # Search results can be a list of tracks, a playlist, or a single track.
        data = result.result
 
        if isinstance(data, list):
@@ -212,9 +216,11 @@ guild's :class:`sonolink.Player`.
        else:
            track = data
 
+       # Queue the selected track on the guild's SonoLink player.
        player.queue.put(track)
 
        if not player.current:
+           # If nothing is playing yet, pull the first queued track and start it.
            track = player.queue.get()
            await player.play(track)
            await interaction.followup.send(f"Now playing `{track.title}`.")
