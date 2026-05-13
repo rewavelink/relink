@@ -53,6 +53,8 @@ v1.1.0 - 2026-05-09
 - Added a ``py.typed`` marker file for improved typing compatibility with type checkers.
 - Added two new keyword arguments to :meth:`Client.create_node`: ``host`` and ``port`` for specifying the node URI in parts as an 
 alternative to the single ``uri`` string; ``uri`` is now optional to allow for this.
+- Added a `Code of Conduct <https://github.com/sonolink/sonolink/blob/main/.github/CODE_OF_CONDUCT.md>`_
+  for project community guidelines.
 
 **Changed**
 ~~~~~~~~~~~
@@ -76,12 +78,14 @@ alternative to the single ``uri`` string; ``uri`` is now optional to allow for t
 
 - Fixed incorrect generics on the :class:`.adapters._pycord.PycordPlayer`.
 - Fixed ``force`` parameter handling in :meth:`._base.BasePlayer.disconnect`.
+- Fixed the library raising `QueueEmpty` when skipping tracks for the user interally. 
 
 **Miscellaneous**
 ~~~~~~~~~~~~~~~~~
 
 - :class:`sonolink.gateway.Node` has been split into multiple components internally for better separation of concerns and maintainability. 
 This is not a breaking change as the public API remains the same, but it should improve code readability and future extensibility.
+- Formatted the project with `Ruff <https://docs.astral.sh/ruff/>` for consistent code style and linting.
 
 .. _vp1p0p1:
 
