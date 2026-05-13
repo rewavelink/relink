@@ -49,8 +49,8 @@ if TYPE_CHECKING:
 
 
 __all__ = (
-    "PlayerState",
     "BasePlayer",
+    "PlayerState",
 )
 
 

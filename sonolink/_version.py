@@ -23,9 +23,10 @@ SOFTWARE.
 """
 
 from __future__ import annotations
+
 from typing import Literal, NamedTuple
 
-__all__ = ("version_info", "__version__")
+__all__ = ("__version__", "version_info")
 
 
 class VersionInfo(NamedTuple):

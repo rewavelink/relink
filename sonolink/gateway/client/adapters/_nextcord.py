@@ -31,8 +31,8 @@ import nextcord
 from .._base import DiscordClient
 
 __all__ = (
-    "NextcordClientProto",
     "NextcordClient",
+    "NextcordClientProto",
 )
 
 

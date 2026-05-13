@@ -25,7 +25,7 @@ jobs:
                   python-version: "3.13"
 
             - name: Install ruff
-              run: pip install ruff
+              run: pip install -U ruff==0.15.12
 
             - name: Run ruff format
               run: ruff format . --exclude docs/

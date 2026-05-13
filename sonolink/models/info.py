@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from ..rest.schemas.info import PluginObject
 
 
-__all__ = ("ServerInfo", "GitInfo", "Version")
+__all__ = ("GitInfo", "ServerInfo", "Version")
 
 
 class Version(BaseModel[VersionPayload]):

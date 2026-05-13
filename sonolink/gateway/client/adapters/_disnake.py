@@ -31,8 +31,8 @@ import disnake
 from .._base import DiscordClient
 
 __all__ = (
-    "DisnakeClientProto",
     "DisnakeClient",
+    "DisnakeClientProto",
 )
 
 

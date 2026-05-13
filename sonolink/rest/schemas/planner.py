@@ -30,12 +30,12 @@ from ..enums import IPBlockType, RoutePlannerType
 
 __all__ = (
     "DetailsObject",
-    "IPBlockObject",
     "FailingAddressObject",
+    "IPBlockObject",
     "RoutePlannerStatusResponse",
+    "UnmarkAllFailedAddressesResponse",
     "UnmarkFailedAddressRequest",
     "UnmarkFailedAddressResponse",
-    "UnmarkAllFailedAddressesResponse",
 )
 
 

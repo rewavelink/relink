@@ -31,8 +31,8 @@ import discord
 from .._base import DiscordClient
 
 __all__ = (
-    "DpyClientProto",
     "DpyClient",
+    "DpyClientProto",
 )
 
 

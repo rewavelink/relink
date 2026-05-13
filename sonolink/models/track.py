@@ -24,8 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import types
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from ..rest.schemas.track import Track

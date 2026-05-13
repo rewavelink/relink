@@ -29,13 +29,13 @@ import datetime
 import msgspec
 
 __all__ = (
-    "ReadyEvent",
-    "PlayerUpdateEvent",
-    "PlayerState",
-    "StatsEvent",
-    "MemoryStats",
     "CPUStats",
     "FrameStats",
+    "MemoryStats",
+    "PlayerState",
+    "PlayerUpdateEvent",
+    "ReadyEvent",
+    "StatsEvent",
     "WebSocketClosedEvent",
 )
 

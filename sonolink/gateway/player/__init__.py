@@ -41,10 +41,10 @@ if TYPE_CHECKING:
 
 
 __all__ = (
-    "Player",
     "BasePlayer",
-    "PlayerConnectionState",
     "FrameworkLiteral",
+    "Player",
+    "PlayerConnectionState",
 )
 
 _log = logging.getLogger(__name__)
