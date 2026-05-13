@@ -8,6 +8,9 @@ This guide is for migrating from `Lavalink.py <https://github.com/Devoxin/Lavali
 It walks through the main differences between SonoLink and Lavalink.py, so you can get a feel
 for what changes and what stays familiar.
 
+If you are not migrating an existing Lavalink.py bot, start with :doc:`/guides/getting-started`
+instead.
+
 What stays familiar
 -------------------
 
