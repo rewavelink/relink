@@ -180,11 +180,42 @@ class Client(Generic[N]):
         """
         return self._framework
 
+    @overload
+    def create_node(
+        self,
+        *,
+        host: str,
+        port: int,
+        password: str,
+        id: str | None = ...,
+        retries: int | None = ...,
+        resume_timeout: float = 60.0,
+        cache_settings: CacheSettings | None = ...,
+        inactivity_settings: InactivitySettings | None = ...,
+        session: SessionType | None = ...,
+    ) -> N: ...
+
+    @overload
     def create_node(
         self,
         *,
         uri: str,
         password: str,
+        id: str | None = ...,
+        retries: int | None = ...,
+        resume_timeout: float = 60.0,
+        cache_settings: CacheSettings | None = ...,
+        inactivity_settings: InactivitySettings | None = ...,
+        session: SessionType | None = ...,
+    ) -> N: ...
+
+    def create_node(
+        self,
+        *,
+        password: str,
+        uri: str | None = None,
+        host: str | None = None,
+        port: int | None = None,
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60.0,
@@ -197,11 +228,22 @@ class Client(Generic[N]):
 
         Parameters
         ----------
-        uri: :class:`str`
-            The URI the node will connect to. You should only provide the base URI without
-            any routes, as the library will do it for you.
         password: :class:`str`
             The password of the node.
+        uri: :class:`str` | :data:`None`
+            The URI the node will connect to. You should only provide the base URI without
+            any routes, as the library will do it for you. This is mutually exclusive with providing ``host`` and ``port``.
+
+            .. versionchanged:: 1.1.0
+                This is optional now to accommodate users who prefer providing host and port separately.
+        host: :class:`str` | :data:`None`
+            The host of the node. This is mutually exclusive with providing ``uri``.
+
+            .. versionadded:: 1.1.0
+        port: :class:`int` | :data:`None`
+            The port of the node. This is mutually exclusive with providing ``uri``.
+
+            .. versionadded:: 1.1.0
         id: :class:`str` | :data:`None`
             The ID of this node. This is used internally to identify this node. If ``None`` is passed, it is
             generated automatically.
@@ -220,14 +262,28 @@ class Client(Generic[N]):
         session: ``aiohttp.ClientSession`` | ``curl_cffi.AsyncSession`` | :data:`None`
             The session this node should use. If ``None`` is provided, creates one. Defaults to ``None``.
 
+        Raises
+        ------
+        ValueError
+            Invalid combination of parameters. You must provide either
+            ``uri`` or both ``host`` and ``port``, but not all three.
+
         Returns
         -------
         :class:`Node`
             The node that was created.
         """
+        if (uri is not None) and (host is not None or port is not None):
+            msg = "Cannot specify both uri and host/port."
+            raise ValueError(msg)
+
+        if (uri is None) and (host is None or port is None):
+            msg = "Must specify either uri or host and port."
+            raise ValueError(msg)
 
         i_settings = inactivity_settings or InactivitySettings.default()
         c_settings = cache_settings or CacheSettings.default()
+        uri = uri or f"{host}:{port}"
 
         node = self._node_cls(
             client=self,

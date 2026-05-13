@@ -50,6 +50,8 @@ v1.1.0 - 2026-05-09
   The existing `WaveLink <https://sonolink.readthedocs.io/en/latest/guides/migrations/wavelink.html>`_ guide has also been updated.
 
 - Added a ``py.typed`` marker file for improved typing compatibility with type checkers.
+- Added two new keyword arguments to :meth:`Client.create_node`: ``host`` and ``port`` for specifying the node URI in parts as an 
+alternative to the single ``uri`` string; ``uri`` is now optional to allow for this.
 
 **Changed**
 ~~~~~~~~~~~
