@@ -25,7 +25,7 @@ and Lavalink performs the audio loading, decoding, and streaming work.
 You need:
 
 * Python 3.12 or newer.
-* One supported Discord library: discord.py, py-cord, disnake, or nextcord.
+* One supported Discord library: py-cord, discord.py, disnake, or nextcord.
 * SonoLink installed with ``pip install sonolink``.
 * A running Lavalink 4 server.
 
@@ -68,7 +68,7 @@ Creating the SonoLink client
 Create the SonoLink client after creating your Discord bot. The client should live for as long
 as your bot process lives.
 
-This example uses discord.py, so the flow may differ for Pycord, Disnake, and
+This example uses Pycord, so the flow may differ for discord.py, Disnake, and
 Nextcord (see more about that below).
 
 .. code-block:: python
@@ -76,25 +76,22 @@ Nextcord (see more about that below).
    from typing import Any
 
    import discord
-   from discord import app_commands
-   from discord.ext import commands
 
    import sonolink
 
+    class Bot(discord.Bot):
+        def __init__(self) -> None:
+            intents = discord.Intents(guilds=True, voice_states=True)
+            super().__init__(intents=intents)
 
-   class Bot(commands.Bot):
-       def __init__(self) -> None:
-           intents = discord.Intents(guilds=True, voice_states=True)
-           super().__init__(command_prefix=[], intents=intents)
+            # The SonoLink client owns your Lavalink nodes and is attached to this bot.
+            self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
-           # The SonoLink client owns your Lavalink nodes and is attached to this bot.
-           self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
+        async def on_connect(self) -> None:
+            await super().on_connect()
 
-       async def setup_hook(self) -> None:
-           # Start opens the registered Lavalink node connections.
-           await self.sl_client.start()
-           await self.tree.sync()
-
+            # Start opens the registered Lavalink node connections.
+            await self.sl_client.start()
 
    bot = Bot()
 
@@ -141,8 +138,8 @@ Calling :meth:`sonolink.Client.create_node` registers the node. Calling
 
 .. note::
    :meth:`sonolink.Client.start` should be called once your Discord client is ready,
-   typically in :meth:`discord:discord.Client.setup_hook` (discord.py),
-   :func:`pycord:discord.on_connect` (py-cord), :func:`disnake:disnake.on_connect`
+   typically in :func:`pycord:discord.on_connect` (py-cord),
+   :meth:`discord:discord.Client.setup_hook` (discord.py), :func:`disnake:disnake.on_connect`
    (disnake), or :func:`nextcord:nextcord.on_connect` (nextcord) rather than in
    ``on_ready``.
 
@@ -154,20 +151,20 @@ The player will use the SonoLink client attached to your bot and choose a connec
 
 .. code-block:: python
 
-   @bot.tree.command(name="join", description="Connects the bot to your voice channel.")
-   async def join(interaction: discord.Interaction) -> None:
-       if not isinstance(interaction.user, discord.Member):
-           await interaction.response.send_message("This command can only be used in a server.")
+   @bot.slash_command(name="join", description="Connects the bot to your voice channel.")
+   async def join(ctx: discord.ApplicationContext) -> None:
+       if not isinstance(ctx.author, discord.Member):
+           await ctx.respond("This command can only be used in a server.")
            return
 
-       if not interaction.user.voice or not interaction.user.voice.channel:
-           await interaction.response.send_message("You must be in a voice channel.")
+       if not ctx.author.voice or not ctx.author.voice.channel:
+           await ctx.respond("You must be in a voice channel.")
            return
 
-       player = await interaction.user.voice.channel.connect(cls=sonolink.Player)
+       player = await ctx.author.voice.channel.connect(cls=sonolink.Player)
        assert isinstance(player, sonolink.Player)
 
-       await interaction.response.send_message("Connected.")
+       await ctx.respond("Connected.")
 
 Searching and playing
 ---------------------
@@ -177,33 +174,33 @@ guild's :class:`sonolink.Player`.
 
 .. code-block:: python
 
-   @bot.tree.command(name="play", description="Plays a song.")
-   @app_commands.describe(query="A search query or URL.")
-   async def play(interaction: discord.Interaction, query: str) -> None:
-       await interaction.response.defer()
+   @bot.slash_command(name="play", description="Plays a song.")
+   @discord.option("query", description="A search query or URL.")
+   async def play(ctx: discord.ApplicationContext, query: str) -> None:
+       await ctx.defer()
 
-       if not isinstance(interaction.user, discord.Member):
-           await interaction.followup.send("This command can only be used in a server.")
+       if not isinstance(ctx.author, discord.Member):
+           await ctx.respond("This command can only be used in a server.")
            return
 
-       player = interaction.guild.voice_client if interaction.guild else None
+       player = ctx.guild.voice_client if ctx.guild else None
 
        if player is None:
-           if not interaction.user.voice or not interaction.user.voice.channel:
-               await interaction.followup.send("You must be in a voice channel.")
+           if not ctx.author.voice or not ctx.author.voice.channel:
+               await ctx.respond("You must be in a voice channel.")
                return
 
-           player = await interaction.user.voice.channel.connect(cls=sonolink.Player)
+           player = await ctx.author.voice.channel.connect(cls=sonolink.Player)
 
        if not isinstance(player, sonolink.Player):
-           await interaction.followup.send("The bot is already connected with another voice client.")
+           await ctx.respond("The bot is already connected with another voice client.")
            return
 
        # Ask Lavalink to resolve the user's query through the SonoLink client.
        result = await bot.sl_client.search_track(query)
 
        if result.is_error() or result.is_empty() or result.result is None:
-           await interaction.followup.send("No tracks found.")
+           await ctx.respond("No tracks found.")
            return
 
        # Search results can be a list of tracks, a playlist, or a single track.
@@ -223,9 +220,9 @@ guild's :class:`sonolink.Player`.
            # If nothing is playing yet, pull the first queued track and start it.
            track = player.queue.get()
            await player.play(track)
-           await interaction.followup.send(f"Now playing `{track.title}`.")
+           await ctx.respond(f"Now playing `{track.title}`.")
        else:
-           await interaction.followup.send(f"Queued `{track.title}`.")
+           await ctx.respond(f"Queued `{track.title}`.")
 
 Repository examples
 -------------------
@@ -236,8 +233,8 @@ of building each command from the guide snippets.
 
 The repository currently includes examples for:
 
-* `discord.py <https://github.com/sonolink/sonolink/tree/main/examples/discord.py>`_
 * `py-cord <https://github.com/sonolink/sonolink/tree/main/examples/py-cord>`_
+* `discord.py <https://github.com/sonolink/sonolink/tree/main/examples/discord.py>`_
 * `disnake <https://github.com/sonolink/sonolink/tree/main/examples/disnake>`_
 * `nextcord <https://github.com/sonolink/sonolink/tree/main/examples/nextcord>`_
 
@@ -267,23 +264,21 @@ Putting the pieces together:
    from typing import Any
 
    import discord
-   from discord import app_commands
-   from discord.ext import commands
 
    import sonolink
    import sonolink.models
 
 
-   class Bot(commands.Bot):
+   class Bot(discord.Bot):
        def __init__(self) -> None:
            intents = discord.Intents(guilds=True, voice_states=True)
-           super().__init__(command_prefix=[], intents=intents)
+           super().__init__(intents=intents)
 
            self.sl_client: sonolink.Client[Any] = sonolink.Client(self)
 
-       async def setup_hook(self) -> None:
+       async def on_connect(self) -> None:
+           await super().on_connect()
            await self.sl_client.start()
-           await self.tree.sync()
 
 
    bot = Bot()
@@ -295,32 +290,32 @@ Putting the pieces together:
    )
 
 
-   @bot.tree.command(name="play", description="Plays a song.")
-   @app_commands.describe(query="A search query or URL.")
-   async def play(interaction: discord.Interaction, query: str) -> None:
-       await interaction.response.defer()
+   @bot.slash_command(name="play", description="Plays a song.")
+   @discord.option("query", description="A search query or URL.")
+   async def play(ctx: discord.ApplicationContext, query: str) -> None:
+       await ctx.defer()
 
-       if not isinstance(interaction.user, discord.Member):
-           await interaction.followup.send("This command can only be used in a server.")
+       if not isinstance(ctx.author, discord.Member):
+           await ctx.respond("This command can only be used in a server.")
            return
 
-       player = interaction.guild.voice_client if interaction.guild else None
+       player = ctx.guild.voice_client if ctx.guild else None
 
        if player is None:
-           if not interaction.user.voice or not interaction.user.voice.channel:
-               await interaction.followup.send("You must be in a voice channel.")
+           if not ctx.author.voice or not ctx.author.voice.channel:
+               await ctx.respond("You must be in a voice channel.")
                return
 
-           player = await interaction.user.voice.channel.connect(cls=sonolink.Player)
+           player = await ctx.author.voice.channel.connect(cls=sonolink.Player)
 
        if not isinstance(player, sonolink.Player):
-           await interaction.followup.send("The bot is already connected with another voice client.")
+           await ctx.respond("The bot is already connected with another voice client.")
            return
 
        result = await bot.sl_client.search_track(query)
 
        if result.is_error() or result.is_empty() or result.result is None:
-           await interaction.followup.send("No tracks found.")
+           await ctx.respond("No tracks found.")
            return
 
        data = result.result
@@ -337,9 +332,9 @@ Putting the pieces together:
        if not player.current:
            track = player.queue.get()
            await player.play(track)
-           await interaction.followup.send(f"Now playing `{track.title}`.")
+           await ctx.respond(f"Now playing `{track.title}`.")
        else:
-           await interaction.followup.send(f"Queued `{track.title}`.")
+           await ctx.respond(f"Queued `{track.title}`.")
 
 
    bot.run("TOKEN")
