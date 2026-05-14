@@ -19,6 +19,7 @@ from .utils import *
 __all__ = (
     "AutoPlayMode",
     "Client",
+    "DisconnectTriggerType",
     "ErrorResponseType",
     "ExceptionSeverity",
     "HTTPException",
