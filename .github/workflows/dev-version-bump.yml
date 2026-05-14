@@ -1,0 +1,47 @@
+name: Version Bump for Development
+
+on:
+    release:
+        types: [published]
+
+jobs:
+    build:
+        name: Bump Version
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.event.release.target_commitish || github.event.repository.default_branch }}
+
+            - name: Setup Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: "3.13"
+
+            - name: Install formatter
+              run: python3 -m pip install ruff --user
+
+            - name: Run auto bump script
+              run: python3 .github/scripts/auto_bump_version.py
+
+            - name: Format sonolink/_version.py with Ruff
+              run: |
+                  python3 -m ruff check sonolink/_version.py --select I --fix
+                  python3 -m ruff format sonolink/_version.py
+
+            - name: Commit and push version changes
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git add -A
+
+                  if ! git diff --cached --quiet; then
+                    git commit -m "chore(version): bump version for development"
+                    git show HEAD
+                    git push
+                  else
+                    echo "No changes required"
+                  fi

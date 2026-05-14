@@ -7,6 +7,26 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+`Unreleased`_
+--------------
+
+These changes are available on the `main` branch, but have not yet been released.
+
+Added
+~~~~~~
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~~
+
+Removed
+~~~~~~~
+
+Deprecated
+~~~~~~~~~~~
+
 .. _vp1p1p0:
 
 v1.1.0 - 2026-05-09
@@ -100,7 +120,6 @@ v1.0.1 - 2026-04-12
   - Reduced connection time (~11x faster)
   - Reduced memory peak (~12x lower)
   - Eliminated repeated expensive ``importlib.metadata.packages_distributions()`` calls
-
 .. _vp1p0p0:
 
 v1.0.0 - 2026-04-11

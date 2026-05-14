@@ -34,13 +34,18 @@ class VersionInfo(NamedTuple):
     minor: int
     patch: int
     release_level: Literal["alpha", "beta", "candidate", "final"]
+    extra: int = 0
 
     def __str__(self) -> str:
         return self.as_str()
 
     def as_str(self) -> str:
         base = f"{self.major}.{self.minor}.{self.patch}"
-        suffixes = {"alpha": "a0", "beta": "b0", "candidate": "rc0"}
+        suffixes = {
+            "alpha": f"a{self.extra}",
+            "beta": f"b{self.extra}",
+            "candidate": f"rc{self.extra}",
+        }
         suffix = suffixes.get(self.release_level, "")
         return base + suffix
 
