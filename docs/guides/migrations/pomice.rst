@@ -8,6 +8,9 @@ This guide is for migrating from `Pomice <https://github.com/cloudwithax/pomice>
 It walks through the main differences between SonoLink and Pomice 2.x, so you can get a feel
 for what changes and what stays familiar.
 
+If you are not migrating an existing Pomice bot, start with :doc:`/guides/getting-started`
+instead.
+
 What stays familiar
 -------------------
 

@@ -27,7 +27,7 @@ from typing import Any
 
 import msgspec
 
-from sonolink.gateway.enums import TrackEndReason
+from sonolink.gateway.enums import DisconnectTriggerType, TrackEndReason
 from sonolink.gateway.errors import AutoPlaySeedMissing, QueueEmpty
 from sonolink.gateway.event_models import (
     StatsEvent,
@@ -48,6 +48,7 @@ from sonolink.gateway.schemas.receive import (
     StatsEvent as StatsEventPayload,
     WebSocketClosedEvent as WebSocketClosedEventPayload,
 )
+from sonolink.rest.errors import HTTPException
 from sonolink.rest.schemas.player import (
     PlayerVoiceState,
     UpdatePlayerRequest,
@@ -76,7 +77,7 @@ class EventsHandler(HandlerBase):
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
         event_type = data.get("type")
         _log.debug(
-            "Player %s receiving even type: %s", self._player.guild.id, event_type
+            "Player %s receiving event type: %s", self._player.guild.id, event_type
         )
 
         assert self._player._node is not None
@@ -243,14 +244,37 @@ class EventsHandler(HandlerBase):
                 self._player.guild.id,
                 self._player._node.id,
             )
+        except HTTPException as exc:
+            if exc.status == 404:
+                _log.warning(
+                    "Player %s: Session not found (404) during voice update — "
+                    "node session is stale. Forcing disconnect.",
+                    self._player.guild.id,
+                )
+                self._player._node._resume_session = None
+                await self._player._lifecycle_handler.disconnect(
+                    force=True,
+                    trigger=DisconnectTriggerType.ERROR,
+                    extra_event_data=exc,
+                )
+            else:
+                _log.error(
+                    "Player %s: Failed to dispatch voice update to Node %r. Error: %s",
+                    self._player.guild.id,
+                    self._player._node.id,
+                    exc,
+                    exc_info=True,
+                )
+            return
         except Exception as exc:
             _log.error(
-                "Player %s: Failed to dispatch voice update to Node %r. Error: %s",
+                "Player %s: Unexpected error during voice update to Node %r. Error: %s",
                 self._player.guild.id,
                 self._player._node.id,
                 exc,
                 exc_info=True,
             )
+            return
 
         self._player._connection._connected_flag.set()
         _log.debug("Successfully completed connection on player %r", self._player)

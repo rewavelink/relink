@@ -46,7 +46,7 @@ Getting Started
 Who should read what
 --------------------
 
-* **New users** — start with :doc:`installation`, then work through :doc:`guides/index`.
+* **New users** — start with :doc:`installation`, then read :doc:`guides/getting-started`.
 * **Advanced users** — jump straight to :doc:`api/index` and refer to the guides as needed.
 
 Typical flow

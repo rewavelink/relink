@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING, Annotated, Any
 from sonolink import _registry
 from sonolink.gateway.player.handlers._autoplay import AutoPlayHandler
 from sonolink.gateway.player.handlers._events import EventsHandler
-from sonolink.gateway.player.handlers._incativity import InactivityHandler
+from sonolink.gateway.player.handlers._inactivity import InactivityHandler
 from sonolink.gateway.player.handlers._lifecycle import LifecycleHandler
 from sonolink.gateway.player.handlers._playback import PlaybackHandler
 from sonolink.models.filters import Filters
