@@ -7,6 +7,17 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp1p1p1:
+
+v1.1.1 - 2026-05-14
+-------------------
+
+**Fixed**
+~~~~~~~~~
+
+- :class:`sonolink.Player` not disconnecting on stale LavaLink session.
+- :class:`sonolink.gateway.PlayerDisconnectEvent` missing the :attr:`sonolink.gateway.PlayerDisconnectEvent.extra_data` attribute typings.
+
 .. _vp1p1p0:
 
 v1.1.0 - 2026-05-09
