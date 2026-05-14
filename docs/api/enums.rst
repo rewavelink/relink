@@ -68,3 +68,11 @@ Rest
    :members:
    :no-attributetable:
    :no-inherited-members:
+
+Events
+------
+
+.. autoclass:: sonolink.DisconnectTriggerType()
+   :members:
+   :no-attributetable:
+   :no-inherited-members:

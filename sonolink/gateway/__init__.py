@@ -20,6 +20,7 @@ __all__ = (
     "AutoPlayMode",
     "AutoPlaySeedMissing",
     "Client",
+    "DisconnectTriggerType",
     "FrameworkClientMismatch",
     "FrameworkImportError",
     "History",
