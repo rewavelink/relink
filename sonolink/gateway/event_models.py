@@ -220,10 +220,20 @@ class TrackStuckEvent(EventModel["events.TrackStuckEvent"]):
 class PlayerDisconnectEvent(EventModel["events.PlayerDisconnectEvent"]):
     """Represents a player disconnected event."""
 
-    __repr_attrs__ = ("trigger",)
+    __repr_attrs__ = (
+        "trigger",
+        "extra_data",
+    )
 
     trigger: DisconnectTriggerType
     """The trigger that caused the disconnect."""
+
+    extra_data: Any | None
+    """Extra data from the trigger.
+
+    When :attr:`trigger` is a :attr:`sonolink.gateway.DisconnectTriggerType.ERROR`, this usually
+    is an :exc:`Exception` object.
+    """
 
 
 class WebSocketClosedEvent(EventModel["receive.WebSocketClosedEvent"]):
