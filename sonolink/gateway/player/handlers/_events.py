@@ -77,7 +77,7 @@ class EventsHandler(HandlerBase):
     async def _dispatch_event(self, data: dict[str, Any]) -> None:
         event_type = data.get("type")
         _log.debug(
-            "Player %s receiving even type: %s", self._player.guild.id, event_type
+            "Player %s receiving event type: %s", self._player.guild.id, event_type
         )
 
         assert self._player._node is not None
