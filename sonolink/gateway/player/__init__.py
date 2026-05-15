@@ -87,12 +87,12 @@ class _PlayerMeta(abc.ABCMeta):
 
     def __instancecheck__(cls, instance: Any) -> bool:
         if cls is Player:
-            return isinstance(instance, BasePlayer)
+            return type.__instancecheck__(BasePlayer, instance)
         return super().__instancecheck__(instance)
 
     def __subclasscheck__(cls, subclass: type) -> bool:
         if cls is Player:
-            return issubclass(subclass, BasePlayer)
+            return type.__subclasscheck__(BasePlayer, subclass)
         return super().__subclasscheck__(subclass)
 
 
