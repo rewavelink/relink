@@ -15,11 +15,14 @@ v1.1.1 - 2026-05-15
 **Fixed**
 ~~~~~~~~~
 
-- Recursion issue in :class:`sonolink.Player` custom subclass and instance checks that raised a :exc:`RecursionError` during ``issubclass`` or ``isinstance`` checks.
-- :class:`sonolink.Player` not properly disconnecting after Discord 4014 and 4022 voice close events, which could leave players stuck in an invalid voice session state.
+- Recursion issue in :class:`sonolink.Player` custom subclass and instance checks that raised a
+  :exc:`RecursionError` during ``issubclass`` or ``isinstance`` checks.
+- :class:`sonolink.Player` not properly disconnecting after Discord 4014 and 4022 voice close
+  events, which could leave players stuck in an invalid voice session state.
 - :class:`sonolink.Player` not disconnecting on stale LavaLink session.
-- Missing typings for :attr:`sonolink.gateway.PlayerDisconnectEvent.extra_data` on :class:`sonolink.gateway.PlayerDisconnectEvent`.
-
+- Missing typings for :attr:`sonolink.gateway.PlayerDisconnectEvent.extra_data` on
+  :class:`sonolink.gateway.PlayerDisconnectEvent`.
+  
 .. _vp1p1p0:
 
 v1.1.0 - 2026-05-14
