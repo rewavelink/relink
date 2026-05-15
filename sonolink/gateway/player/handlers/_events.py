@@ -161,7 +161,21 @@ class EventsHandler(HandlerBase):
                     payload.reason,
                 )
 
-                if not payload.by_remote:
+                # 4014 = Discord terminated the session remotely
+                # 4022 = Discord terminated the entire voice session/server remotely
+                if payload.code in (4014, 4022):
+                    _log.info(
+                        "Player %s: Received %d (call terminated remotely), forcing disconnect.",
+                        self._player.guild.id,
+                        payload.code
+                    )
+                    await self._player._lifecycle_handler.disconnect(
+                        force=True,
+                        trigger=DisconnectTriggerType.ERROR,
+                        extra_event_data=payload,
+                    )
+
+                elif not payload.by_remote:
                     await self._dispatch_voice_update()
 
                 self._player._node._client._dispatch(
