@@ -44,7 +44,7 @@ class NetworkError(SonoLinkException):
 
 
 class WebSocketError(NetworkError):
-    """Exception raised when a websocket error occurrs."""
+    """Exception raised when a websocket error occurs."""
 
     def __init__(self, original: WSErrorType) -> None:
         self._original: WSErrorType = original
