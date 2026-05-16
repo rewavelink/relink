@@ -778,7 +778,7 @@ class BasePlayer(abc.ABC):
     def cleanup(self) -> None:
         """
         Cleans the internal state of the Player. This is automatically called by the library when failures
-        or disconnects occurr.
+        or disconnects occur.
 
         If this is overridden, it **must** call the original ``cleanup``.
         """
