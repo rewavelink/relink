@@ -466,7 +466,7 @@ class BasePlayer(abc.ABC):
 
     async def move_to(self, node: Node, /) -> None:
         """
-        Migrate this player to a different Lavalink node without interrumping
+        Migrate this player to a different Lavalink node without interrupting
         playback.
 
         Parameters
