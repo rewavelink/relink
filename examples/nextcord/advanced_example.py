@@ -270,7 +270,7 @@ async def seek(
         return
 
     await vc.seek(seconds * 1000)
-    await inter.response.send_message(f"Seeked to {seconds}s!")
+    await inter.response.send_message(f"Sought to {seconds}s!")
 
 
 @bot.slash_command(name="stop", description="Stops playback and disconnects.")

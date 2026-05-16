@@ -248,7 +248,7 @@ async def seek(ctx: discord.ApplicationContext, seconds: int) -> None:
         return
 
     await vc.seek(seconds * 1000)
-    await ctx.respond(f"Seeked to {seconds}s!")
+    await ctx.respond(f"Sought to {seconds}s!")
 
 
 @bot.slash_command(name="stop", description="Stops playback and disconnects.")
