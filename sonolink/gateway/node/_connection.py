@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
+import itertools
 import logging
 
 from sonolink.gateway.enums import NodeStatus
@@ -84,13 +85,14 @@ class ConnectionManager(NodeComponent):
         max_delay = 10.0
 
         headers = self.node._ws_client.build_headers()
-        retries = self.node.retries if self.node.retries is not None else 1
+        retries = self.node.retries
+        counter = range(retries) if retries is not None else itertools.count()
 
-        for attempt in range(1, retries + 1):
+        for attempt in counter:
             _log.info(
-                "Starting connection attempt %d/%d on Node %r",
-                attempt,
-                retries,
+                "Starting connection attempt %d/%s on Node %r",
+                attempt + 1,
+                "inf" if retries is None else retries,
                 self.node,
             )
 
@@ -100,21 +102,20 @@ class ConnectionManager(NodeComponent):
                 await self.handle_connection_error(exc)
             else:
                 _log.info(
-                    "Successfully connected node %r (attempt %d/%d)",
+                    "Successfully connected node %r (attempt %d/%s)",
                     self.node,
-                    attempt,
-                    retries,
+                    attempt + 1,
+                    "inf" if retries is None else retries,
                 )
                 self.node._status = NodeStatus.CONNECTED
                 return
 
-            if attempt < retries:
-                delay = min(base_delay * (2 ** (attempt - 1)), max_delay)
-                _log.debug("Retrying %r in %.2f seconds...", self.node, delay)
-                await asyncio.sleep(delay)
+            delay = min(base_delay * (2**attempt), max_delay)
+            _log.debug("Retrying %r in %.2f seconds...", self.node, delay)
+            await asyncio.sleep(delay)
 
         _log.warning(
-            "%r exhausted %d connection attempts. Node will remain disconnected.",
+            "%r exhausted %s connection attempts. Node will remain disconnected.",
             self.node,
             retries,
         )
