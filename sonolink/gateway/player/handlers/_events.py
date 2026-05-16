@@ -167,7 +167,7 @@ class EventsHandler(HandlerBase):
                     _log.info(
                         "Player %s: Received %d (call terminated remotely), forcing disconnect.",
                         self._player.guild.id,
-                        payload.code
+                        payload.code,
                     )
                     await self._player._lifecycle_handler.disconnect(
                         force=True,

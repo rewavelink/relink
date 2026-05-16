@@ -267,7 +267,7 @@ async def seek(interaction: discord.Interaction, seconds: int) -> None:
         return
 
     await vc.seek(seconds * 1000)
-    await interaction.response.send_message(f"Seeked to {seconds}s!")
+    await interaction.response.send_message(f"Sought to {seconds}s!")
 
 
 @bot.tree.command(name="stop", description="Stops playback and disconnects.")

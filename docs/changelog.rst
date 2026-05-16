@@ -93,7 +93,7 @@ v1.1.0 - 2026-05-14
 
 - Fixed incorrect generics on the :class:`PycordPlayer <.adapters._pycord.PycordPlayer>`.
 - Fixed ``force`` parameter handling in :meth:`Player.disconnect <._base.BasePlayer.disconnect>`.
-- Fixed the library raising :class:`QueueEmpty <sonolink.QueueEmpty>` when skipping tracks for the user interally. 
+- Fixed the library raising :class:`QueueEmpty <sonolink.QueueEmpty>` when skipping tracks for the user internally. 
 
 **Miscellaneous**
 ~~~~~~~~~~~~~~~~~

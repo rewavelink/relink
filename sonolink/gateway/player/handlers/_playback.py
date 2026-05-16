@@ -179,7 +179,7 @@ class PlaybackHandler(HandlerBase):
         self._player._last_position = position
         self._player._last_update = time.monotonic()
 
-        _log.debug("Player %s: Seeked to %dms", self._player.guild.id, position)
+        _log.debug("Player %s: Sought to %dms", self._player.guild.id, position)
 
     async def set_volume(self, value: int, /) -> None:
         if not 0 <= value <= 1000:
