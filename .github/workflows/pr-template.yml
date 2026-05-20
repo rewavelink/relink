@@ -12,6 +12,7 @@ permissions:
 jobs:
     template-check:
         runs-on: ubuntu-latest
+        if: github.actor != 'renovate[bot]'
         steps:
             - name: Checkout base branch
               uses: actions/checkout@v6
@@ -27,7 +28,10 @@ jobs:
 
     auto-apply-tags:
         runs-on: ubuntu-latest
-        if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
+        if: |
+          always() && 
+          github.actor != 'renovate[bot]' && 
+          (needs.template-check.result == 'success' || needs.template-check.result == 'skipped')
         needs: [template-check]
         steps:
             - name: Checkout base branch
