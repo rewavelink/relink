@@ -8,7 +8,9 @@ on:
 jobs:
     format:
         runs-on: ubuntu-latest
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: |
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.actor != 'renovate[bot]'
         permissions:
             contents: write
 
@@ -49,7 +51,9 @@ jobs:
 
     lint-check:
         runs-on: ubuntu-latest
-        if: github.event.pull_request.head.repo.full_name != github.repository
+        if: |
+            github.event.pull_request.head.repo.full_name != github.repository &&
+            github.actor != 'renovate[bot]'
 
         steps:
             - name: Checkout
