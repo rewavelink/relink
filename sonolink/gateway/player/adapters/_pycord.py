@@ -28,7 +28,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
 import discord
-from discord.client import Client
 from discord.voice import VoiceProtocol
 
 from sonolink.gateway.enums import QueueMode
@@ -52,7 +51,7 @@ UNSET = discord.utils.MISSING
 __all__ = ("PycordPlayer",)
 
 
-class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
+class PycordPlayer(BasePlayer, VoiceProtocol[discord.Client]):
     """
     A py-cord implementation of :class:`~sonolink.player.base_player.BasePlayer`.
 
@@ -108,7 +107,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
     """
 
     channel: discord.abc.Connectable
-    client: Client
+    client: discord.Client
 
     _guild: discord.Guild | None
 
@@ -128,13 +127,13 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
     @overload
     def __init__(
         self,
-        client: Client,
+        client: discord.Client,
         channel: discord.abc.Connectable,
     ) -> None: ...
 
     def __init__(
         self,
-        client: Client = UNSET,
+        client: discord.Client = UNSET,
         channel: discord.abc.Connectable = UNSET,
         *,
         node: Node | None = None,
@@ -165,7 +164,7 @@ class PycordPlayer(BasePlayer, VoiceProtocol[Client]):
 
     def __call__(
         self,
-        client: Client,
+        client: discord.Client,
         channel: discord.abc.Connectable,
     ) -> Self:
         """
