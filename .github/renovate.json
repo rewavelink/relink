@@ -7,6 +7,7 @@
     ],
     "schedule": ["before 8am on the first day of the month"],
     "timezone": "UTC",
+    "assignees": ["vmphase"],
     "github-actions": {
         "pinDigests": true
     },
