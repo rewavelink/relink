@@ -27,6 +27,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, cast
 
+from curl_cffi import CurlError
 from curl_cffi.requests import (
     AsyncSession,
     AsyncWebSocket,
@@ -122,7 +123,7 @@ class CurlWebsocketManager(
                 url=url,
                 headers=headers,
             )
-        except WebSocketError as e:
+        except (WebSocketError, CurlError) as e:
             raise InnerWSError(e) from e
 
     async def receive(self) -> Message:

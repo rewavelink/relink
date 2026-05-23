@@ -138,6 +138,7 @@ class Node:
         self._ws = None
         self._keep_alive = None
         self._stats = None
+        self._is_reconnecting = False
 
         self._players: dict[int, BasePlayer] = {}
         self._player_factory = PlayerFactory()
@@ -244,6 +245,16 @@ class Node:
         This can only be done when the node has been attached to a pool.
         """
         await self._connection.connect()
+
+    async def reconnect(self) -> None:
+        """
+        Reconnects this node.
+
+        This can only be done when the node has been attached to a pool.
+
+        .. versuionadded:: 1.2.0
+        """
+        await self._connection.reconnect()
 
     async def close(self) -> None:
         """

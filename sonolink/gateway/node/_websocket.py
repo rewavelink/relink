@@ -81,14 +81,14 @@ class WebsocketClient(NodeComponent):
             msg = await self.node._ws.receive()
 
             if MessageType.CLOSE in msg.flags:
-                self.node._client._dispatch("node_close", self.node)
-
                 if self.node.auto_reconnect and self.node._status not in (
                     NodeStatus.CONNECTING,
                     NodeStatus.DISCONNECTED,
                 ):
                     _log.info("%r WS closed, attempting reconnect...", self.node)
-                    asyncio.create_task(self.node.connect())
+                    await self.node.reconnect()
+                else:
+                    await self.node.close()
                 break
 
             if msg.data is None:
