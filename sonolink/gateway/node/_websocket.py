@@ -78,17 +78,15 @@ class WebsocketClient(NodeComponent):
         assert self.node._client
 
         while True:
-            msg = await self.node._ws.receive()
+            try:
+                msg = await self.node._ws.receive()
+            except (ConnectionError, RuntimeError) as exc:
+                _log.warning("%r lost connection unexpectedly: %s", self.node, exc)
+                await self._handle_disconnect()
+                break
 
             if MessageType.CLOSE in msg.flags:
-                if self.node.auto_reconnect and self.node._status not in (
-                    NodeStatus.CONNECTING,
-                    NodeStatus.DISCONNECTED,
-                ):
-                    _log.info("%r WS closed, attempting reconnect...", self.node)
-                    await self.node.reconnect()
-                else:
-                    await self.node.close()
+                await self._handle_disconnect()
                 break
 
             if msg.data is None:
@@ -122,3 +120,13 @@ class WebsocketClient(NodeComponent):
         result = handler(data)
         if asyncio.iscoroutine(result):
             await result
+
+    async def _handle_disconnect(self) -> None:
+        if self.node.auto_reconnect and self.node._status not in (
+            NodeStatus.CONNECTING,
+            NodeStatus.DISCONNECTED,
+        ):
+            _log.info("%r WS closed, attempting reconnect...", self.node)
+            await self.node.reconnect()
+        else:
+            await self.node.close()

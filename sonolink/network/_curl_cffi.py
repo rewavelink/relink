@@ -134,7 +134,7 @@ class CurlWebsocketManager(
 
         try:
             payload, flags = await ws.recv()
-        except WebSocketClosed:
+        except (CurlError, WebSocketClosed):
             self._ws = None
             raise ConnectionResetError("Websocket connection was closed.")
 
