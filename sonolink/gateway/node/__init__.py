@@ -83,9 +83,6 @@ class Node:
         is passed, reconnect attempts are unlimited.
     resume_timeout: :class:`float`
         The number of seconds Lavalink should keep a resumable session alive.
-    auto_reconnect: :class:`bool`
-        Whether the node should attempt to reconnect automatically after an unexpected
-        disconnect.
     cache_settings: :class:`sonolink.models.CacheSettings` | :data:`None`
         Settings used for the node's search-result cache. If ``None`` is passed, default
         cache settings are used.
@@ -94,6 +91,9 @@ class Node:
     session: ``aiohttp.ClientSession`` | ``curl_cffi.AsyncSession`` | :data:`None`
         Optional pre-existing HTTP session to reuse for this node's REST and websocket
         transport. If ``None`` is passed, the library creates one.
+    auto_reconnect: :class:`bool`
+        Whether the node should attempt to reconnect automatically after an unexpected
+        disconnect.
     """
 
     retries: int | None
@@ -119,13 +119,14 @@ class Node:
         id: str | None = None,
         retries: int | None = None,
         resume_timeout: float = 60,
-        auto_reconnect: bool = True,
         cache_settings: CacheSettings | None = None,
         inactivity_settings: InactivitySettings,
         session: SessionType | None = None,
+        auto_reconnect: bool = True,
     ) -> None:
         self._client = client
         self._id = id or os.urandom(16).hex()
+        self._uri = uri.removesuffix("/")
         self._password = password
 
         self.retries = retries
@@ -133,27 +134,24 @@ class Node:
         self.auto_reconnect = auto_reconnect
 
         self._status: NodeStatus = NodeStatus.DISCONNECTED
+        self._is_reconnecting = False
         self._resume_session = None
         self._has_resume_session = asyncio.Event()
         self._ws = None
         self._keep_alive = None
         self._stats = None
-        self._is_reconnecting = False
 
         self._players: dict[int, BasePlayer] = {}
         self._player_factory = PlayerFactory()
         self._inactivity_settings = inactivity_settings
         self._waiting_to_disconnect: dict[int, asyncio.Task[None]] = {}
+
         self._cache: LFUCache[str, Any] = LFUCache(settings=cache_settings)
-
-        self._uri = uri.removesuffix("/")
-
         self._connection = ConnectionManager(self)
         self._events = EventRouter(self)
         self._ws_client = WebsocketClient(self)
         self._rest = HTTPClient(self)
         self._player_registry = PlayerRegistry(self)
-
         self._manager = self._rest.init_manager(session)
 
     def __repr__(self) -> str:
@@ -252,7 +250,7 @@ class Node:
 
         This can only be done when the node has been attached to a pool.
 
-        .. versuionadded:: 1.2.0
+        .. versionadded:: 1.2.0
         """
         await self._connection.reconnect()
 
