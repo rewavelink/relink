@@ -53,7 +53,6 @@ class EventRouter(NodeComponent):
 
         payload = msgspec.convert(data, ReadyPayload)
         self.node._resume_session = payload.session_id
-        self.node._status = NodeStatus.CONNECTED
 
         try:
             timeout = int(self.node.resume_timeout)

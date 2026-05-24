@@ -128,5 +128,5 @@ class WebsocketClient(NodeComponent):
         ):
             _log.info("%r WS closed, attempting reconnect...", self.node)
             await self.node.reconnect()
-        else:
+        elif self.node.is_connected:
             await self.node.close()
