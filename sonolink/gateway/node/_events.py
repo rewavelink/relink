@@ -29,7 +29,6 @@ from typing import Any
 
 import msgspec
 
-from sonolink.gateway.enums import NodeStatus
 from sonolink.gateway.event_models import PlayerUpdateEvent, ReadyEvent
 from sonolink.gateway.schemas.receive import (
     PlayerUpdateEvent as PlayerUpdatePayload,
