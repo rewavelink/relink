@@ -61,7 +61,11 @@ class ConnectionManager(NodeComponent):
         if not self.node.is_connected:
             raise RuntimeError("This Node is not connected yet.")
 
-        if self.node._keep_alive and not self.node._keep_alive.cancelled():
+        if (
+            self.node._keep_alive
+            and self.node._keep_alive is not asyncio.current_task()
+            and not self.node._keep_alive.cancelled()
+        ):
             self.node._keep_alive.cancel()
 
         if self.node._ws and self.node._ws.is_connected:
@@ -133,12 +137,13 @@ class ConnectionManager(NodeComponent):
             retries,
         )
         self.node._status = NodeStatus.DISCONNECTED
-        await self.node.cleanup()
 
         if self.node._is_reconnecting:
             self.node._is_reconnecting = False
             _log.info("%r finished reconnecting attempts. Node closed.", self.node)
-            await self.node.close()
+            self.node._client._dispatch("node_close", self.node)
+
+        await self.node.cleanup()
 
     async def handle_connection_error(self, exc: WebSocketError) -> None:
         if exc.status in (3000, 3003, 401):
