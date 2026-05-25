@@ -72,7 +72,9 @@ class HTTPClient(NodeComponent):
 
         is_url = query.startswith(("http://", "https://"))
         formatted = (
-            query if is_url or source is None else f"{source.removesuffix(':')}:{query}"
+            query
+            if is_url or source is None
+            else f"{str(source).removesuffix(':')}:{query}"
         )
 
         encoded = urllib.parse.quote(formatted)
