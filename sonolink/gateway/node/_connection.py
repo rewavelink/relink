@@ -58,7 +58,7 @@ class ConnectionManager(NodeComponent):
         if self.node._client is None:
             raise RuntimeError("Cannot close a Node that is not bound to a client.")
 
-        if not self.node.is_connected:
+        if self.node._status is NodeStatus.DISCONNECTED:
             raise RuntimeError("This Node is not connected yet.")
 
         if (
