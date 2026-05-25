@@ -75,9 +75,14 @@ class EventRouter(NodeComponent):
                 exc,
             )
 
+        self.node._ready_event.set()
+
+        if self.node._client is None:
+            return
+
         event = ReadyEvent(payload, self.node)
         self.node._client._dispatch("node_ready", event)
-        self.node._has_resume_session.set()
+        self.node._ready_event.set()
 
     async def handle_player_update(self, data: dict[str, Any]) -> None:
         assert self.node._client is not None

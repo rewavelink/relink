@@ -136,7 +136,7 @@ class Node:
         self._status: NodeStatus = NodeStatus.DISCONNECTED
         self._is_reconnecting = False
         self._resume_session = None
-        self._has_resume_session = asyncio.Event()
+        self._ready_event = asyncio.Event()
         self._ws = None
         self._keep_alive = None
         self._stats = None
@@ -166,7 +166,7 @@ class Node:
 
     async def _wait_session(self) -> bool:
         try:
-            return await asyncio.wait_for(self._has_resume_session.wait(), timeout=10.0)
+            return await asyncio.wait_for(self._ready_event.wait(), timeout=10.0)
         except TimeoutError:
             raise RuntimeError("Timed out waiting for node READY payload.")
 

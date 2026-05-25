@@ -78,6 +78,7 @@ class ConnectionManager(NodeComponent):
         self.node._keep_alive = None
         self.node._resume_session = None
         self.node._status = NodeStatus.DISCONNECTED
+        self.node._ready_event.clear()
 
         self.node._client._dispatch("node_close", self.node)
         await self.node.cleanup()
