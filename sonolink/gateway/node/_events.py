@@ -29,6 +29,7 @@ from typing import Any
 
 import msgspec
 
+from sonolink.gateway.enums import NodeStatus
 from sonolink.gateway.event_models import PlayerUpdateEvent, ReadyEvent
 from sonolink.gateway.schemas.receive import (
     PlayerUpdateEvent as PlayerUpdatePayload,
@@ -48,17 +49,14 @@ class EventRouter(NodeComponent):
     """Internal component responsible for routing node events."""
 
     async def handle_ready(self, data: dict[str, Any]) -> None:
-        assert self.node._client is not None
-
         payload = msgspec.convert(data, ReadyPayload)
         self.node._resume_session = payload.session_id
-
+    
         try:
             timeout = int(self.node.resume_timeout)
             update_data = UpdateSessionRequest(
                 resuming=timeout > 0, timeout=max(0, timeout)
             )
-
             await self.node._manager.update_session(
                 session_id=self.node._resume_session, data=update_data
             )
@@ -74,15 +72,15 @@ class EventRouter(NodeComponent):
                 self.node._id,
                 exc,
             )
-
+    
+        self.node._status = NodeStatus.CONNECTED
         self.node._ready_event.set()
-
+    
         if self.node._client is None:
             return
-
+    
         event = ReadyEvent(payload, self.node)
         self.node._client._dispatch("node_ready", event)
-        self.node._ready_event.set()
 
     async def handle_player_update(self, data: dict[str, Any]) -> None:
         assert self.node._client is not None
