@@ -92,7 +92,6 @@ class ConnectionManager(NodeComponent):
 
         self.node._resume_session = None
         self.node._ws = None
-        self.node._keep_alive = None
         self.node._status = NodeStatus.CONNECTING
         self.node._ready_event.clear()
         self.node._is_reconnecting = True
