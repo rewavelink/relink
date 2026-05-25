@@ -80,8 +80,8 @@ class ConnectionManager(NodeComponent):
         self.node._status = NodeStatus.DISCONNECTED
         self.node._ready_event.clear()
 
-        self.node._client._dispatch("node_close", self.node)
         await self.node.cleanup()
+        self.node._client._dispatch("node_close", self.node)
 
     async def reconnect(self) -> None:
         if self.node._client is None:
@@ -94,11 +94,13 @@ class ConnectionManager(NodeComponent):
         self.node._ws = None
         self.node._keep_alive = None
         self.node._status = NodeStatus.CONNECTING
+        self.node._ready_event.clear()
         self.node._is_reconnecting = True
         await self.attempt_connect()
 
     async def attempt_connect(self) -> None:
-        assert self.node._client is not None
+        if self.node._client is None:
+            return
 
         base_delay = 0.5
         max_delay = 10.0
