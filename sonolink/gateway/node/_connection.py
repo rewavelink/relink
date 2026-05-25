@@ -138,12 +138,17 @@ class ConnectionManager(NodeComponent):
             retries,
         )
         self.node._status = NodeStatus.DISCONNECTED
+<<<<<<< HEAD
 
         if self.node._is_reconnecting:
             self.node._is_reconnecting = False
             _log.info("%r finished reconnecting attempts. Node closed.", self.node)
             self.node._client._dispatch("node_close", self.node)
 
+=======
+        if self.node._client is not None:
+            self.node._client._dispatch("node_close", self.node)
+>>>>>>> 4d40e7e (fix(node): prevent double dispatch of node_close event)
         await self.node.cleanup()
 
     async def handle_connection_error(self, exc: WebSocketError) -> None:
