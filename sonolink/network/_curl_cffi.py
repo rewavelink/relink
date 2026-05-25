@@ -123,8 +123,8 @@ class CurlWebsocketManager(
                 url=url,
                 headers=headers,
             )
-        except (WebSocketError, CurlError) as e:
-            raise InnerWSError(e) from e
+        except (CurlError, WebSocketError) as exc:
+            raise InnerWSError(exc) from exc
 
     async def receive(self) -> Message:
         if self._ws is None:
