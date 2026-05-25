@@ -51,7 +51,7 @@ class EventRouter(NodeComponent):
     async def handle_ready(self, data: dict[str, Any]) -> None:
         payload = msgspec.convert(data, ReadyPayload)
         self.node._resume_session = payload.session_id
-    
+
         try:
             timeout = int(self.node.resume_timeout)
             update_data = UpdateSessionRequest(
@@ -72,13 +72,13 @@ class EventRouter(NodeComponent):
                 self.node._id,
                 exc,
             )
-    
+
         self.node._status = NodeStatus.CONNECTED
         self.node._ready_event.set()
-    
+
         if self.node._client is None:
             return
-    
+
         event = ReadyEvent(payload, self.node)
         self.node._client._dispatch("node_ready", event)
 
