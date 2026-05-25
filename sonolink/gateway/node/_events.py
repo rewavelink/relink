@@ -83,8 +83,6 @@ class EventRouter(NodeComponent):
         self.node._client._dispatch("node_ready", event)
 
     async def handle_player_update(self, data: dict[str, Any]) -> None:
-        assert self.node._client is not None
-
         payload = msgspec.convert(data, PlayerUpdatePayload)
 
         guild_id = int(payload.guild_id)
@@ -93,6 +91,9 @@ class EventRouter(NodeComponent):
         if player:
             player._update_state(payload.state)
 
+        if self.node._client is None:
+            return
+
         event = PlayerUpdateEvent(payload, self.node)
         self.node._client._dispatch("player_update", event)
 
@@ -100,8 +101,6 @@ class EventRouter(NodeComponent):
         self.node._stats = msgspec.convert(data, StatsResponse)
 
     async def handle_event(self, data: dict[str, Any]) -> None:
-        assert self.node._client is not None
-
         guild_id = int(data.get("guildId", 0))
         player = self.node.get_player(guild_id)
 
@@ -111,6 +110,9 @@ class EventRouter(NodeComponent):
                 data.get("type"),
                 guild_id,
             )
+            return
+
+        if self.node._client is None:
             return
 
         await player._dispatch_event(data)

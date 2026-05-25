@@ -74,8 +74,8 @@ class WebsocketClient(NodeComponent):
         self.node._keep_alive = asyncio.create_task(self.keep_alive_coro())
 
     async def keep_alive_coro(self) -> None:
-        assert self.node._ws is not None
-        assert self.node._client
+        if self.node._ws is None or self.node._client is None:
+            return
 
         while True:
             try:
