@@ -125,7 +125,6 @@ class ConnectionManager(NodeComponent):
                     attempt + 1,
                     "inf" if retries is None else retries,
                 )
-                self.node._status = NodeStatus.CONNECTED
                 return
 
             delay = min(base_delay * (2**attempt), max_delay)
