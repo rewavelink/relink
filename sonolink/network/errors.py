@@ -36,6 +36,7 @@ if TYPE_CHECKING:
         aiohttp.WebSocketError
         | aiohttp.WSServerHandshakeError
         | curl_cffi.requests.WebSocketError
+        | curl_cffi.CurlError
     )
 
 

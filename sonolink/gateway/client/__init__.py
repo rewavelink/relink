@@ -222,6 +222,7 @@ class Client(Generic[N]):
         cache_settings: CacheSettings | None = None,
         inactivity_settings: InactivitySettings | None = None,
         session: SessionType | None = None,
+        auto_reconnect: bool = True,
     ) -> N:
         """
         Creates a :class:`Node` attached to this client.
@@ -261,6 +262,11 @@ class Client(Generic[N]):
             If ``None`` is passed, it uses ``InactivitySettings.default()``.
         session: ``aiohttp.ClientSession`` | ``curl_cffi.AsyncSession`` | :data:`None`
             The session this node should use. If ``None`` is provided, creates one. Defaults to ``None``.
+        auto_reconnect: :class:`bool`
+            Whether the node should attempt to reconnect automatically after an unexpected
+            disconnect. Defaults to ``True``.
+
+            versionadded:: 1.2.0
 
         Raises
         ------
@@ -295,6 +301,7 @@ class Client(Generic[N]):
             cache_settings=c_settings,
             inactivity_settings=i_settings,
             session=session,
+            auto_reconnect=auto_reconnect,
         )
         self._nodes[node.id] = node
         return node

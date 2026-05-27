@@ -27,6 +27,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, cast
 
+from curl_cffi import CurlError
 from curl_cffi.requests import (
     AsyncSession,
     AsyncWebSocket,
@@ -122,8 +123,8 @@ class CurlWebsocketManager(
                 url=url,
                 headers=headers,
             )
-        except WebSocketError as e:
-            raise InnerWSError(e) from e
+        except (CurlError, WebSocketError) as exc:
+            raise InnerWSError(exc) from exc
 
     async def receive(self) -> Message:
         if self._ws is None:
@@ -133,7 +134,7 @@ class CurlWebsocketManager(
 
         try:
             payload, flags = await ws.recv()
-        except WebSocketClosed:
+        except (CurlError, WebSocketClosed):
             self._ws = None
             raise ConnectionResetError("Websocket connection was closed.")
 

@@ -58,10 +58,14 @@ class ConnectionManager(NodeComponent):
         if self.node._client is None:
             raise RuntimeError("Cannot close a Node that is not bound to a client.")
 
-        if not self.node.is_connected:
+        if self.node._status is NodeStatus.DISCONNECTED:
             raise RuntimeError("This Node is not connected yet.")
 
-        if self.node._keep_alive and not self.node._keep_alive.cancelled():
+        if (
+            self.node._keep_alive
+            and self.node._keep_alive is not asyncio.current_task()
+            and not self.node._keep_alive.cancelled()
+        ):
             self.node._keep_alive.cancel()
 
         if self.node._ws and self.node._ws.is_connected:
@@ -74,12 +78,28 @@ class ConnectionManager(NodeComponent):
         self.node._keep_alive = None
         self.node._resume_session = None
         self.node._status = NodeStatus.DISCONNECTED
+        self.node._ready_event.clear()
 
-        self.node._client._dispatch("node_close", self.node)
         await self.node.cleanup()
+        self.node._client._dispatch("node_close", self.node)
+
+    async def reconnect(self) -> None:
+        if self.node._client is None:
+            raise RuntimeError("Cannot reconnect a Node that is not bound to a client.")
+
+        if self.node._is_reconnecting:
+            raise RuntimeError("This node is already reconnecting.")
+
+        self.node._resume_session = None
+        self.node._ws = None
+        self.node._status = NodeStatus.CONNECTING
+        self.node._ready_event.clear()
+        self.node._is_reconnecting = True
+        await self.attempt_connect()
 
     async def attempt_connect(self) -> None:
-        assert self.node._client is not None
+        if self.node._client is None:
+            return
 
         base_delay = 0.5
         max_delay = 10.0
@@ -107,7 +127,6 @@ class ConnectionManager(NodeComponent):
                     attempt + 1,
                     "inf" if retries is None else retries,
                 )
-                self.node._status = NodeStatus.CONNECTED
                 return
 
             delay = min(base_delay * (2**attempt), max_delay)
@@ -120,6 +139,12 @@ class ConnectionManager(NodeComponent):
             retries,
         )
         self.node._status = NodeStatus.DISCONNECTED
+
+        if self.node._is_reconnecting:
+            self.node._is_reconnecting = False
+            _log.info("%r finished reconnecting attempts. Node closed.", self.node)
+            self.node._client._dispatch("node_close", self.node)
+
         await self.node.cleanup()
 
     async def handle_connection_error(self, exc: WebSocketError) -> None:

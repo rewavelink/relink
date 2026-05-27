@@ -49,18 +49,14 @@ class EventRouter(NodeComponent):
     """Internal component responsible for routing node events."""
 
     async def handle_ready(self, data: dict[str, Any]) -> None:
-        assert self.node._client is not None
-
         payload = msgspec.convert(data, ReadyPayload)
         self.node._resume_session = payload.session_id
-        self.node._status = NodeStatus.CONNECTED
 
         try:
             timeout = int(self.node.resume_timeout)
             update_data = UpdateSessionRequest(
                 resuming=timeout > 0, timeout=max(0, timeout)
             )
-
             await self.node._manager.update_session(
                 session_id=self.node._resume_session, data=update_data
             )
@@ -77,13 +73,16 @@ class EventRouter(NodeComponent):
                 exc,
             )
 
+        self.node._status = NodeStatus.CONNECTED
+        self.node._ready_event.set()
+
+        if self.node._client is None:
+            return
+
         event = ReadyEvent(payload, self.node)
         self.node._client._dispatch("node_ready", event)
-        self.node._has_resume_session.set()
 
     async def handle_player_update(self, data: dict[str, Any]) -> None:
-        assert self.node._client is not None
-
         payload = msgspec.convert(data, PlayerUpdatePayload)
 
         guild_id = int(payload.guild_id)
@@ -92,6 +91,9 @@ class EventRouter(NodeComponent):
         if player:
             player._update_state(payload.state)
 
+        if self.node._client is None:
+            return
+
         event = PlayerUpdateEvent(payload, self.node)
         self.node._client._dispatch("player_update", event)
 
@@ -99,8 +101,6 @@ class EventRouter(NodeComponent):
         self.node._stats = msgspec.convert(data, StatsResponse)
 
     async def handle_event(self, data: dict[str, Any]) -> None:
-        assert self.node._client is not None
-
         guild_id = int(data.get("guildId", 0))
         player = self.node.get_player(guild_id)
 
@@ -110,6 +110,9 @@ class EventRouter(NodeComponent):
                 data.get("type"),
                 guild_id,
             )
+            return
+
+        if self.node._client is None:
             return
 
         await player._dispatch_event(data)
