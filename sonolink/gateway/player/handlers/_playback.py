@@ -73,8 +73,8 @@ class PlaybackHandler(HandlerBase):
         )
 
         # this is for the track_start event
-        # in case of a race consdition where the event is received
-        # before/after the play method finishes, we want to have the
+        # in case the user modifies the track before/after calling 
+        # the play method, we want to have the
         # original track available. So we set it before the call.
         self._player._original_track = track
 
