@@ -61,7 +61,9 @@ class PlaybackHandler(HandlerBase):
         volume = volume if volume is not None else self._player._volume
         paused = paused if paused is not None else self._player._paused
 
-        track_payload = UpdatePlayerTrackRequest(encoded=track.encoded)
+        track_payload = UpdatePlayerTrackRequest(
+            encoded=track.encoded, user_data=vars(track.extras)
+        )
         data = UpdatePlayerRequest(
             track=track_payload,
             position=start,
@@ -70,11 +72,23 @@ class PlaybackHandler(HandlerBase):
             paused=paused,
         )
 
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self._player.guild.id),
-            data=data,
-        )
+        # this is for the track_start event
+        # in case of a race consdition where the event is received
+        # before/after the play method finishes, we want to have the
+        # original track available. So we set it before the call.
+        self._player._original_track = track
+
+        try:
+            await node._manager.update_player(
+                session_id=node._resume_session,
+                guild_id=str(self._player.guild.id),
+                data=data,
+            )
+        except Exception as exc:
+            # this is in a try-except so that if the request fails,
+            # we don't have a stale original track set.
+            self._player._original_track = None
+            raise exc from None
 
         self._player._volume = volume
         self._player._paused = paused
@@ -95,7 +109,9 @@ class PlaybackHandler(HandlerBase):
         node = self._player.node
         assert node._resume_session is not None
 
-        data = UpdatePlayerRequest(track=UpdatePlayerTrackRequest(encoded=None))
+        extras = vars(self._player.current.extras) if self._player.current else {}
+        track_payload = UpdatePlayerTrackRequest(encoded=None, user_data=extras)
+        data = UpdatePlayerRequest(track=track_payload)
 
         await node._manager.update_player(
             session_id=node._resume_session,

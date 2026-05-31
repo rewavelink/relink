@@ -16,6 +16,7 @@ in specific versions.
 - Added the missing `auto_reconnect` parameter to :meth:`Client.create_node` for controlling whether the client should
   automatically attempt to reconnect to the node on disconnection. This defaults to ``True``.
 - Added :meth:`Node.reconnect` for manually triggering a reconnection to the node.
+- Added :attr:`TrackStartEvent.original` to access the original track associated with the event. Check the documentation for more details.
 
 **Fixed**
 ~~~~~~~~~

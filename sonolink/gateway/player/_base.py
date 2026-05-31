@@ -145,6 +145,7 @@ class BasePlayer(abc.ABC):
         "_last_update",
         "_lifecycle_handler",
         "_node",
+        "_original_track",
         "_paused",
         "_playback_handler",
         "_queue",
@@ -161,6 +162,9 @@ class BasePlayer(abc.ABC):
     _queue: Queue
     _ready: bool
     _volume: int
+
+    # see the play method for more details
+    _original_track: Playable | None
 
     client: Any
     channel: Any
@@ -184,6 +188,7 @@ class BasePlayer(abc.ABC):
         self._queue = Queue(mode=queue_mode, history_settings=history_settings)
         self._paused = paused or False
         self._volume = volume if volume is not None else 100
+        self._original_track = None
 
         self._last_position = 0
         self._last_update = 0.0
