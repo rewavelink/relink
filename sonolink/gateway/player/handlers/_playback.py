@@ -25,6 +25,8 @@ SOFTWARE.
 from __future__ import annotations
 
 import time
+import types
+from typing import Any
 
 import msgspec
 
@@ -62,7 +64,8 @@ class PlaybackHandler(HandlerBase):
         paused = paused if paused is not None else self._player._paused
 
         track_payload = UpdatePlayerTrackRequest(
-            encoded=track.encoded, user_data=vars(track.extras)
+            encoded=track.encoded,
+            user_data=self._build_user_data(track.extras),
         )
         data = UpdatePlayerRequest(
             track=track_payload,
@@ -72,10 +75,6 @@ class PlaybackHandler(HandlerBase):
             paused=paused,
         )
 
-        # this is for the track_start event
-        # in case the user modifies the track before/after calling 
-        # the play method, we want to have the
-        # original track available. So we set it before the call.
         self._player._original_track = track
 
         try:
@@ -85,8 +84,6 @@ class PlaybackHandler(HandlerBase):
                 data=data,
             )
         except Exception as exc:
-            # this is in a try-except so that if the request fails,
-            # we don't have a stale original track set.
             self._player._original_track = None
             raise exc from None
 
@@ -109,8 +106,7 @@ class PlaybackHandler(HandlerBase):
         node = self._player.node
         assert node._resume_session is not None
 
-        extras = vars(self._player.current.extras) if self._player.current else {}
-        track_payload = UpdatePlayerTrackRequest(encoded=None, user_data=extras)
+        track_payload = UpdatePlayerTrackRequest(encoded=None)
         data = UpdatePlayerRequest(track=track_payload)
 
         await node._manager.update_player(
@@ -244,3 +240,20 @@ class PlaybackHandler(HandlerBase):
             self._player.guild.id,
             filters,
         )
+
+    def _build_user_data(
+        self, extras: types.SimpleNamespace
+    ) -> dict[str, Any] | msgspec.UnsetType:
+        result: dict[str, Any] = {}
+        for key, value in vars(extras).items():
+            try:
+                msgspec.json.encode(value)
+                result[key] = value
+            except TypeError:
+                _log.warning(
+                    "Track extras key %r of type %r is not json-serializable and will not "
+                    "be sent as user_data to Lavalink. Use event.original.extras to access it.",
+                    key,
+                    type(value).__name__,
+                )
+        return result or msgspec.UNSET

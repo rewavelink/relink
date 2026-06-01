@@ -158,13 +158,11 @@ class BasePlayer(abc.ABC):
     _last_position: Annotated[int, "ms"]
     _last_update: Annotated[float, "time.monotonic"]
     _node: Node | None
+    _original_track: Playable | None
     _paused: bool
     _queue: Queue
     _ready: bool
     _volume: int
-
-    # see the play method for more details
-    _original_track: Playable | None
 
     client: Any
     channel: Any
