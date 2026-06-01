@@ -1,6 +1,6 @@
 """
 sonolink.rest.http
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 """
 
 from __future__ import annotations

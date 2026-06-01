@@ -1,6 +1,6 @@
 """
 sonolink.rest
-~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 Module that handles rest-related objects.
 

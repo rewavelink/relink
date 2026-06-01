@@ -1,6 +1,6 @@
 """
 sonolink.rest.schemas
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 Submodule containing all the schemas used in the rest module.
 

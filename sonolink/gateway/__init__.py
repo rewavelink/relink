@@ -1,6 +1,6 @@
 """
 sonolink.gateway
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 Module that handles gateway-related objects.
 

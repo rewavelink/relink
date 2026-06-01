@@ -1,6 +1,6 @@
 """
 sonolink.utils
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 """
 
 from .properties import *
