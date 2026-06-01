@@ -104,7 +104,7 @@ class ReadyEvent(EventModel["receive.ReadyEvent"]):
 
     resumed: bool
     """
-    Whether the session was resumed, 
+    Whether the session was resumed,
     if this is ``False`` it implies a new connection was created.
     """
 
@@ -188,7 +188,17 @@ class TrackEndEvent(EventModel["events.TrackEndEvent"]):
     __repr_attrs__ = (
         "reason",
         "track",
+        "original",
     )
+
+    def __init__(
+        self,
+        underlying: events.TrackEndEvent,
+        node: Node,
+        original: Playable | None = None,
+    ) -> None:
+        super().__init__(underlying, node)
+        self._original = original
 
     reason: TrackEndReason
     """The reason the track ended."""
@@ -200,6 +210,17 @@ class TrackEndEvent(EventModel["events.TrackEndEvent"]):
         return Playable(
             client=self.node.client, data=self._underlying.track, playlist=None
         )
+
+    @property
+    def original(self) -> Playable | None:
+        """The original track associated with this event.
+
+        This is the track that was passed to `play()` or added to the queue.
+        This is useful in cases where you have modified the track before playing it.
+
+        .. versionadded:: 1.2.0
+        """
+        return self._original
 
 
 class TrackExceptionEvent(EventModel["events.TrackExceptionEvent"]):

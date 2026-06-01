@@ -118,6 +118,7 @@ class PlaybackHandler(HandlerBase):
         self._player._last_position = 0
         self._player._last_update = 0.0
         self._player._queue.current_track = None
+        self._player._original_track = None
 
         if clear_queue:
             self._player._queue.clear()
