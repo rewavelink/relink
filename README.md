@@ -61,6 +61,11 @@ pip install -U "sonolink[speed] @ git+https://github.com/sonolink/sonolink" # op
 > [!TIP]
 > On Linux/macOS use `python3 -m pip`, on Windows use `py -3 -m pip` if `pip` isn't on your PATH.
 
+## Contributors
+This project wouldn't be possible without the dedication and support of our contributors.  
+<br>
+![Contributors](https://contributors-table.vercel.app/image?repo=sonolink/sonolink&width=50&columns=15)
+
 <br>
 
 <p align="center">
