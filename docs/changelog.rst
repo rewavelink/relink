@@ -16,7 +16,12 @@ in specific versions.
 - Added the missing `auto_reconnect` parameter to :meth:`Client.create_node` for controlling whether the client should
   automatically attempt to reconnect to the node on disconnection. This defaults to ``True``.
 - Added :meth:`Node.reconnect` for manually triggering a reconnection to the node.
-
+- Added :attr:`TrackStartEvent.original` and :attr:`TrackEndEvent.original` to access
+  the original track passed to :meth:`Player.play`.
+- Serializable extras are now forwarded to Lavalink as ``user_data`` and accessible via
+  :attr:`Playable.extras` on reconstructed tracks. Non-serializable values are warned and
+  accessible via ``.original.extras``.
+  
 **Fixed**
 ~~~~~~~~~
 

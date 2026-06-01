@@ -25,6 +25,8 @@ SOFTWARE.
 from __future__ import annotations
 
 import time
+import types
+from typing import Any
 
 import msgspec
 
@@ -61,7 +63,10 @@ class PlaybackHandler(HandlerBase):
         volume = volume if volume is not None else self._player._volume
         paused = paused if paused is not None else self._player._paused
 
-        track_payload = UpdatePlayerTrackRequest(encoded=track.encoded)
+        track_payload = UpdatePlayerTrackRequest(
+            encoded=track.encoded,
+            user_data=self._build_user_data(track.extras),
+        )
         data = UpdatePlayerRequest(
             track=track_payload,
             position=start,
@@ -70,11 +75,17 @@ class PlaybackHandler(HandlerBase):
             paused=paused,
         )
 
-        await node._manager.update_player(
-            session_id=node._resume_session,
-            guild_id=str(self._player.guild.id),
-            data=data,
-        )
+        self._player._original_track = track
+
+        try:
+            await node._manager.update_player(
+                session_id=node._resume_session,
+                guild_id=str(self._player.guild.id),
+                data=data,
+            )
+        except Exception as exc:
+            self._player._original_track = None
+            raise exc from None
 
         self._player._volume = volume
         self._player._paused = paused
@@ -95,7 +106,8 @@ class PlaybackHandler(HandlerBase):
         node = self._player.node
         assert node._resume_session is not None
 
-        data = UpdatePlayerRequest(track=UpdatePlayerTrackRequest(encoded=None))
+        track_payload = UpdatePlayerTrackRequest(encoded=None)
+        data = UpdatePlayerRequest(track=track_payload)
 
         await node._manager.update_player(
             session_id=node._resume_session,
@@ -106,6 +118,7 @@ class PlaybackHandler(HandlerBase):
         self._player._last_position = 0
         self._player._last_update = 0.0
         self._player._queue.current_track = None
+        self._player._original_track = None
 
         if clear_queue:
             self._player._queue.clear()
@@ -228,3 +241,33 @@ class PlaybackHandler(HandlerBase):
             self._player.guild.id,
             filters,
         )
+
+    def _build_user_data(
+        self, extras: types.SimpleNamespace
+    ) -> dict[str, Any] | msgspec.UnsetType:
+        result: dict[str, Any] = {}
+        skipped: list[str] = []
+
+        for key, value in vars(extras).items():
+            try:
+                msgspec.json.encode(value)
+                result[key] = value
+            except TypeError:
+                skipped.append(repr(key))
+
+        if skipped:
+            if len(skipped) > 2:
+                keys_str = f"{', '.join(skipped[:-1])}, and {skipped[-1]}"
+            else:
+                keys_str = " and ".join(skipped)
+
+            _log.warning(
+                "Track extras %s (%s) %s not json-serializable and will not be sent as "
+                "user_data to Lavalink.\nUse event.original.extras to access %s.",
+                "keys" if len(skipped) > 1 else "key",
+                keys_str,
+                "are" if len(skipped) > 1 else "is",
+                "them" if len(skipped) > 1 else "it",
+            )
+
+        return result or msgspec.UNSET

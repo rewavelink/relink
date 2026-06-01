@@ -91,7 +91,11 @@ class EventsHandler(HandlerBase):
                 self._player._node._client._dispatch(
                     "track_start",
                     self._player,
-                    TrackStartEvent(payload, self._player._node),
+                    TrackStartEvent(
+                        payload,
+                        self._player._node,
+                        original=self._player._original_track,
+                    ),
                 )
 
             case "TrackEndEvent":
@@ -110,8 +114,13 @@ class EventsHandler(HandlerBase):
                 self._player._node._client._dispatch(
                     "track_end",
                     self._player,
-                    TrackEndEvent(payload, self._player._node),
+                    TrackEndEvent(
+                        payload,
+                        self._player._node,
+                        original=self._player._original_track,
+                    ),
                 )
+                self._player._original_track = None
                 self._player._check_inactivity()
 
             case "TrackExceptionEvent":
